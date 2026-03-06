@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import './travelsync-design-system.css'
 type TicketStatus = "Open" | "Waiting for user" | "Resolved";
 
 interface Ticket {

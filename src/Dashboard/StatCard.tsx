@@ -1,3 +1,4 @@
+import './travelsync-design-system.css'
 interface StatCardProps {
   title: string;
   value: string;

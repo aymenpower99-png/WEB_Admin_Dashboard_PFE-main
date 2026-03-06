@@ -1,21 +1,110 @@
-import DashboardRoundedIcon      from "@mui/icons-material/DashboardRounded";
-import PeopleAltRoundedIcon      from "@mui/icons-material/PeopleAltRounded";
-import FlightTakeoffRoundedIcon  from "@mui/icons-material/FlightTakeoffRounded";
-import PaymentsRoundedIcon       from "@mui/icons-material/PaymentsRounded";
-import HeadsetMicRoundedIcon     from "@mui/icons-material/HeadsetMicRounded";
-import TuneRoundedIcon           from "@mui/icons-material/TuneRounded";
-import ShieldRoundedIcon         from "@mui/icons-material/ShieldRounded";
-import { NAV_ITEMS, NAV_SUPPORT, type NavItem } from "./constants";
+import { useState } from "react";
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
+import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
+import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
+import HeadsetMicRoundedIcon from "@mui/icons-material/HeadsetMicRounded";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
+import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
+import BusinessCenterRoundedIcon from "@mui/icons-material/BusinessCenterRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import MapRoundedIcon from "@mui/icons-material/MapRounded";
+import "./travelsync-design-system.css";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  dashboard:   <DashboardRoundedIcon fontSize="small" />,
-  people:      <PeopleAltRoundedIcon fontSize="small" />,
-  flight:      <FlightTakeoffRoundedIcon fontSize="small" />,
-  payments:    <PaymentsRoundedIcon fontSize="small" />,
-  headset_mic: <HeadsetMicRoundedIcon fontSize="small" />,
-  tune:        <TuneRoundedIcon fontSize="small" />,
-  shield:      <ShieldRoundedIcon fontSize="small" />,
+  dashboard: <DashboardRoundedIcon style={{ fontSize: 18 }} />,
+  people: <PeopleAltRoundedIcon style={{ fontSize: 18 }} />,
+  flight: <FlightTakeoffRoundedIcon style={{ fontSize: 18 }} />,
+  payments: <PaymentsRoundedIcon style={{ fontSize: 18 }} />,
+  headset_mic: <HeadsetMicRoundedIcon style={{ fontSize: 18 }} />,
+  tune: <TuneRoundedIcon style={{ fontSize: 18 }} />,
+  shield: <ShieldRoundedIcon style={{ fontSize: 18 }} />,
+  directions_car: <DirectionsCarRoundedIcon style={{ fontSize: 18 }} />,
+  badge: <BadgeRoundedIcon style={{ fontSize: 18 }} />,
+  business_center: <BusinessCenterRoundedIcon style={{ fontSize: 18 }} />,
+  person: <PersonRoundedIcon style={{ fontSize: 18 }} />,
+  map: <MapRoundedIcon style={{ fontSize: 18 }} />,
 };
+
+interface NavItem {
+  label: string;
+  icon: string;
+  page: string;
+  children?: { label: string; page: string }[];
+}
+
+const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
+  {
+    section: "OVERVIEW",
+    items: [
+      { label: "Dashboard", icon: "dashboard", page: "dashboard" },
+      {
+        label: "Agency Dashboard",
+        icon: "dashboard",
+        page: "agency-dashboard",
+      },
+    ],
+  },
+
+  {
+    section: "USERS",
+    items: [{ label: "Users", icon: "people", page: "users" }],
+  },
+
+  {
+    section: "DRIVERS & VEHICLES",
+    items: [
+      {
+        label: "Drivers",
+        icon: "person",
+        page: "drivers",
+        children: [
+          { label: "Drivers", page: "drivers" },
+          { label: "Add Driver", page: "agency-drivers" },
+        ],
+      },
+      {
+        label: "Vehicles",
+        icon: "directions_car",
+        page: "vehicles",
+        children: [
+          { label: "Vehicles", page: "vehicles" },
+          { label: "Add Vehicle", page: "agency-vehicles" },
+        ],
+      },
+    ],
+  },
+
+  {
+    section: "RIDES",
+    items: [{ label: "Trips", icon: "flight", page: "trips" }],
+  },
+
+  {
+    section: "BILLING",
+    items: [
+      { label: "Payments", icon: "payments", page: "payments" },
+      { label: "Agency Billing", icon: "payments", page: "agency-billing" },
+    ],
+  },
+
+  {
+    section: "AGENCY",
+    items: [{ label: "Work Area", icon: "map", page: "work-area" }],
+  },
+
+  {
+    section: "SUPPORT & SETTINGS",
+    items: [
+      { label: "Help center", icon: "headset_mic", page: "help" },
+      { label: "Settings", icon: "tune", page: "settings" },
+      { label: "Security", icon: "shield", page: "security" },
+    ],
+  },
+];
 
 interface SidebarProps {
   dark: boolean;
@@ -24,92 +113,167 @@ interface SidebarProps {
   onNavigate: (page: string) => void;
 }
 
-interface NavSectionProps {
-  label: string;
-  items: NavItem[];
-  dark: boolean;
-  activePage: string;
-  onNavigate: (page: string) => void;
-}
+export default function Sidebar({
+  dark,
+  onToggleDark,
+  activePage,
+  onNavigate,
+}: SidebarProps) {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const toggle = (label: string) =>
+    setExpanded((p) => ({ ...p, [label]: !p[label] }));
 
-interface SidebarFooterProps {
-  dark: boolean;
-  onToggleDark: () => void;
-}
-
-export default function Sidebar({ dark, onToggleDark, activePage, onNavigate }: SidebarProps) {
   return (
-    <div className="flex flex-col h-full gap-4">
-      <NavSection label="Overview"          items={NAV_ITEMS}   dark={dark} activePage={activePage} onNavigate={onNavigate} />
-      <NavSection label="Support & settings" items={NAV_SUPPORT} dark={dark} activePage={activePage} onNavigate={onNavigate} />
-      <div className="flex-1" />
-      <SidebarFooter dark={dark} onToggleDark={onToggleDark} />
-    </div>
-  );
-}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        gap: 0,
+      }}
+    >
+      {/* ── Nav groups ── */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.25rem",
+          flex: 1,
+        }}
+      >
+        {NAV_GROUPS.map((group) => (
+          <div key={group.section}>
+            <div className="ts-section-label">{group.section}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {group.items.map((item) => {
+                const hasChildren = !!item.children?.length;
+                const isExp = !!expanded[item.label];
+                const isChildActive =
+                  item.children?.some((c) => c.page === activePage) ?? false;
+                // Parent gets solid active style only when on its own page AND no child is selected
+                const isParentActive =
+                  activePage === item.page && !isChildActive;
 
-function NavSection({ label, items, dark, activePage, onNavigate }: NavSectionProps) {
-  return (
-    <div>
-      <div className={`text-xs font-semibold uppercase tracking-widest px-2 mb-2 ${dark ? "text-gray-500" : "text-gray-400"}`}>
-        {label}
+                return (
+                  <div key={item.label}>
+                    <button
+                      onClick={() => {
+                        onNavigate(item.page);
+                        if (hasChildren) toggle(item.label);
+                      }}
+                      className={`ts-nav-item${isParentActive ? " ts-nav-active" : ""}`}
+                      style={{
+                        justifyContent: "space-between",
+                        ...(isChildActive
+                          ? {
+                              background: "var(--brand-soft)",
+                              color: "#7c3aed",
+                            }
+                          : {}),
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.625rem",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            width: 20,
+                            height: 20,
+                          }}
+                        >
+                          {ICON_MAP[item.icon]}
+                        </span>
+                        {item.label}
+                      </span>
+                      {hasChildren && (
+                        <ExpandMoreRoundedIcon
+                          style={{
+                            fontSize: 16,
+                            color: isChildActive
+                              ? "#7c3aed"
+                              : isParentActive
+                                ? "rgba(255,255,255,0.7)"
+                                : "var(--text-faint)",
+                            transition: "transform .2s",
+                            transform: isExp
+                              ? "rotate(180deg)"
+                              : "rotate(0deg)",
+                          }}
+                        />
+                      )}
+                    </button>
+
+                    {/* Sub-menu — only renders when expanded */}
+                    {hasChildren && isExp && (
+                      <div
+                        style={{
+                          marginLeft: "1.75rem",
+                          marginTop: 2,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                          borderLeft: "1px solid var(--border)",
+                          paddingLeft: "0.75rem",
+                        }}
+                      >
+                        {item.children!.map((child) => (
+                          <button
+                            key={child.label}
+                            onClick={() => onNavigate(child.page)}
+                            className={`ts-nav-item${activePage === child.page ? " ts-nav-active" : ""}`}
+                            style={{ fontSize: "0.8125rem" }}
+                          >
+                            {child.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
-      <div className="flex flex-col gap-0.5">
-        {items.map((item) => {
-          const isActive = activePage === item.page;
-          return (
-            <button
-              key={item.label}
-              onClick={() => onNavigate(item.page)}
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-sm font-medium transition-all duration-200 w-full ${
-                isActive
-                  ? "text-white scale-[1.01]"
-                  : dark
-                  ? "text-gray-400 hover:text-gray-100 hover:bg-gray-800"
-                  : "text-gray-500 hover:text-gray-800 hover:bg-gray-200"
-              }`}
-              style={isActive ? { background: "linear-gradient(135deg,#a855f7,#7c3aed)" } : {}}
+
+      {/* ── User footer ── */}
+      <div className="ts-sidebar-footer">
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div className="ts-sidebar-avatar">
+            <img
+              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex"
+              alt="Alex"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              className="ts-td-h"
+              style={{ fontSize: "0.875rem", fontWeight: 500 }}
             >
-              <span className={`flex items-center justify-center w-5 h-5 ${isActive ? "text-white" : dark ? "text-gray-400" : "text-gray-500"}`}>
-                {ICON_MAP[item.icon]}
-              </span>
-              {item.label}
+              Alex Martin
+            </div>
+            <div className="ts-faint" style={{ fontSize: "0.75rem" }}>
+              Super admin
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 4 }}>
+            <button onClick={onToggleDark} className="ts-sidebar-util">
+              {dark ? "☀" : "🌙"}
             </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function SidebarFooter({ dark, onToggleDark }: SidebarFooterProps) {
-  return (
-    <div className={`pt-3 border-t ${dark ? "border-gray-800" : "border-gray-200"}`}>
-      <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 bg-purple-200">
-          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" alt="Admin" className="w-full h-full object-cover" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate">Alex Martin</div>
-          <div className={`text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>Super admin</div>
-        </div>
-        <div className="flex gap-1">
-          <button
-            onClick={onToggleDark}
-            className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs transition-colors ${
-              dark ? "border-gray-700 bg-gray-800 text-gray-300" : "border-gray-200 bg-white text-gray-500"
-            }`}
-          >
-            {dark ? "☀" : "🌙"}
-          </button>
-          <button
-            onClick={() => window.history.back()}
-            className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs ${
-              dark ? "border-gray-700 bg-gray-800 text-gray-300" : "border-gray-200 bg-white text-gray-500"
-            }`}
-          >
-            ↩
-          </button>
+            <button
+              onClick={() => window.history.back()}
+              className="ts-sidebar-util"
+            >
+              ↩
+            </button>
+          </div>
         </div>
       </div>
     </div>
