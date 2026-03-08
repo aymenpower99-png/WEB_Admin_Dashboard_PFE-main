@@ -80,7 +80,18 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
 
   {
     section: "RIDES",
-    items: [{ label: "Trips", icon: "flight", page: "trips" }],
+    items: [
+      { label: "Trips", icon: "flight", page: "trips" },
+      {
+        label: "Rides",
+        icon: "directions_car",
+        page: "rides",
+        children: [
+          { label: "Available Rides", page: "available-rides" },
+          { label: "Past Rides", page: "past-rides" },
+        ],
+      },
+    ],
   },
 
   {

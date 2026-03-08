@@ -54,6 +54,7 @@ export const USERS: User[] = [
   { name: "David Kim", email: "david.kim@example.com", role: "Driver", status: "pending", trips: 8 },
   { name: "Maria Garcia", email: "m.garcia@example.com", role: "Admin", status: "active", trips: 41 },
   { name: "John Doe", email: "john.doe@example.com", role: "Rider", status: "blocked", trips: 5 },
+  
 ];
 
 export const SYSTEM_SERVICES: SystemService[] = [
