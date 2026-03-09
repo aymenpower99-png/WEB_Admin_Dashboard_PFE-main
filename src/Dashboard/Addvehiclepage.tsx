@@ -1,20 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import ConfirmationNumberRoundedIcon from "@mui/icons-material/ConfirmationNumberRounded";
-import ColorLensRoundedIcon from "@mui/icons-material/ColorLensRounded";
-import AirlineSeatReclineNormalRoundedIcon from "@mui/icons-material/AirlineSeatReclineNormalRounded";
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ErrorRoundedIcon from "@mui/icons-material/ErrorRounded";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
-import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
-import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
-import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import type { Vehicle } from "./Vehiclespage";
 
-/* ─── TYPES ─────────────────────────────────────────────────────────── */
 export interface AddVehiclePageProps {
   prefill: Vehicle | null;
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
@@ -22,119 +12,144 @@ export interface AddVehiclePageProps {
 }
 
 interface FormState {
-  make: string;
-  model: string;
-  year: string;
-  plate: string;
-  color: string;
-  type: string;
-  vehicleClass: string;
-  seats: string;
-  driver: string;
+  make: string; model: string; year: string; plate: string;
+  color: string; type: string; vehicleClass: string; seats: string; driver: string; status: string;
 }
 
 interface ErrState {
-  make: string;
-  model: string;
-  year: string;
-  plate: string;
-  color: string;
-  type: string;
-  vehicleClass: string;
-  seats: string;
-  driver: string;
+  make: string; model: string; year: string; plate: string;
+  color: string; type: string; vehicleClass: string; seats: string; driver: string; status: string;
 }
 
-/* ─── CONSTANTS ──────────────────────────────────────────────────────── */
-const VEHICLE_TYPES   = ["sedan", "suv", "van", "truck"] as const;
-const CURRENT_YEAR    = new Date().getFullYear();
-const YEARS           = Array.from({ length: 20 }, (_, i) => CURRENT_YEAR - i);
-
-const VEHICLE_CLASSES = [
-  {
-    key: "economy",
-    label: "Economy",
-    examples: ["Skoda Octavia", "Toyota Prius", "Hyundai Ioniq", "Caddy Volkswagen"],
-  },
-  {
-    key: "standard",
-    label: "Standard (Business/Executive)",
-    examples: ["Mercedes-Benz E-Class", "BMW 5 Series", "Cadillac XTS"],
-  },
-  {
-    key: "first_class",
-    label: "First Class",
-    examples: ["Mercedes-Benz S-Class", "BMW 7 Series", "Audi A8"],
-  },
-  {
-    key: "standard_van",
-    label: "Standard Van",
-    examples: ["Mercedes-Benz Vito", "Ford Custom", "Chevrolet Suburban", "Toyota Alphard"],
-  },
-  {
-    key: "suv_first_class_van",
-    label: "SUV / First Class Van",
-    examples: ["Mercedes-Benz V-Class", "Cadillac Escalade"],
-  },
+const VEHICLE_TYPES = ["sedan", "suv", "van", "truck"] as const;
+const YEARS         = Array.from({ length: 11 }, (_, i) => 2016 + i).reverse();
+const COLORS        = ["White", "Black", "Silver"] as const;
+const SEAT_COUNTS   = [2, 3, 4, 5, 6, 7, 8] as const;
+const STATUSES      = [
+  { value: "active",       label: "Active" },
+  { value: "inactive",     label: "Inactive" },
+  { value: "Disponible",   label: "Disponible" },
+  { value: "Maintenance",  label: "Maintenance" },
 ] as const;
 
-const ACCEPTED_VEHICLES = [
-  "Mercedes-Benz E-Class", "Mercedes-Benz S-Class", "Mercedes-Benz V-Class",
-  "Mercedes-Vito", "Mercedes Viano", "Mercedes Sprinter",
-  "Mercedes-Benz Metris", "Mercedes-Benz GLS (only in black)",
-  "Ford Transit", "Ford Tourneo Custom", "VW-T5/T6 Multivan / Caravelle",
-  "Range Rover", "Tesla Model S", "Tesla Model X",
-  "BMW 5-Series", "BMW 7-Series", "Audi A6 / A7", "Audi A8",
-  "Jaguar", "Jaguar XF", "Lincoln Navigator", "Lincoln Continental",
-  "Cadillac OT6", "Cadillac XTS", "Cadillac Escalade", "Cadillac Escalade ESV",
-  "GMC Yukon Denali", "Chevrolet Suburban", "Toyota Crown",
-  "Toyota Alphard/Vellfire", "Mercedes C-Class (Economy Sedan)",
-  "Skoda Octavia (Economy Sedan)", "Toyota Prius (Economy Sedan)",
-  "Other vehicles subject to verification",
-];
+const VEHICLE_CLASSES = [
+  { key: "economy",         label: "Economy Sedan",                     examples: ["Skoda Octavia", "Toyota Prius", "Hyundai Ioniq"] },
+  { key: "standard",        label: "Standard (Executive/Business)",     examples: ["Mercedes-Benz E-Class", "BMW 5 Series", "Cadillac XTS"] },
+  { key: "first_class",     label: "First Class",                       examples: ["Mercedes-Benz S-Class", "BMW 7 Series", "Audi A8"] },
+  { key: "standard_van",    label: "Standard Van (up to 8 passengers)", examples: ["Mercedes-Benz Vito", "Ford Custom", "Chevrolet Suburban"] },
+  { key: "first_class_van", label: "First Class Van",                   examples: ["Mercedes-Benz V-Class", "Cadillac Escalade", "GMC Yukon"] },
+  { key: "minibus_12",      label: "Minibus (12 passengers)",           examples: ["Mercedes-Benz Sprinter", "Ford Transit"] },
+  { key: "minibus_16",      label: "Minibus (16 passengers)",           examples: ["Volkswagen Crafter", "Iveco Daily"] },
+] as const;
 
-const EMPTY_FORM: FormState = {
-  make: "", model: "", year: "", plate: "",
-  color: "", type: "", vehicleClass: "", seats: "", driver: "",
-};
+const EMPTY_FORM: FormState = { make: "", model: "", year: "", plate: "", color: "", type: "", vehicleClass: "", seats: "", driver: "", status: "" };
+const EMPTY_ERRS: ErrState  = { make: "", model: "", year: "", plate: "", color: "", type: "", vehicleClass: "", seats: "", driver: "", status: "" };
 
-const EMPTY_ERRS: ErrState = {
-  make: "", model: "", year: "", plate: "",
-  color: "", type: "", vehicleClass: "", seats: "", driver: "",
-};
-
-/* ─── VALIDATION ─────────────────────────────────────────────────────── */
 function validate(f: FormState): ErrState {
   const e: ErrState = { ...EMPTY_ERRS };
-  if (!f.make.trim())         e.make         = "Make is required.";
-  if (!f.model.trim())        e.model        = "Model is required.";
-  if (!f.year)                e.year         = "Year is required.";
-  if (!f.plate.trim())        e.plate        = "Plate number is required.";
-  if (!f.color.trim())        e.color        = "Color is required.";
-  if (!f.type)                e.type         = "Vehicle type is required.";
-  if (!f.vehicleClass)        e.vehicleClass = "Vehicle class is required.";
-  if (!f.seats || isNaN(Number(f.seats)) || Number(f.seats) < 1 || Number(f.seats) > 20)
-    e.seats = "Enter a valid seat count (1–20).";
+  if (!f.make.trim())       e.make         = "Make is required.";
+  if (!f.model.trim())      e.model        = "Model is required.";
+  if (!f.year)              e.year         = "Year is required.";
+  if (!f.plate.trim())      e.plate        = "Plate number is required.";
+  if (!f.color)             e.color        = "Color is required.";
+  if (!f.type)              e.type         = "Vehicle type is required.";
+  if (!f.vehicleClass)      e.vehicleClass = "Vehicle class is required.";
+  if (!f.seats)             e.seats        = "Seat count is required.";
+  if (!f.status)            e.status       = "Status is required.";
   return e;
 }
 
 const hasErrors = (e: ErrState): boolean => Object.values(e).some(Boolean);
 
-/* ─── FIELD WRAPPER ──────────────────────────────────────────────────── */
-interface FieldProps {
-  label: string;
-  icon: React.ElementType;
-  error: string;
-  children: React.ReactNode;
+// ─── Dropdown ────────────────────────────────────────────────────────────────
+interface DropdownOption { value: string; label: string; }
+
+interface PlainDropdownProps {
+  value: string;
+  onChange: (val: string) => void;
+  options: DropdownOption[];
+  error?: string;
+  placeholder?: string;
 }
 
-function Field({ label, icon: Icon, error, children }: FieldProps) {
+function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT" }: PlainDropdownProps) {
+  const [open, setOpen]       = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selected    = options.find(o => o.value === value);
+  const borderColor = error ? "#ef4444" : "var(--border, #d1d5db)";
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          padding: ".55rem .75rem",
+          border: `1px solid ${borderColor}`,
+          borderBottom: open ? "none" : `1px solid ${borderColor}`,
+          borderRadius: open ? ".4rem .4rem 0 0" : ".4rem",
+          background: "#fff",
+          fontSize: ".82rem",
+          color: selected ? "#111827" : "#6b7280",
+          cursor: "pointer",
+          userSelect: "none",
+        }}
+      >
+        {selected ? selected.label : placeholder}
+      </div>
+
+      {open && (
+        <div style={{
+          position: "absolute",
+          top: "100%",
+          left: 0,
+          right: 0,
+          border: `1px solid ${borderColor}`,
+          borderTop: "none",
+          borderRadius: "0 0 .4rem .4rem",
+          background: "#fff",
+          zIndex: 999,
+          overflow: "hidden",
+        }}>
+          {options.map(opt => (
+            <div
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              onMouseEnter={() => setHovered(opt.value)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                padding: ".55rem .75rem",
+                paddingLeft: hovered === opt.value ? "1.1rem" : ".75rem",
+                fontSize: ".82rem",
+                color: hovered === opt.value ? "#1d4ed8" : "#374151",
+                background: hovered === opt.value ? "#eff6ff" : "transparent",
+                cursor: "pointer",
+                transition: "background .15s ease, color .15s ease, padding-left .15s ease",
+              }}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Field({ label, error, children }: { label: string; error: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: ".35rem" }}>
-      <label className="ts-label" style={{ display: "flex", alignItems: "center", gap: ".3rem" }}>
-        <Icon style={{ fontSize: 13, color: "var(--text-faint)" }} />
-        {label}
-      </label>
+      <label className="ts-label">{label}</label>
       {children}
       {error && (
         <p style={{ display: "flex", alignItems: "center", gap: ".25rem", fontSize: ".7rem", color: "#ef4444", marginTop: ".1rem" }}>
@@ -145,86 +160,50 @@ function Field({ label, icon: Icon, error, children }: FieldProps) {
   );
 }
 
-/* ─── SUCCESS BANNER ─────────────────────────────────────────────────── */
-interface SuccessBannerProps {
-  name: string;
-  isEdit: boolean;
-  onBack: () => void;
-  onAddAnother: () => void;
-}
-
-function SuccessBanner({ name, isEdit, onBack, onAddAnother }: SuccessBannerProps) {
+function VehicleClassGrid() {
   return (
-    <div style={{
-      display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", gap: "1rem", padding: "3rem 2rem",
-      textAlign: "center", background: "var(--bg-card)",
-      borderRadius: "1rem", border: "1px solid var(--border)",
-      animation: "tsSettingsIn .3s ease",
-    }}>
-      <div style={{
-        width: 56, height: 56, borderRadius: "50%",
-        background: "#d1fae5", display: "flex",
-        alignItems: "center", justifyContent: "center",
-      }}>
-        <CheckCircleRoundedIcon style={{ fontSize: 30, color: "#059669" }} />
-      </div>
-      <div>
-        <p style={{ fontWeight: 800, fontSize: "1rem", color: "var(--text-h)" }}>
-          {isEdit ? "Changes Saved!" : "Vehicle Added!"}
-        </p>
-        <p style={{ fontSize: ".8rem", color: "var(--text-muted)", marginTop: ".3rem" }}>
-          {name} has been {isEdit ? "updated" : "registered"} successfully.
-        </p>
-      </div>
-      <div style={{ display: "flex", gap: ".5rem" }}>
-        <button className="ts-btn-ghost" onClick={onBack}>
-          <ArrowBackRoundedIcon style={{ fontSize: 14 }} /> Back to Vehicles
-        </button>
-        {!isEdit && (
-          <button className="ts-btn-primary" onClick={onAddAnother}>
-            <AddRoundedIcon style={{ fontSize: 14 }} /> Add Another
-          </button>
-        )}
-      </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", border: "1px solid var(--border)", borderRadius: ".6rem", overflow: "hidden", marginTop: ".4rem" }}>
+      {VEHICLE_CLASSES.slice(0, 5).map((cls, i) => (
+        <div key={cls.key} style={{ padding: ".6rem .75rem", borderRight: i < 4 ? "1px solid var(--border)" : "none", background: "var(--bg-main, #f8f9fb)" }}>
+          <p style={{ fontSize: ".68rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".04em", marginBottom: ".35rem" }}>
+            {cls.label}
+          </p>
+          {cls.examples.map(ex => (
+            <p key={ex} style={{ fontSize: ".7rem", color: "var(--text-body)", lineHeight: 1.65 }}>{ex}</p>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
 
-/* ─── MAIN PAGE ──────────────────────────────────────────────────────── */
 export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: AddVehiclePageProps) {
   const isEdit = !!prefill;
 
   const [form, setForm] = useState<FormState>(
     prefill
       ? {
-          make:         prefill.make,
-          model:        prefill.model,
-          year:         String(prefill.year),
-          plate:        prefill.plate,
-          color:        prefill.color,
-          type:         prefill.type,
+          make: prefill.make,
+          model: prefill.model,
+          year: String(prefill.year),
+          plate: prefill.plate,
+          color: prefill.color,
+          type: prefill.type,
           vehicleClass: (prefill as any).vehicleClass ?? "",
-          seats:        String(prefill.seats),
-          driver:       prefill.driver,
+          seats: String(prefill.seats),
+          driver: prefill.driver,
+          status: prefill.status ?? "",
         }
       : { ...EMPTY_FORM }
   );
 
-  const [errs,      setErrs]    = useState<ErrState>({ ...EMPTY_ERRS });
-  const [touched,   setTouched] = useState<Partial<Record<keyof FormState, boolean>>>({});
-  const [submitted, setSub]     = useState<boolean>(false);
-  const [success,   setOk]      = useState<boolean>(false);
+  const [errs,      setErrs] = useState<ErrState>({ ...EMPTY_ERRS });
+  const [submitted, setSub]  = useState<boolean>(false);
 
   const set = (key: keyof FormState, val: string): void => {
     const next = { ...form, [key]: val };
     setForm(next);
-    if (submitted || touched[key]) setErrs(validate(next));
-  };
-
-  const blur = (key: keyof FormState): void => {
-    setTouched(t => ({ ...t, [key]: true }));
-    setErrs(validate(form));
+    if (submitted) setErrs(validate(next));
   };
 
   const handleSubmit = (): void => {
@@ -236,266 +215,109 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
     if (isEdit && prefill) {
       setVehicles(prev => prev.map(v =>
         v.id === prefill.id
-          ? {
-              ...v,
-              make:         form.make,
-              model:        form.model,
-              year:         Number(form.year),
-              plate:        form.plate,
-              color:        form.color,
-              type:         form.type as Vehicle["type"],
-              vehicleClass: form.vehicleClass,
-              seats:        Number(form.seats),
-              driver:       form.driver,
-            } as any
+          ? { ...v, make: form.make, model: form.model, year: Number(form.year), plate: form.plate, color: form.color, type: form.type as Vehicle["type"], vehicleClass: form.vehicleClass, seats: Number(form.seats), driver: form.driver, status: form.status as Vehicle["status"] } as any
           : v
       ));
     } else {
-      const newVehicle = {
-        id:           Date.now(),
-        make:         form.make,
-        model:        form.model,
-        year:         Number(form.year),
-        plate:        form.plate,
-        color:        form.color,
-        type:         form.type as Vehicle["type"],
-        vehicleClass: form.vehicleClass,
-        status:       "inactive" as const,
-        seats:        Number(form.seats),
-        driver:       form.driver,
-        // kept for type compat
-        fuel:    "petrol" as const,
-        mileage: 0,
-      };
-      setVehicles(prev => [...prev, newVehicle]);
+      setVehicles(prev => [...prev, {
+        id: Date.now(), make: form.make, model: form.model, year: Number(form.year),
+        plate: form.plate, color: form.color, type: form.type as Vehicle["type"],
+        vehicleClass: form.vehicleClass, status: form.status as "active" | "inactive",
+        seats: Number(form.seats), driver: form.driver,
+        fuel: "petrol" as const, mileage: 0,
+      }]);
     }
-
-    setOk(true);
+    onNavigate("vehicles");
   };
 
-  const reset = (): void => {
-    setForm({ ...EMPTY_FORM });
-    setErrs({ ...EMPTY_ERRS });
-    setTouched({});
-    setSub(false);
-    setOk(false);
-  };
+  const displayName = form.make && form.model ? `${form.year} ${form.make} ${form.model}`.trim() : "Vehicle";
 
-  const displayName =
-    form.make && form.model
-      ? `${form.year} ${form.make} ${form.model}`.trim()
-      : "Vehicle";
-
-  const selectCls = (err: string) =>
-    `ts-input ts-settings-select${err ? " ts-input-error" : ""}`;
-
-  // Find examples for currently selected class
-  const selectedClassObj = VEHICLE_CLASSES.find(c => c.key === form.vehicleClass);
+  const yearOptions:   DropdownOption[] = YEARS.map(y => ({ value: String(y), label: String(y) }));
+  const typeOptions:   DropdownOption[] = VEHICLE_TYPES.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }));
+  const classOptions:  DropdownOption[] = VEHICLE_CLASSES.map(c => ({ value: c.key, label: c.label }));
+  const colorOptions:  DropdownOption[] = COLORS.map(c => ({ value: c, label: c }));
+  const seatOptions:   DropdownOption[] = SEAT_COUNTS.map(s => ({ value: String(s), label: `${s} seats` }));
+  const statusOptions: DropdownOption[] = STATUSES.map(s => ({ value: s.value, label: s.label }));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", maxWidth: "100%", height: "100%", overflow: "hidden" }}>
 
-      {/* ── Page header ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: ".6rem", flexShrink: 0 }}>
         <button className="ts-icon-btn" onClick={() => onNavigate("vehicles")} title="Back to Vehicles">
           <ArrowBackRoundedIcon style={{ fontSize: 18 }} />
         </button>
         <div>
-          <h1 className="ts-page-title" style={{ fontSize: "1.15rem" }}>
-            {isEdit ? "Edit Vehicle" : "Add New Vehicle"}
-          </h1>
-          <p className="ts-page-subtitle">
-            {isEdit
-              ? `Editing ${prefill!.year} ${prefill!.make} ${prefill!.model}`
-              : "Register a new vehicle to your fleet"}
-          </p>
+          <h1 className="ts-page-title" style={{ fontSize: "1.15rem" }}>{isEdit ? "Edit Vehicle" : "Add New Vehicle"}</h1>
+          <p className="ts-page-subtitle">{isEdit ? `Editing ${prefill!.year} ${prefill!.make} ${prefill!.model}` : "Register a new vehicle to your fleet"}</p>
         </div>
       </div>
 
-      {success ? (
-        <SuccessBanner
-          name={displayName}
-          isEdit={isEdit}
-          onBack={() => onNavigate("vehicles")}
-          onAddAnother={reset}
-        />
-      ) : (
+      {/* Scrollable form */}
+      <div style={{ overflowY: "auto", flex: 1, paddingRight: ".25rem" }}>
         <div className="ts-card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem", width: "100%" }}>
 
-          {/* ── Make & Model ── */}
+          {/* Make & Model */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <Field label="Make" icon={DirectionsCarRoundedIcon} error={errs.make}>
-              <input
-                className={`ts-input${errs.make ? " ts-input-error" : ""}`}
-                placeholder="e.g. Mercedes-Benz, Toyota, BMW…"
-                value={form.make}
-                onChange={e => set("make", e.target.value)}
-                onBlur={() => blur("make")}
-              />
+            <Field label="Make" error={errs.make}>
+              <input className={`ts-input${errs.make ? " ts-input-error" : ""}`} placeholder="e.g. Mercedes-Benz, Toyota, BMW…" value={form.make} onChange={e => set("make", e.target.value)} />
             </Field>
-            <Field label="Model" icon={DirectionsCarRoundedIcon} error={errs.model}>
-              <input
-                className={`ts-input${errs.model ? " ts-input-error" : ""}`}
-                placeholder="e.g. E-Class, Corolla, 5 Series…"
-                value={form.model}
-                onChange={e => set("model", e.target.value)}
-                onBlur={() => blur("model")}
-              />
+            <Field label="Model" error={errs.model}>
+              <input className={`ts-input${errs.model ? " ts-input-error" : ""}`} placeholder="e.g. E-Class, Corolla, 5 Series…" value={form.model} onChange={e => set("model", e.target.value)} />
             </Field>
           </div>
 
-          {/* ── Accepted vehicles hint ── */}
-          <div style={{
-            background: "var(--bg-main, #f8f9fb)",
-            border: "1px solid var(--border)",
-            borderRadius: ".6rem",
-            padding: ".85rem 1rem",
-          }}>
-            <p style={{ fontSize: ".75rem", fontWeight: 700, color: "var(--text-muted)", marginBottom: ".5rem", textTransform: "uppercase", letterSpacing: ".05em" }}>
-              Accepted vehicles
-            </p>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: ".2rem .5rem",
-            }}>
-              {ACCEPTED_VEHICLES.map(v => (
-                <span key={v} style={{ fontSize: ".75rem", color: "var(--text-body)", display: "flex", alignItems: "center", gap: ".3rem" }}>
-                  <span style={{ color: "var(--text-faint)", fontSize: ".6rem" }}>•</span> {v}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Vehicle Class ── */}
-          <Field label="Vehicle Class" icon={StarRoundedIcon} error={errs.vehicleClass}>
-            <select
-              className={selectCls(errs.vehicleClass)}
-              value={form.vehicleClass}
-              onChange={e => set("vehicleClass", e.target.value)}
-              onBlur={() => blur("vehicleClass")}
-              style={{ appearance: "none", cursor: "pointer" }}
-            >
-              <option value="">Select class…</option>
-              {VEHICLE_CLASSES.map(c => (
-                <option key={c.key} value={c.key}>{c.label}</option>
-              ))}
-            </select>
-            {/* Show examples for selected class */}
-            {selectedClassObj && (
-              <div style={{
-                display: "flex", alignItems: "center", gap: ".4rem",
-                flexWrap: "wrap", marginTop: ".2rem",
-              }}>
-                <span style={{ fontSize: ".72rem", color: "var(--text-faint)", fontWeight: 600 }}>e.g.</span>
-                {selectedClassObj.examples.map(ex => (
-                  <span key={ex} style={{
-                    fontSize: ".72rem", color: "var(--text-muted)",
-                    background: "var(--bg-main, #f3f4f6)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "4px", padding: ".1rem .4rem",
-                  }}>{ex}</span>
-                ))}
-                <span style={{ fontSize: ".72rem", color: "var(--text-faint)" }}>or similar</span>
-              </div>
-            )}
+          {/* Vehicle Class */}
+          <Field label="Vehicle Class" error={errs.vehicleClass}>
+            <PlainDropdown value={form.vehicleClass} onChange={v => set("vehicleClass", v)} options={classOptions} error={errs.vehicleClass} />
+            <VehicleClassGrid />
           </Field>
 
-          {/* ── Year & Plate ── */}
+          {/* Year & Plate */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <Field label="Year" icon={CalendarTodayRoundedIcon} error={errs.year}>
-              <select
-                className={selectCls(errs.year)}
-                value={form.year}
-                onChange={e => set("year", e.target.value)}
-                onBlur={() => blur("year")}
-                style={{ appearance: "none", cursor: "pointer" }}
-              >
-                <option value="">Select year…</option>
-                {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
+            <Field label="Year" error={errs.year}>
+              <PlainDropdown value={form.year} onChange={v => set("year", v)} options={yearOptions} error={errs.year} />
             </Field>
-            <Field label="Plate Number" icon={ConfirmationNumberRoundedIcon} error={errs.plate}>
-              <input
-                className={`ts-input${errs.plate ? " ts-input-error" : ""}`}
-                placeholder="e.g. ABC-1234"
-                value={form.plate}
-                onChange={e => set("plate", e.target.value.toUpperCase())}
-                onBlur={() => blur("plate")}
-                style={{ fontFamily: "monospace", letterSpacing: ".05em" }}
-              />
+            <Field label="Plate Number" error={errs.plate}>
+              <input className={`ts-input${errs.plate ? " ts-input-error" : ""}`} placeholder="e.g. ABC-1234" value={form.plate} onChange={e => set("plate", e.target.value.toUpperCase())} style={{ fontFamily: "monospace", letterSpacing: ".05em" }} />
             </Field>
           </div>
 
-          {/* ── Color & Type ── */}
+          {/* Color & Type */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <Field label="Color" icon={ColorLensRoundedIcon} error={errs.color}>
-              <input
-                className={`ts-input${errs.color ? " ts-input-error" : ""}`}
-                placeholder="e.g. White"
-                value={form.color}
-                onChange={e => set("color", e.target.value)}
-                onBlur={() => blur("color")}
-              />
+            <Field label="Color" error={errs.color}>
+              <PlainDropdown value={form.color} onChange={v => set("color", v)} options={colorOptions} error={errs.color} />
             </Field>
-            <Field label="Vehicle Type" icon={CategoryRoundedIcon} error={errs.type}>
-              <select
-                className={selectCls(errs.type)}
-                value={form.type}
-                onChange={e => set("type", e.target.value)}
-                onBlur={() => blur("type")}
-                style={{ appearance: "none", cursor: "pointer" }}
-              >
-                <option value="">Select type…</option>
-                {VEHICLE_TYPES.map(t => (
-                  <option key={t} value={t}>
-                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                  </option>
-                ))}
-              </select>
+            <Field label="Vehicle Type" error={errs.type}>
+              <PlainDropdown value={form.type} onChange={v => set("type", v)} options={typeOptions} error={errs.type} />
             </Field>
           </div>
 
-          {/* ── Seats ── */}
-          <Field label="Seat Count" icon={AirlineSeatReclineNormalRoundedIcon} error={errs.seats}>
-            <input
-              className={`ts-input${errs.seats ? " ts-input-error" : ""}`}
-              placeholder="e.g. 5"
-              type="number"
-              min={1}
-              max={20}
-              value={form.seats}
-              onChange={e => set("seats", e.target.value)}
-              onBlur={() => blur("seats")}
-            />
+          {/* Seats & Status */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <Field label="Seat Count" error={errs.seats}>
+              <PlainDropdown value={form.seats} onChange={v => set("seats", v)} options={seatOptions} error={errs.seats} />
+            </Field>
+            <Field label="Status" error={errs.status}>
+              <PlainDropdown value={form.status} onChange={v => set("status", v)} options={statusOptions} error={errs.status} placeholder="SELECT STATUS" />
+            </Field>
+          </div>
+
+          {/* Driver */}
+          <Field label="Assigned Driver (optional)" error={errs.driver}>
+            <input className="ts-input" placeholder="e.g. John Doe" value={form.driver} onChange={e => set("driver", e.target.value)} />
           </Field>
 
-          {/* ── Assigned Driver (optional) ── */}
-          <Field label="Assigned Driver (optional)" icon={PersonRoundedIcon} error={errs.driver}>
-            <input
-              className="ts-input"
-              placeholder="e.g. John Doe"
-              value={form.driver}
-              onChange={e => set("driver", e.target.value)}
-              onBlur={() => blur("driver")}
-            />
-          </Field>
-
-          {/* ── Footer buttons ── */}
+          {/* Footer */}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", paddingTop: ".25rem" }}>
-            <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")}>
-              Cancel
-            </button>
+            <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")}>Cancel</button>
             <button className="ts-btn-primary" onClick={handleSubmit}>
-              {isEdit
-                ? <><SaveRoundedIcon style={{ fontSize: 14 }} /> Save Changes</>
-                : <><AddRoundedIcon  style={{ fontSize: 14 }} /> Add Vehicle</>
-              }
+              {isEdit ? <><SaveRoundedIcon style={{ fontSize: 14 }} /> Save Changes</> : <><AddRoundedIcon style={{ fontSize: 14 }} /> Add Vehicle</>}
             </button>
           </div>
 
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -31,6 +31,9 @@ import TripsPage          from "./Dashboard/BookingsPage";
 import AgencyPaymentsData from "./Dashboard/PayData";
 import HelpCenter         from "./Dashboard/HelpCentre";
 import AnimatedMail       from "./Dashboard/Settings";
+import AvailableRidesPage from "./Dashboard/AvailableRides";
+import UpcomingRidesPage  from "./Dashboard/UpcomingRides"; // ← NEW
+import PastRidesPage      from "./Dashboard/PastRides";     // ← NEW
 import type { Driver }    from "./Dashboard/DriversPage";
 import type { Vehicle }   from "./Dashboard/Vehiclespage";
 
@@ -43,7 +46,7 @@ const PAGE_ORDER = [
   "users",
   "drivers", "agency-drivers",
   "vehicles", "agency-vehicles",
-  "trips", "available-rides", "past-rides",
+  "trips", "available-rides", "upcoming-rides", "past-rides", // ← updated
   "payments", "agency-billing",
   "work-area",
   "help", "settings", "security",
@@ -378,38 +381,36 @@ function Shell({
                   />
                 }
               />
-           <Route
-  path="agency-vehicles"
-  element={
-    <AddVehiclePage
-      prefill={editVehicle as Vehicle | null}  // explicit cast
-      setVehicles={setVehicles}
-      onNavigate={navigate}
-    />
-  }
-/>
-
-              {/* ── Rides ─────────────────────────────────────────────────── */}
-              <Route path="trips" element={<TripsPage dark={dark} />} />
               <Route
-                path="available-rides"
+                path="agency-vehicles"
                 element={
-                  <PlaceholderPage
-                    title="Available Rides"
-                    icon="🚖"
-                    description="Browse currently available rides."
+                  <AddVehiclePage
+                    prefill={editVehicle as Vehicle | null}
+                    setVehicles={setVehicles}
+                    onNavigate={navigate}
                   />
                 }
               />
+
+              {/* ── Rides ─────────────────────────────────────────────────── */}
+              <Route path="trips" element={<TripsPage dark={dark} />} />
+
+              {/* ── Available Rides ───────────────────────────────────────── */}
+              <Route
+                path="available-rides"
+                element={<AvailableRidesPage />}
+              />
+
+              {/* ── Upcoming Rides ────────────────────────────────────────── */}
+              <Route
+                path="upcoming-rides"
+                element={<UpcomingRidesPage />}
+              />
+
+              {/* ── Past Rides ────────────────────────────────────────────── */}
               <Route
                 path="past-rides"
-                element={
-                  <PlaceholderPage
-                    title="Past Rides"
-                    icon="📋"
-                    description="Review completed ride history."
-                  />
-                }
+                element={<PastRidesPage />}
               />
 
               {/* ── Billing ───────────────────────────────────────────────── */}
