@@ -105,12 +105,24 @@ function KpiCard({ Icon, iconBg, iconFg, label, value }: {
 }
 
 /* ─── CHART TOOLTIP ──────────────────────────────────────────────────── */
-function ChartTooltip({ active, payload, label }: any) {
+interface TooltipPayloadItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface ChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+}
+
+function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:"0.5rem", padding:"0.5rem 0.75rem", fontSize:"0.72rem", color:"var(--text-h)", boxShadow:"0 4px 12px rgba(0,0,0,0.1)" }}>
       <div style={{ fontWeight:700, marginBottom:"0.2rem" }}>{label}</div>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <div key={p.name} style={{ color:p.color }}>{p.name}: <strong>{p.value}</strong></div>
       ))}
     </div>
@@ -118,7 +130,8 @@ function ChartTooltip({ active, payload, label }: any) {
 }
 
 /* ─── MAIN ───────────────────────────────────────────────────────────── */
-export default function AgencyDashboard({ dark }: AgencyDashboardProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function AgencyDashboard({ dark: _ }: AgencyDashboardProps) {
   const [vals, setVals] = useState({ pending:0, active:0, online:0, busy:0, vehicles:0, earnings:0 });
   const [earningsTab, setEarningsTab] = useState<"today"|"week"|"month">("today");
   const [tripPage,   setTripPage]   = useState(1);

@@ -2,7 +2,6 @@ import { useState } from "react";
 import logoLight from "../assets/light.png";
 import logoDark from "../assets/dark.png";
 import { Link, useNavigate } from "react-router-dom";
-import TruckLoader from "./carsloginanimation";
 
 export default function LoginAdmin({ onLogin }: { onLogin: (dark: boolean) => void }) {
   const [showPass, setShowPass] = useState(false);

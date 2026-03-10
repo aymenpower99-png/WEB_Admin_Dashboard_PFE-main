@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
-import { Users, UserCheck, Clock, ShieldOff } from "lucide-react";
-import { USERS, type UserStatus } from "./constants";
+import {
+  Users, UserCheck, Clock, ShieldOff,
+  Car, ChevronLeft, ChevronRight,
+  Edit2, Trash2,
+} from "lucide-react";
+import { type UserStatus } from "./constants";
 import "./travelsync-design-system.css";
 
 interface UsersPageProps {
@@ -15,17 +19,24 @@ type User = {
   status: UserStatus;
   trips: number;
 };
-type FilterTab = "All" | "Riders" | "Drivers" | "Admins";
+type FilterTab = "All" | "Riders" | "Drivers";
 
 const ROLE_MAP: Record<FilterTab, string | null> = {
-  All: null, Riders: "Rider", Drivers: "Driver", Admins: "Admin",
+  All: null, Riders: "Rider", Drivers: "Driver",
 };
 
+// Exactly 10 users → always 2 pages of 5
 const INITIAL_USERS: User[] = [
-  ...USERS,
-  { name: "Aiko Tanaka",  email: "aiko.t@example.com",  role: "Driver", status: "active"  as UserStatus, trips: 67 },
-  { name: "Lucas Morel",  email: "l.morel@example.com",  role: "Rider",  status: "active"  as UserStatus, trips: 14 },
-  { name: "Priya Nair",   email: "priya.n@example.com",  role: "Driver", status: "pending" as UserStatus, trips: 2  },
+  { name: "Sara Mitchell",   email: "sara.m@example.com",   role: "Rider",  status: "active"  as UserStatus, trips: 34  },
+  { name: "Omar Sherif",     email: "omar.s@example.com",   role: "Driver", status: "active"  as UserStatus, trips: 118 },
+  { name: "Lina Bouzid",     email: "lina.b@example.com",   role: "Rider",  status: "pending" as UserStatus, trips: 5   },
+  { name: "Karim Trabelsi",  email: "karim.t@example.com",  role: "Driver", status: "active"  as UserStatus, trips: 203 },
+  { name: "Nadia Riahi",     email: "nadia.r@example.com",  role: "Rider",  status: "blocked" as UserStatus, trips: 9   },
+  { name: "Aiko Tanaka",     email: "aiko.t@example.com",   role: "Driver", status: "active"  as UserStatus, trips: 67  },
+  { name: "Lucas Morel",     email: "l.morel@example.com",  role: "Rider",  status: "active"  as UserStatus, trips: 14  },
+  { name: "Priya Nair",      email: "priya.n@example.com",  role: "Driver", status: "pending" as UserStatus, trips: 2   },
+  { name: "James Okafor",    email: "james.o@example.com",  role: "Rider",  status: "active"  as UserStatus, trips: 27  },
+  { name: "Yasmine Elloumi", email: "yasmine.e@example.com",role: "Driver", status: "active"  as UserStatus, trips: 91  },
 ];
 
 const STATUS_PILL: Record<UserStatus, string> = {
@@ -36,49 +47,117 @@ const STATUS_PILL: Record<UserStatus, string> = {
 const ROLE_PILL: Record<string, string> = {
   Rider:  "ts-pill ts-role-rider",
   Driver: "ts-pill ts-role-driver",
-  Admin:  "ts-pill ts-role-admin",
 };
 
-const ROWS_PER_PAGE = 10;
-const ROW_HEIGHT    = 45;
+const ROWS_PER_PAGE = 5;
+const ROW_H         = 88; // taller rows
 
-/* ─── Stat card config ────────────────────────────────────────────────── */
-const statCards = (users: User[]) => [
-  {
-    label: "Total users",
-    value: users.length,
-    Icon: Users,
-    iconBg: "var(--brand-soft)",
-    iconFg: "var(--brand-from)",
-  },
-  {
-    label: "Active",
-    value: users.filter(u => u.status === "active").length,
-    Icon: UserCheck,
-    iconBg: "var(--brand-soft)",
-    iconFg: "var(--brand-from)",
-  },
-  {
-    label: "Pending",
-    value: users.filter(u => u.status === "pending").length,
-    Icon: Clock,
-    iconBg: "var(--brand-soft)",
-    iconFg: "var(--brand-from)",
-  },
-  {
-    label: "Blocked",
-    value: users.filter(u => u.status === "blocked").length,
-    Icon: ShieldOff,
-    iconBg: "var(--brand-soft)",
-    iconFg: "var(--brand-from)",
-  },
-];
-
-/* ─── Add User Modal ──────────────────────────────────────────────────── */
-function AddUserModal({ dark: _, onClose, onAdd }: {
-  dark: boolean; onClose: () => void; onAdd: (u: User) => void;
+/* ─── KPI Card ────────────────────────────────────────────────────── */
+function KpiCard({ Icon, iconBg, iconFg, label, value }: {
+  Icon: React.ElementType; iconBg: string; iconFg: string;
+  label: string; value: string | number;
 }) {
-  const [form, setForm]     = useState({ name: "", email: "", role: "Rider", status: "active" as UserStatus });
+  return (
+    <div style={{
+      background: "var(--bg-card)", border: "1px solid var(--border)",
+      borderRadius: "0.75rem", padding: "0.85rem 1.1rem",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+      position: "relative", minHeight: "80px",
+    }}>
+      <div style={{
+        position: "absolute", top: "0.85rem", right: "1.1rem",
+        width: 36, height: 36, borderRadius: "50%",
+        background: iconBg,
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+      }}>
+        <Icon size={16} color={iconFg} strokeWidth={1.75} />
+      </div>
+      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 500, paddingRight: "44px" }}>
+        {label}
+      </span>
+      <span style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1, marginTop: "0.35rem" }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/* ─── Pagination ────────────────────────────────────────────────────── */
+function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
+  page: number; totalPages: number;
+  onPrev: () => void; onNext: () => void;
+  setPage: (n: number) => void;
+}) {
+  const btn = (active: boolean, disabled: boolean): React.CSSProperties => ({
+    display: "flex", alignItems: "center", justifyContent: "center",
+    width: 26, height: 26, borderRadius: "0.375rem",
+    border: "1px solid var(--border)",
+    background: active ? "#7c3aed" : disabled ? "transparent" : "var(--bg-card)",
+    color: active ? "#fff" : disabled ? "var(--text-faint)" : "var(--text-muted)",
+    fontWeight: active ? 700 : 500, fontSize: "0.75rem",
+    cursor: disabled ? "not-allowed" : "pointer", transition: "all .15s",
+  });
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0.6rem 1rem",
+      borderTop: "1px solid var(--border)",
+      flexShrink: 0,
+    }}>
+      <span style={{ fontSize: "0.75rem", color: "var(--text-faint)", fontWeight: 500 }}>
+        Page {page} of {totalPages}
+      </span>
+      <div style={{ display: "flex", gap: "0.3rem" }}>
+        <button onClick={onPrev} disabled={page === 1} style={btn(false, page === 1)}>
+          <ChevronLeft size={13} strokeWidth={2.5} />
+        </button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+          <button key={n} onClick={() => setPage(n)} style={btn(n === page, false)}>
+            {n}
+          </button>
+        ))}
+        <button onClick={onNext} disabled={page === totalPages} style={btn(false, page === totalPages)}>
+          <ChevronRight size={13} strokeWidth={2.5} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Remove Modal ──────────────────────────────────────────────────── */
+function RemoveModal({ name, onConfirm, onClose }: {
+  name: string; onConfirm: () => void; onClose: () => void;
+}) {
+  return (
+    <div className="ts-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="ts-modal ts-modal-sm">
+        <div className="ts-modal-header">
+          <p style={{ fontWeight: 700, fontSize: ".88rem", color: "var(--text-h)" }}>Remove User</p>
+          <button className="ts-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="ts-modal-body">
+          <p style={{ fontSize: ".8rem", color: "var(--text-body)" }}>
+            Are you sure you want to remove <strong>{name}</strong>? This action cannot be undone.
+          </p>
+        </div>
+        <div className="ts-modal-footer">
+          <button className="ts-btn-ghost"  onClick={onClose}>Cancel</button>
+          <button className="ts-btn-danger" onClick={onConfirm}>Remove</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Add / Edit User Modal ─────────────────────────────────────────── */
+function UserModal({ initial, onClose, onSave }: {
+  initial: User | null;
+  onClose: () => void;
+  onSave: (u: User) => void;
+}) {
+  const [form, setForm]     = useState<User>(
+    initial ?? { name: "", email: "", role: "Rider", status: "active" as UserStatus, trips: 0 }
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function validate() {
@@ -92,7 +171,7 @@ function AddUserModal({ dark: _, onClose, onAdd }: {
   function handleSubmit() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    onAdd({ ...form, trips: 0 });
+    onSave(form);
     onClose();
   }
 
@@ -101,26 +180,30 @@ function AddUserModal({ dark: _, onClose, onAdd }: {
       <div className="ts-modal">
         <div className="ts-modal-header">
           <div>
-            <h2 className="ts-page-title" style={{ fontSize: "1rem" }}>Add new user</h2>
-            <p className="ts-page-subtitle">Fill in the details to create a user account.</p>
+            <h2 className="ts-page-title" style={{ fontSize: "1rem" }}>
+              {initial ? "Edit user" : "Add new user"}
+            </h2>
+            <p className="ts-page-subtitle">
+              {initial ? "Update the user's details." : "Fill in the details to create a user account."}
+            </p>
           </div>
           <button className="ts-modal-close" onClick={onClose}>✕</button>
         </div>
-
         <div className="ts-modal-body">
-          <div className="flex items-center gap-3">
-            <img
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${form.name || "new"}`}
-              alt="preview"
-              className="w-12 h-12 rounded-full bg-violet-100"
-            />
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ width: 48, height: 48, borderRadius: "50%", overflow: "hidden", background: "#e9d5ff", flexShrink: 0 }}>
+              <img
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${form.name || "new"}`}
+                alt="preview"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </div>
             <div>
               <p className="ts-td-h" style={{ fontSize: ".875rem" }}>{form.name  || "Full name"}</p>
               <p className="ts-muted" style={{ fontSize: ".75rem"  }}>{form.email || "email@example.com"}</p>
             </div>
           </div>
-
-          <div className="flex flex-col gap-1">
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
             <label className="ts-label">Full name</label>
             <input
               className={`ts-input${errors.name ? " ts-input-error" : ""}`}
@@ -130,8 +213,7 @@ function AddUserModal({ dark: _, onClose, onAdd }: {
             />
             {errors.name && <span className="ts-err">{errors.name}</span>}
           </div>
-
-          <div className="flex flex-col gap-1">
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
             <label className="ts-label">Email address</label>
             <input
               className={`ts-input${errors.email ? " ts-input-error" : ""}`}
@@ -142,18 +224,18 @@ function AddUserModal({ dark: _, onClose, onAdd }: {
             />
             {errors.email && <span className="ts-err">{errors.email}</span>}
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
               <label className="ts-label">Role</label>
-              <select className="ts-input cursor-pointer" value={form.role}
+              <select className="ts-input" style={{ cursor: "pointer" }} value={form.role}
                 onChange={e => setForm({ ...form, role: e.target.value })}>
-                <option>Rider</option><option>Driver</option><option>Admin</option>
+                <option>Rider</option>
+                <option>Driver</option>
               </select>
             </div>
-            <div className="flex flex-col gap-1">
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
               <label className="ts-label">Status</label>
-              <select className="ts-input cursor-pointer" value={form.status}
+              <select className="ts-input" style={{ cursor: "pointer" }} value={form.status}
                 onChange={e => setForm({ ...form, status: e.target.value as UserStatus })}>
                 <option value="active">Active</option>
                 <option value="pending">Pending</option>
@@ -162,20 +244,45 @@ function AddUserModal({ dark: _, onClose, onAdd }: {
             </div>
           </div>
         </div>
-
         <div className="ts-modal-footer">
           <button className="ts-btn-ghost"   onClick={onClose}>Cancel</button>
-          <button className="ts-btn-primary" onClick={handleSubmit}>Create user</button>
+          <button className="ts-btn-primary" onClick={handleSubmit}>
+            {initial ? "Save changes" : "Create user"}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-/* ─── Main Page ───────────────────────────────────────────────────────── */
-export default function UsersPage({ dark, onSelectUser }: UsersPageProps) {
+/* ─── Table styles ──────────────────────────────────────────────────── */
+const TH: React.CSSProperties = {
+  padding: "0.65rem 1rem",
+  fontSize: ".78rem",
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: ".06em",
+  color: "var(--text-body)",
+  textAlign: "left",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap",
+};
+
+const TD: React.CSSProperties = {
+  padding: "0 1rem",
+  height: ROW_H,
+  fontSize: ".875rem",
+  color: "var(--text-body)",
+  borderBottom: "1px solid var(--border)",
+  verticalAlign: "middle",
+};
+
+/* ─── Main Page ─────────────────────────────────────────────────────── */
+export default function UsersPage({ onSelectUser }: UsersPageProps) {
   const [users,        setUsers]        = useState<User[]>(INITIAL_USERS);
-  const [showModal,    setShowModal]    = useState(false);
+  const [modal,        setModal]        = useState<"add" | "edit" | null>(null);
+  const [editTarget,   setEditTarget]   = useState<User | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<User | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
   const [search,       setSearch]       = useState("");
   const [page,         setPage]         = useState(1);
@@ -193,181 +300,203 @@ export default function UsersPage({ dark, onSelectUser }: UsersPageProps) {
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ROWS_PER_PAGE));
   const safePage   = Math.min(page, totalPages);
-  const paginated  = filteredUsers.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
-  const rows: (User | null)[] = [...paginated, ...Array<null>(ROWS_PER_PAGE - paginated.length).fill(null)];
-
-  const GRID   = "2fr 2fr 1fr 1fr 0.7fr 0.5fr";
-  const BORDER = { borderColor: "var(--border-row)" };
+  const pagedUsers = filteredUsers.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
+  const ghostCount = ROWS_PER_PAGE - pagedUsers.length;
 
   function handleFilterChange(f: FilterTab) { setActiveFilter(f); setPage(1); }
   function handleSearchChange(v: string)    { setSearch(v);       setPage(1); }
+  function openEdit(u: User) { setEditTarget(u); setModal("edit"); }
+  function openAdd()         { setEditTarget(null); setModal("add"); }
+
+  const kpiCards = [
+    { Icon: Users,     iconBg: "#ede9fe", iconFg: "#7c3aed", label: "Total Users",   value: users.length },
+    { Icon: Car,       iconBg: "#dbeafe", iconFg: "#2563eb", label: "Total Riders",  value: users.filter(u => u.role === "Rider").length },
+    { Icon: UserCheck, iconBg: "#fce7f3", iconFg: "#db2777", label: "Total Drivers", value: users.filter(u => u.role === "Driver").length },
+    { Icon: UserCheck, iconBg: "#d1fae5", iconFg: "#059669", label: "Active",        value: users.filter(u => u.status === "active").length },
+    { Icon: Clock,     iconBg: "#fef3c7", iconFg: "#d97706", label: "Pending",       value: users.filter(u => u.status === "pending").length },
+    { Icon: ShieldOff, iconBg: "#fee2e2", iconFg: "#dc2626", label: "Blocked",       value: users.filter(u => u.status === "blocked").length },
+  ];
 
   return (
-    <div className="flex flex-col gap-5">
-      {showModal && (
-        <AddUserModal
-          dark={dark}
-          onClose={() => setShowModal(false)}
-          onAdd={user => { setUsers(prev => [user, ...prev]); setPage(1); }}
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+
+      {/* ── Modals ── */}
+      {(modal === "add" || modal === "edit") && (
+        <UserModal
+          initial={modal === "edit" ? editTarget : null}
+          onClose={() => setModal(null)}
+          onSave={u => {
+            if (modal === "edit") {
+              setUsers(prev => prev.map(x => x.name === editTarget?.name ? u : x));
+            } else {
+              setUsers(prev => [u, ...prev]);
+              setPage(1);
+            }
+          }}
+        />
+      )}
+      {removeTarget && (
+        <RemoveModal
+          name={removeTarget.name}
+          onConfirm={() => {
+            setUsers(prev => prev.filter(u => u.name !== removeTarget.name));
+            setRemoveTarget(null);
+          }}
+          onClose={() => setRemoveTarget(null)}
         />
       )}
 
-      {/* Header */}
+      {/* ── Page header ── */}
       <div className="ts-page-header">
         <div>
           <div className="ts-page-title-row">
-            <h1 className="ts-page-title">Users</h1>
+            <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800 }}>Users</h1>
             <span className="ts-chip">{users.length} total</span>
           </div>
-          <p className="ts-page-subtitle">Manage riders, drivers and admins.</p>
+          <p className="ts-page-subtitle">Manage riders and drivers.</p>
         </div>
-        <button className="ts-btn-fab" onClick={() => setShowModal(true)}>
-          <span style={{ fontSize: "1.125rem", lineHeight: 1 }}>＋</span>
-          <span className="ts-btn-fab-label">Add User</span>
+        <button className="ts-btn-primary" onClick={openAdd}>
+          <span style={{ fontSize: "1rem", lineHeight: 1 }}>＋</span> Add User
         </button>
       </div>
 
-      {/* Stat cards — Transferoo style: label top-left, value bottom-left, icon top-right */}
-      <div className="ts-grid-4">
-        {statCards(users).map(({ label, value, Icon, iconBg, iconFg }) => (
-          <div
-            key={label}
-            className="ts-card"
-            style={{
-              padding: "1rem 1.25rem",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              minHeight: "6rem",
-            }}
-          >
-            {/* Top row: label + icon */}
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-              <span className="ts-stat-label">{label}</span>
-              <div
-                style={{
-                  width: "2.75rem",
-                  height: "2.75rem",
-                  borderRadius: "50%",
-                  background: iconBg,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: iconFg,
-                  flexShrink: 0,
-                }}
-              >
-                <Icon size={20} strokeWidth={1.75} />
-              </div>
-            </div>
-            {/* Bottom: big number */}
-            <span className="ts-stat-value">{value}</span>
-          </div>
-        ))}
+      {/* ── KPI cards ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: "0.65rem" }}>
+        {kpiCards.map(k => <KpiCard key={k.label} {...k} />)}
       </div>
 
-      {/* Table */}
-      <div className="ts-table-wrap">
+      {/* ── Table card ── */}
+      <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
+
         {/* Toolbar */}
         <div className="ts-toolbar">
-          <div className="ts-search-bar" style={{ width: 192 }}>
-            <span>🔍</span>
+          <div className="ts-search-bar" style={{ minWidth: 220 }}>
+            <span style={{ fontSize: "0.85rem" }}>🔍</span>
             <input
               placeholder="Search users…"
               value={search}
               onChange={e => handleSearchChange(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-1.5">
-            {(["All", "Riders", "Drivers", "Admins"] as FilterTab[]).map(f => (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+            {(["All", "Riders", "Drivers"] as FilterTab[]).map(f => (
               <button
                 key={f}
                 className={`ts-filter-chip${activeFilter === f ? " ts-active" : ""}`}
                 onClick={() => handleFilterChange(f)}
-              >{f}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* Column headers */}
-        <div
-          className="grid px-4 py-2 border-b ts-faint"
-          style={{ gridTemplateColumns: GRID, borderColor: "var(--border)", fontSize: ".625rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em" }}
-        >
-          <span>Name</span><span>Email</span><span>Role</span>
-          <span>Status</span><span>Trips</span><span />
-        </div>
-
-        {/* Rows */}
-        <div>
-          {filteredUsers.length === 0 ? (
-            <>
-              <div className="flex items-center justify-center ts-muted" style={{ height: `${ROW_HEIGHT}px`, fontSize: ".75rem" }}>
-                No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found{search ? ` matching "${search}"` : ""}.
-              </div>
-              {Array<null>(ROWS_PER_PAGE - 1).fill(null).map((_, i) => (
-                <div key={`ghost-${i}`} className="border-t" style={{ height: `${ROW_HEIGHT}px`, ...BORDER }} />
-              ))}
-            </>
-          ) : (
-            rows.map((user, i) => (
-              <div
-                key={i}
-                onClick={() => user && onSelectUser?.(user.name)}
-                className={`grid px-4 items-center${user ? " cursor-pointer ts-tr-hover" : ""}${i > 0 ? " border-t" : ""}`}
-                style={{ gridTemplateColumns: GRID, height: `${ROW_HEIGHT}px`, ...BORDER }}
               >
-                {user ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
-                        alt={user.name}
-                        className="w-6 h-6 rounded-full bg-violet-100 shrink-0"
-                      />
-                      <span className="ts-td-h" style={{ fontSize: ".75rem" }}>{user.name}</span>
-                    </div>
-                    <span className="ts-muted" style={{ fontSize: ".75rem" }}>{user.email}</span>
-                    <span><span className={ROLE_PILL[user.role] ?? "ts-chip"}>{user.role}</span></span>
-                    <span><span className={STATUS_PILL[user.status]}>{user.status.charAt(0).toUpperCase() + user.status.slice(1)}</span></span>
-                    <span className="ts-td-h" style={{ fontSize: ".75rem" }}>{user.trips}</span>
-                    <button className="ts-link" style={{ fontSize: ".75rem" }}>View →</button>
-                  </>
-                ) : (
-                  <><span /><span /><span /><span /><span /><span /></>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 border-t ts-faint" style={{ borderColor: "var(--border)", fontSize: ".75rem" }}>
-          <span>
-            {filteredUsers.length === 0
-              ? "No entries"
-              : `Showing ${(safePage - 1) * ROWS_PER_PAGE + 1}–${Math.min(safePage * ROWS_PER_PAGE, filteredUsers.length)} of ${filteredUsers.length} entries`}
-          </span>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={safePage === 1}
-              className="px-2 py-1 rounded ts-link disabled:opacity-30 disabled:cursor-not-allowed">
-              Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-              <button key={n} onClick={() => setPage(n)}
-                className="flex items-center justify-center rounded"
-                style={{ width: "1.5rem", height: "1.5rem", fontSize: ".75rem", fontWeight: 500,
-                  background: n === safePage ? "linear-gradient(135deg,var(--brand-from),var(--brand-to))" : "transparent",
-                  color: n === safePage ? "#fff" : "inherit" }}>
-                {n}
+                {f}
               </button>
             ))}
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={safePage === totalPages}
-              className="px-2 py-1 rounded ts-link disabled:opacity-30 disabled:cursor-not-allowed">
-              Next
-            </button>
           </div>
         </div>
+
+        {/* Table */}
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+            <colgroup>
+              <col style={{ width: "22%" }} />
+              <col style={{ width: "24%" }} />
+              <col style={{ width: "12%" }} />
+              <col style={{ width: "13%" }} />
+              <col style={{ width: "9%"  }} />
+              <col style={{ width: "13%" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <th style={TH}>User</th>
+                <th style={TH}>Email</th>
+                <th style={TH}>Role</th>
+                <th style={TH}>Status</th>
+                <th style={TH}>Trips</th>
+                <th style={TH}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.length === 0 ? (
+                <>
+                  <tr style={{ height: ROW_H }}>
+                    <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                      No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found
+                      {search ? ` matching "${search}"` : ""}.
+                    </td>
+                  </tr>
+                  {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
+                    <tr key={`ge-${i}`} style={{ height: ROW_H }}>
+                      <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
+                    </tr>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {pagedUsers.map((u, i) => (
+                    <tr
+                      key={`${u.name}-${i}`}
+                      className="ts-tr"
+                      style={{ height: ROW_H, cursor: "pointer" }}
+                      onClick={() => onSelectUser?.(u.name)}
+                    >
+                      <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: "50%", overflow: "hidden", background: "#e9d5ff", flexShrink: 0 }}>
+                            <img
+                              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`}
+                              alt={u.name}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          </div>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {u.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {u.email}
+                      </td>
+                      <td style={TD}>
+                        <span className={ROLE_PILL[u.role] ?? "ts-chip"}>{u.role}</span>
+                      </td>
+                      <td style={TD}>
+                        <span className={STATUS_PILL[u.status]}>
+                          {u.status.charAt(0).toUpperCase() + u.status.slice(1)}
+                        </span>
+                      </td>
+                      <td style={{ ...TD, fontWeight: 700, color: "#7c3aed" }}>
+                        {u.trips}
+                      </td>
+                      <td style={TD} onClick={e => e.stopPropagation()}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <button title="Edit user" className="ts-icon-btn" onClick={() => openEdit(u)}
+                            style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.375rem" }}>
+                            <Edit2 size={14} />
+                          </button>
+                          <button title="Remove user" className="ts-icon-btn ts-icon-btn-del" onClick={() => setRemoveTarget(u)}
+                            style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "0.375rem" }}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {/* Ghost rows — stable card height across pages */}
+                  {Array.from({ length: ghostCount }).map((_, i) => (
+                    <tr key={`g-${i}`} style={{ height: ROW_H }}>
+                      <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
+                    </tr>
+                  ))}
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <Pagination
+          page={safePage}
+          totalPages={totalPages}
+          onPrev={() => setPage(p => Math.max(1, p - 1))}
+          onNext={() => setPage(p => Math.min(totalPages, p + 1))}
+          setPage={setPage}
+        />
       </div>
     </div>
   );

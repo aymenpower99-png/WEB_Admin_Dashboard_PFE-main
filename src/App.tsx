@@ -221,7 +221,7 @@ function Shell({
       {/* ── Main area ── */}
       <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
 
-        {/* Header with working TopNav */}
+        {/* ── Header ── */}
         <header style={{
           flexShrink:0, height:"var(--nav-h)",
           background:"var(--bg-nav)", borderBottom:"1px solid var(--border)",
@@ -229,6 +229,7 @@ function Shell({
           <TravelSyncTopNav
             onToggleSidebar={() => setSidebarOpen((v) => !v)}
             dark={dark}
+            onToggleDark={onToggleDark}
             onNavigate={navigate}
           />
         </header>
@@ -238,11 +239,11 @@ function Shell({
           <div className={slideClass} style={{ flex:1, minHeight:0, display:"flex", flexDirection:"column" }}>
             <Routes>
               <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard"        element={<AdminDashboard  dark={dark} />} />
+              <Route path="dashboard"        element={<AdminDashboard />} />
               <Route path="agency-dashboard" element={<AgencyDashboard dark={dark} />} />
               <Route path="users"            element={<UsersPage dark={dark} />} />
 
-              <Route path="drivers"       element={<DriversPage drivers={drivers} setDrivers={setDrivers} onNavigate={navigate} />} />
+              <Route path="drivers"        element={<DriversPage drivers={drivers} setDrivers={setDrivers} onNavigate={navigate} />} />
               <Route path="agency-drivers" element={<AddDriverPage prefill={editDriver} setDrivers={setDrivers} onNavigate={navigate} />} />
 
               <Route path="vehicles"        element={<VehiclesPage vehicles={vehicles} setVehicles={setVehicles} onNavigate={navigate} />} />
@@ -253,7 +254,7 @@ function Shell({
               <Route path="upcoming-rides"  element={<UpcomingRidesPage />} />
               <Route path="past-rides"      element={<PastRidesPage />} />
 
-              <Route path="payments"      element={<AgencyPaymentsData dark={dark} />} />
+              <Route path="payments"       element={<AgencyPaymentsData dark={dark} />} />
               <Route path="agency-billing" element={<PlaceholderPage title="Agency Billing" icon="💳" description="View and manage agency billing records." />} />
 
               <Route path="work-area" element={<PlaceholderPage title="Work Area" icon="🗺️" description="Define and manage driver work zones." />} />
@@ -262,7 +263,6 @@ function Shell({
               <Route path="settings" element={<AnimatedMail />} />
               <Route path="security" element={<PlaceholderPage title="Security" icon="🛡️" description="Manage permissions, 2FA and audit logs." />} />
 
-              {/* ── Profile ── */}
               <Route path="profile" element={<ProfilePage />} />
 
               <Route path="*" element={<Navigate to="dashboard" replace />} />
