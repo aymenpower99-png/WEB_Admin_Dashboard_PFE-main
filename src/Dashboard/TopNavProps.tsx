@@ -4,11 +4,12 @@ interface TopNavProps {
   onToggleSidebar?: () => void;
   dark?: boolean;
   onSearch?: (q: string) => void;
+  onNavigate?: (page: string) => void;
 }
 
-export default function TravelSyncTopNav({ onToggleSidebar }: TopNavProps) {
+export default function TravelSyncTopNav({ onToggleSidebar, onNavigate }: TopNavProps) {
   const [open, setOpen] = useState(false);
-  const popRef = useRef<HTMLDivElement>(null);
+  const popRef     = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -24,6 +25,11 @@ export default function TravelSyncTopNav({ onToggleSidebar }: TopNavProps) {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
+
+  const handleNavigate = (page: string) => {
+    setOpen(false);
+    onNavigate?.(page);
+  };
 
   return (
     <>
@@ -158,10 +164,11 @@ export default function TravelSyncTopNav({ onToggleSidebar }: TopNavProps) {
 
               {/* Items */}
               <div style={{ padding: "0.375rem" }}>
+
                 {/* Profile */}
                 <button
                   className="pop-item"
-                  onClick={() => setOpen(false)}
+                  onClick={() => handleNavigate("profile")}
                   style={{
                     width: "100%",
                     display: "flex", alignItems: "center", gap: "0.625rem",
@@ -178,6 +185,49 @@ export default function TravelSyncTopNav({ onToggleSidebar }: TopNavProps) {
                     <circle cx="12" cy="7" r="4"/>
                   </svg>
                   Profile
+                </button>
+
+                {/* Settings */}
+                <button
+                  className="pop-item"
+                  onClick={() => handleNavigate("settings")}
+                  style={{
+                    width: "100%",
+                    display: "flex", alignItems: "center", gap: "0.625rem",
+                    padding: "0.5rem 0.625rem",
+                    borderRadius: "0.5rem",
+                    border: "none", background: "transparent",
+                    color: "#111827",
+                    fontSize: "0.8125rem", fontWeight: 500,
+                    textAlign: "left",
+                  }}
+                >
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  </svg>
+                  Settings
+                </button>
+
+                {/* Security */}
+                <button
+                  className="pop-item"
+                  onClick={() => handleNavigate("security")}
+                  style={{
+                    width: "100%",
+                    display: "flex", alignItems: "center", gap: "0.625rem",
+                    padding: "0.5rem 0.625rem",
+                    borderRadius: "0.5rem",
+                    border: "none", background: "transparent",
+                    color: "#111827",
+                    fontSize: "0.8125rem", fontWeight: 500,
+                    textAlign: "left",
+                  }}
+                >
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  Security
                 </button>
 
                 <div style={{ height: 1, background: "#e5e7eb", margin: "0.25rem 0" }} />

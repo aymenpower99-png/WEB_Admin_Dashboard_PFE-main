@@ -1,7 +1,6 @@
 import { useState } from "react";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
-import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
@@ -20,33 +19,14 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 
 /* ─── TYPES ─────────────────────────────────────────────────────────── */
 interface UpcomingRide {
-  id: number;
-  rider: string;
-  driver: string;
-  driverRating: number;
-  driverAvatar: string;
-  vehicle: string;
-  plate: string;
-  pickup: string;
-  drop: string;
-  vehicleType: string;
-  date: string;
-  time: string;
-  fare: number;
-  distance: string;
-  duration: string;
-  passengerCount: number;
+  id: number; rider: string; driver: string; driverRating: number; driverAvatar: string;
+  vehicle: string; plate: string; pickup: string; drop: string; vehicleType: string;
+  date: string; time: string; fare: number; distance: string; duration: string; passengerCount: number;
 }
 
 interface AvailableDriver {
-  id: number;
-  name: string;
-  rating: number;
-  vehicle: string;
-  plate: string;
-  status: "available" | "nearby";
-  trips: number;
-  avatar: string;
+  id: number; name: string; rating: number; vehicle: string; plate: string;
+  status: "available" | "nearby"; trips: number; avatar: string;
 }
 
 /* ─── CONSTANTS ──────────────────────────────────────────────────────── */
@@ -55,43 +35,34 @@ const ROW_H = 96;
 
 /* ─── MOCK DATA ──────────────────────────────────────────────────────── */
 const MOCK_UPCOMING: UpcomingRide[] = [
-  { id: 1,  rider: "Lina B",    driver: "John D",   driverRating: 4.9, driverAvatar: "JD", vehicle: "Toyota Corolla", plate: "TN-1234-A", pickup: "Tunis-Carthage Airport",  drop: "City Center, Tunis",   vehicleType: "Sedan", date: "Today",    time: "14:30", fare: 28,  distance: "12 km", duration: "22 min", passengerCount: 1 },
-  { id: 2,  rider: "Ali K",     driver: "Emily R",  driverRating: 4.7, driverAvatar: "ER", vehicle: "Kia Rio",        plate: "TN-5678-B", pickup: "City Mall, Tunis",        drop: "La Marsa Beach",       vehicleType: "Sedan", date: "Today",    time: "16:00", fare: 32,  distance: "15 km", duration: "28 min", passengerCount: 2 },
-  { id: 3,  rider: "Sara M",    driver: "Ahmed K",  driverRating: 4.8, driverAvatar: "AK", vehicle: "Mercedes Vito",  plate: "TN-9012-C", pickup: "Bardo Museum",            drop: "Hammamet Resort",      vehicleType: "Van",   date: "Today",    time: "17:15", fare: 110, distance: "62 km", duration: "52 min", passengerCount: 5 },
-  { id: 4,  rider: "Karim T",   driver: "Fatima Z", driverRating: 4.6, driverAvatar: "FZ", vehicle: "Hyundai Tucson", plate: "TN-3456-D", pickup: "Lac Business District",   drop: "Sfax City Center",     vehicleType: "SUV",   date: "Tomorrow", time: "09:00", fare: 95,  distance: "50 km", duration: "45 min", passengerCount: 3 },
-  { id: 5,  rider: "Nadia R",   driver: "Rami B",   driverRating: 4.9, driverAvatar: "RB", vehicle: "BMW 5 Series",   plate: "TN-7890-E", pickup: "Sousse Medina",           drop: "Port El Kantaoui",     vehicleType: "Sedan", date: "Tomorrow", time: "11:30", fare: 55,  distance: "14 km", duration: "20 min", passengerCount: 1 },
-  { id: 6,  rider: "Youssef A", driver: "John D",   driverRating: 4.9, driverAvatar: "JD", vehicle: "Toyota Corolla", plate: "TN-1234-A", pickup: "Sfax Airport",            drop: "El Mechtel Hotel",     vehicleType: "Sedan", date: "Tomorrow", time: "14:00", fare: 42,  distance: "9 km",  duration: "15 min", passengerCount: 2 },
+  { id: 1, rider: "Lina B",    driver: "John D",   driverRating: 4.9, driverAvatar: "JD", vehicle: "Toyota Corolla", plate: "TN-1234-A", pickup: "Tunis-Carthage Airport", drop: "City Center, Tunis",   vehicleType: "Sedan", date: "Today",    time: "14:30", fare: 28,  distance: "12 km", duration: "22 min", passengerCount: 1 },
+  { id: 2, rider: "Ali K",     driver: "Emily R",  driverRating: 4.7, driverAvatar: "ER", vehicle: "Kia Rio",        plate: "TN-5678-B", pickup: "City Mall, Tunis",       drop: "La Marsa Beach",       vehicleType: "Sedan", date: "Today",    time: "16:00", fare: 32,  distance: "15 km", duration: "28 min", passengerCount: 2 },
+  { id: 3, rider: "Sara M",    driver: "Ahmed K",  driverRating: 4.8, driverAvatar: "AK", vehicle: "Mercedes Vito",  plate: "TN-9012-C", pickup: "Bardo Museum",           drop: "Hammamet Resort",      vehicleType: "Van",   date: "Today",    time: "17:15", fare: 110, distance: "62 km", duration: "52 min", passengerCount: 5 },
+  { id: 4, rider: "Karim T",   driver: "Fatima Z", driverRating: 4.6, driverAvatar: "FZ", vehicle: "Hyundai Tucson", plate: "TN-3456-D", pickup: "Lac Business District",  drop: "Sfax City Center",     vehicleType: "SUV",   date: "Tomorrow", time: "09:00", fare: 95,  distance: "50 km", duration: "45 min", passengerCount: 3 },
+  { id: 5, rider: "Nadia R",   driver: "Rami B",   driverRating: 4.9, driverAvatar: "RB", vehicle: "BMW 5 Series",   plate: "TN-7890-E", pickup: "Sousse Medina",          drop: "Port El Kantaoui",     vehicleType: "Sedan", date: "Tomorrow", time: "11:30", fare: 55,  distance: "14 km", duration: "20 min", passengerCount: 1 },
+  { id: 6, rider: "Youssef A", driver: "John D",   driverRating: 4.9, driverAvatar: "JD", vehicle: "Toyota Corolla", plate: "TN-1234-A", pickup: "Sfax Airport",           drop: "El Mechtel Hotel",     vehicleType: "Sedan", date: "Tomorrow", time: "14:00", fare: 42,  distance: "9 km",  duration: "15 min", passengerCount: 2 },
 ];
 
 const MOCK_DRIVERS: AvailableDriver[] = [
-  { id: 1, name: "John D",   rating: 4.9, vehicle: "Toyota Corolla",  plate: "TN-1234-A", status: "available", trips: 412, avatar: "JD" },
-  { id: 2, name: "Emily R",  rating: 4.7, vehicle: "Kia Rio",         plate: "TN-5678-B", status: "nearby",    trips: 289, avatar: "ER" },
-  { id: 3, name: "Ahmed K",  rating: 4.8, vehicle: "Mercedes Vito",   plate: "TN-9012-C", status: "available", trips: 631, avatar: "AK" },
-  { id: 4, name: "Fatima Z", rating: 4.6, vehicle: "Hyundai Tucson",  plate: "TN-3456-D", status: "available", trips: 178, avatar: "FZ" },
-  { id: 5, name: "Rami B",   rating: 4.9, vehicle: "BMW 5 Series",    plate: "TN-7890-E", status: "nearby",    trips: 520, avatar: "RB" },
+  { id: 1, name: "John D",   rating: 4.9, vehicle: "Toyota Corolla", plate: "TN-1234-A", status: "available", trips: 412, avatar: "JD" },
+  { id: 2, name: "Emily R",  rating: 4.7, vehicle: "Kia Rio",        plate: "TN-5678-B", status: "nearby",    trips: 289, avatar: "ER" },
+  { id: 3, name: "Ahmed K",  rating: 4.8, vehicle: "Mercedes Vito",  plate: "TN-9012-C", status: "available", trips: 631, avatar: "AK" },
+  { id: 4, name: "Fatima Z", rating: 4.6, vehicle: "Hyundai Tucson", plate: "TN-3456-D", status: "available", trips: 178, avatar: "FZ" },
+  { id: 5, name: "Rami B",   rating: 4.9, vehicle: "BMW 5 Series",   plate: "TN-7890-E", status: "nearby",    trips: 520, avatar: "RB" },
 ];
 
-/* ─── SHARED STYLES ──────────────────────────────────────────────────── */
+/* ─── SHARED TABLE STYLES ────────────────────────────────────────────── */
 const TH: React.CSSProperties = {
-  padding: "0.65rem 1rem",
-  fontSize: ".78rem",
-  fontWeight: 800,
-  textTransform: "uppercase",
-  letterSpacing: ".06em",
-  color: "var(--text-body)",
-  textAlign: "left",
-  borderBottom: "1px solid var(--border)",
-  whiteSpace: "nowrap",
+  padding: "0.65rem 1rem", fontSize: ".78rem", fontWeight: 800,
+  textTransform: "uppercase", letterSpacing: ".06em",
+  color: "var(--text-muted)", textAlign: "left",
+  borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
 };
 
 const TD: React.CSSProperties = {
-  padding: "0 1rem",
-  height: ROW_H,
-  fontSize: ".85rem",
-  color: "var(--text-body)",
-  borderBottom: "1px solid var(--border)",
-  verticalAlign: "middle",
-  lineHeight: 1.6,
+  padding: "0 1rem", height: ROW_H, fontSize: ".85rem",
+  color: "var(--text-body)", borderBottom: "1px solid var(--border-row)",
+  verticalAlign: "middle", lineHeight: 1.6,
 };
 
 /* ─── PAGINATION ─────────────────────────────────────────────────────── */
@@ -101,12 +72,12 @@ function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
 }) {
   const btn = (active: boolean, disabled: boolean): React.CSSProperties => ({
     display: "flex", alignItems: "center", justifyContent: "center",
-    width: 26, height: 26, borderRadius: "0.375rem",
+    width: 26, height: 26, borderRadius: "var(--r-inner)",
     border: "1px solid var(--border)",
-    background: active ? "#7c3aed" : disabled ? "transparent" : "var(--bg-card)",
+    background: active ? "var(--brand-from)" : disabled ? "transparent" : "var(--bg-card)",
     color: active ? "#fff" : disabled ? "var(--text-faint)" : "var(--text-muted)",
     fontWeight: active ? 700 : 500, fontSize: "0.75rem",
-    cursor: disabled ? "not-allowed" : "pointer", transition: "all .15s",
+    cursor: disabled ? "not-allowed" : "pointer", transition: "all var(--t-fast)",
   });
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 1rem", borderTop: "1px solid var(--border)", flexShrink: 0 }}>
@@ -162,18 +133,24 @@ function ReassignDriverModal({ ride, onClose, onReassign }: {
           {filtered.map(driver => (
             <div key={driver.id} onClick={() => setSelected(driver.id)} style={{
               display: "flex", alignItems: "center", gap: ".75rem",
-              padding: ".75rem", borderRadius: ".6rem", cursor: "pointer",
-              border: selected === driver.id ? "1.5px solid #7c3aed" : "1px solid var(--border)",
+              padding: ".75rem", borderRadius: "var(--r-inner)", cursor: "pointer",
+              border: selected === driver.id ? "1.5px solid var(--brand-to)" : "1px solid var(--border)",
               background: selected === driver.id ? "var(--brand-soft)" : "var(--bg-inner)",
-              transition: "all .15s ease",
+              transition: "all var(--t-fast)",
             }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", flexShrink: 0, background: selected === driver.id ? "#ede9fe" : "#e9d5ff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".72rem", color: selected === driver.id ? "#6d28d9" : "#7c3aed" }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
+                background: selected === driver.id ? "var(--driver-bg)" : "var(--driver-bg)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontWeight: 700, fontSize: ".72rem",
+                color: selected === driver.id ? "var(--driver-fg)" : "var(--brand-from)",
+              }}>
                 {driver.avatar}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: ".4rem" }}>
                   <span style={{ fontWeight: 600, fontSize: ".82rem", color: "var(--text-h)" }}>{driver.name}</span>
-                  <span style={{ fontSize: ".62rem", fontWeight: 600, padding: ".1rem .4rem", borderRadius: "9999px", background: driver.status === "available" ? "var(--active-bg)" : "#fef3c7", color: driver.status === "available" ? "var(--active-fg)" : "#92400e" }}>
+                  <span className={`ts-pill ${driver.status === "available" ? "ts-pill-active" : "ts-pill-pending"}`} style={{ fontSize: ".62rem" }}>
                     {driver.status === "available" ? "Available" : "Nearby"}
                   </span>
                 </div>
@@ -187,7 +164,7 @@ function ReassignDriverModal({ ride, onClose, onReassign }: {
                 <p style={{ fontSize: ".68rem", color: "var(--text-faint)", marginTop: ".1rem" }}>{driver.trips} trips</p>
               </div>
               {selected === driver.id && (
-                <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 20, height: 20, borderRadius: "50%", flexShrink: 0, background: "var(--brand-to)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <CheckRoundedIcon style={{ fontSize: 12, color: "#fff" }} />
                 </div>
               )}
@@ -216,6 +193,12 @@ function EditTimeModal({ ride, onClose, onSave }: {
   const [date, setDate] = useState(ride.date === "Today" || ride.date === "Tomorrow" ? "" : ride.date);
   const [time, setTime] = useState(ride.time);
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%", paddingLeft: "2.25rem", paddingRight: ".75rem", height: "2.25rem",
+    borderRadius: "var(--r-inner)", fontSize: ".82rem", border: "1px solid var(--border)",
+    background: "var(--bg-inner)", color: "var(--text-h)", outline: "none", boxSizing: "border-box",
+  };
+
   return (
     <div className="ts-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="ts-modal" style={{ maxWidth: "22rem" }}>
@@ -229,17 +212,17 @@ function EditTimeModal({ ride, onClose, onSave }: {
         <div className="ts-modal-body">
           <div style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
             <div>
-              <label style={{ fontSize: ".75rem", fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: ".35rem" }}>Date</label>
+              <label className="ts-label">Date</label>
               <div style={{ position: "relative" }}>
                 <CalendarTodayRoundedIcon style={{ fontSize: 14, color: "var(--text-muted)", position: "absolute", left: ".75rem", top: "50%", transform: "translateY(-50%)" }} />
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", paddingLeft: "2.25rem", paddingRight: ".75rem", height: "2.25rem", borderRadius: ".5rem", fontSize: ".82rem", border: "1px solid var(--border)", background: "var(--bg-inner)", color: "var(--text-h)", outline: "none", boxSizing: "border-box" }} />
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
               </div>
             </div>
             <div>
-              <label style={{ fontSize: ".75rem", fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: ".35rem" }}>Time</label>
+              <label className="ts-label">Time</label>
               <div style={{ position: "relative" }}>
                 <AccessTimeRoundedIcon style={{ fontSize: 14, color: "var(--text-muted)", position: "absolute", left: ".75rem", top: "50%", transform: "translateY(-50%)" }} />
-                <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", paddingLeft: "2.25rem", paddingRight: ".75rem", height: "2.25rem", borderRadius: ".5rem", fontSize: ".82rem", border: "1px solid var(--border)", background: "var(--bg-inner)", color: "var(--text-h)", outline: "none", boxSizing: "border-box" }} />
+                <input type="time" value={time} onChange={e => setTime(e.target.value)} style={inputStyle} />
               </div>
             </div>
           </div>
@@ -268,8 +251,10 @@ function RideDetailsModal({ ride, onClose }: { ride: UpcomingRide; onClose: () =
           <button className="ts-modal-close" onClick={onClose}><CloseRoundedIcon style={{ fontSize: 16 }} /></button>
         </div>
         <div className="ts-modal-body">
+
+          {/* Rider row */}
           <div className="ts-card-inner" style={{ padding: ".875rem 1rem", display: "flex", alignItems: "center", gap: ".75rem" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#ede9fe", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".8rem", color: "#6d28d9" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--driver-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".8rem", color: "var(--driver-fg)" }}>
               {ride.rider.slice(0, 2).toUpperCase()}
             </div>
             <div>
@@ -278,8 +263,10 @@ function RideDetailsModal({ ride, onClose }: { ride: UpcomingRide; onClose: () =
             </div>
             <span className="ts-pill ts-pill-active" style={{ marginLeft: "auto" }}>Scheduled</span>
           </div>
+
+          {/* Driver row */}
           <div className="ts-card-inner" style={{ padding: ".875rem 1rem", display: "flex", alignItems: "center", gap: ".75rem" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".8rem", color: "#059669" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--active-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".8rem", color: "var(--active-fg)" }}>
               {ride.driverAvatar}
             </div>
             <div style={{ flex: 1 }}>
@@ -291,27 +278,37 @@ function RideDetailsModal({ ride, onClose }: { ride: UpcomingRide; onClose: () =
               <span style={{ fontSize: ".78rem", fontWeight: 600, color: "var(--text-h)" }}>{ride.driverRating}</span>
             </div>
           </div>
+
+          {/* Route */}
           <div style={{ position: "relative", paddingLeft: "1.5rem" }}>
-            <div style={{ position: "absolute", left: 7, top: 12, bottom: 12, width: 1, background: "linear-gradient(to bottom, #7c3aed, #a78bfa)" }} />
+            <div className="ts-route-line" />
             <div style={{ marginBottom: ".875rem", position: "relative" }}>
-              <div style={{ position: "absolute", left: "-1.5rem", top: ".25rem", width: 10, height: 10, borderRadius: "50%", background: "#7c3aed" }} />
-              <p style={{ fontSize: ".68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-faint)", marginBottom: ".2rem" }}>Pickup</p>
+              <div className="ts-route-dot-start" />
+              <p className="ts-section-label" style={{ marginBottom: ".2rem" }}>Pickup</p>
               <p style={{ fontSize: ".82rem", fontWeight: 500, color: "var(--text-h)" }}>{ride.pickup}</p>
             </div>
             <div style={{ position: "relative" }}>
-              <div style={{ position: "absolute", left: "-1.5rem", top: ".25rem", width: 10, height: 10, borderRadius: "50%", border: "2px solid #a78bfa", background: "var(--bg-card)" }} />
-              <p style={{ fontSize: ".68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-faint)", marginBottom: ".2rem" }}>Drop-off</p>
+              <div className="ts-route-dot-end" />
+              <p className="ts-section-label" style={{ marginBottom: ".2rem" }}>Drop-off</p>
               <p style={{ fontSize: ".82rem", fontWeight: 500, color: "var(--text-h)" }}>{ride.drop}</p>
             </div>
           </div>
+
+          {/* Stats grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: ".5rem" }}>
-            {[{ label: "Time", value: `${ride.date} ${ride.time}` }, { label: "Distance", value: ride.distance }, { label: "Duration", value: ride.duration }, { label: "Fare", value: `$${ride.fare}` }].map(s => (
+            {[
+              { label: "Time",     value: `${ride.date} ${ride.time}` },
+              { label: "Distance", value: ride.distance },
+              { label: "Duration", value: ride.duration },
+              { label: "Fare",     value: `$${ride.fare}` },
+            ].map(s => (
               <div key={s.label} className="ts-card-inner" style={{ padding: ".625rem", textAlign: "center" }}>
                 <p style={{ fontSize: ".68rem", color: "var(--text-muted)", marginBottom: ".2rem" }}>{s.label}</p>
                 <p style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--text-h)" }}>{s.value}</p>
               </div>
             ))}
           </div>
+
         </div>
         <div className="ts-modal-footer">
           <button className="ts-btn-ghost" onClick={onClose}>Close</button>
@@ -375,9 +372,7 @@ export default function UpcomingRidesPage() {
           <h1 className="ts-page-title">Upcoming Rides</h1>
           <p className="ts-page-subtitle">Scheduled trips with assigned drivers</p>
         </div>
-        <span style={{ padding: ".25rem .75rem", borderRadius: "9999px", fontSize: ".72rem", fontWeight: 700, background: "var(--active-bg)", color: "var(--active-fg)" }}>
-          {rides.length} Scheduled
-        </span>
+        <span className="ts-pill ts-pill-active">{rides.length} Scheduled</span>
       </div>
 
       {/* ── Filter bar ── */}
@@ -394,17 +389,13 @@ export default function UpcomingRidesPage() {
         <span className="ts-record-count">{filtered.length} ride{filtered.length !== 1 ? "s" : ""}</span>
       </div>
 
-      {/* ── Table card (fixed height via ghost rows) ── */}
+      {/* ── Table card ── */}
       <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
             <colgroup>
-              <col style={{ width: "13%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "22%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "13%" }} />
-              <col style={{ width: "22%" }} />
+              <col style={{ width: "13%" }} /><col style={{ width: "16%" }} /><col style={{ width: "22%" }} />
+              <col style={{ width: "14%" }} /><col style={{ width: "13%" }} /><col style={{ width: "22%" }} />
             </colgroup>
             <thead>
               <tr>
@@ -420,7 +411,7 @@ export default function UpcomingRidesPage() {
                     <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>No upcoming rides match your filters.</td>
                   </tr>
                   {Array.from({ length: ROWS - 1 }).map((_, i) => (
-                    <tr key={`ge-${i}`} style={{ height: ROW_H }}><td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} /></tr>
+                    <tr key={`ge-${i}`} style={{ height: ROW_H }}><td colSpan={6} style={{ borderBottom: "1px solid var(--border-row)" }} /></tr>
                   ))}
                 </>
               ) : (
@@ -431,7 +422,7 @@ export default function UpcomingRidesPage() {
                       {/* Rider */}
                       <td style={TD}>
                         <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
-                          <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: "#ede9fe", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".68rem", color: "#6d28d9" }}>
+                          <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: "var(--driver-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".68rem", color: "var(--driver-fg)" }}>
                             {ride.rider.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
@@ -446,7 +437,7 @@ export default function UpcomingRidesPage() {
                       {/* Driver */}
                       <td style={TD}>
                         <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
-                          <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: "#d1fae5", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".68rem", color: "#059669" }}>
+                          <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: "var(--active-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: ".68rem", color: "var(--active-fg)" }}>
                             {ride.driverAvatar}
                           </div>
                           <div>
@@ -466,11 +457,11 @@ export default function UpcomingRidesPage() {
                       <td style={{ ...TD, overflow: "hidden" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: ".55rem" }}>
                           <div style={{ display: "flex", alignItems: "flex-start", gap: ".4rem" }}>
-                            <LocationOnRoundedIcon style={{ fontSize: 13, color: "#7c3aed", marginTop: ".05rem", flexShrink: 0 }} />
+                            <LocationOnRoundedIcon style={{ fontSize: 13, color: "var(--brand-from)", marginTop: ".05rem", flexShrink: 0 }} />
                             <span style={{ fontSize: ".75rem", color: "var(--text-body)", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ride.pickup}</span>
                           </div>
                           <div style={{ display: "flex", alignItems: "flex-start", gap: ".4rem" }}>
-                            <FlagRoundedIcon style={{ fontSize: 13, color: "#10b981", marginTop: ".05rem", flexShrink: 0 }} />
+                            <FlagRoundedIcon style={{ fontSize: 13, color: "var(--active-fg)", marginTop: ".05rem", flexShrink: 0 }} />
                             <span style={{ fontSize: ".75rem", color: "var(--text-body)", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ride.drop}</span>
                           </div>
                         </div>
@@ -489,7 +480,7 @@ export default function UpcomingRidesPage() {
                       {/* Fare / Distance */}
                       <td style={TD}>
                         <div style={{ display: "flex", alignItems: "center", gap: ".25rem", marginBottom: ".35rem" }}>
-                          <AttachMoneyRoundedIcon style={{ fontSize: 13, color: "#10b981" }} />
+                          <AttachMoneyRoundedIcon style={{ fontSize: 13, color: "var(--active-fg)" }} />
                           <span style={{ fontSize: ".82rem", fontWeight: 700, color: "var(--text-h)" }}>${ride.fare}</span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: ".25rem" }}>
@@ -504,13 +495,13 @@ export default function UpcomingRidesPage() {
                           <button className="ts-btn-primary" style={{ fontSize: ".7rem", padding: ".3rem .7rem" }} onClick={() => setReassignModal(ride)}>
                             <SwapHorizRoundedIcon style={{ fontSize: 12 }} /> Reassign
                           </button>
-                          <button className="ts-icon-btn" title="Edit Schedule" style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: ".375rem" }} onClick={() => setEditModal(ride)}>
+                          <button className="ts-icon-btn" title="Edit Schedule" style={{ width: 30, height: 30 }} onClick={() => setEditModal(ride)}>
                             <EditRoundedIcon style={{ fontSize: 15 }} />
                           </button>
-                          <button className="ts-icon-btn" title="View Details" style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: ".375rem" }} onClick={() => setDetailModal(ride)}>
+                          <button className="ts-icon-btn" title="View Details" style={{ width: 30, height: 30 }} onClick={() => setDetailModal(ride)}>
                             <VisibilityRoundedIcon style={{ fontSize: 15 }} />
                           </button>
-                          <button className="ts-icon-btn ts-icon-btn-del" title="Cancel Ride" style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: ".375rem" }} onClick={() => handleCancel(ride.id)}>
+                          <button className="ts-icon-btn ts-icon-btn-del" title="Cancel Ride" style={{ width: 30, height: 30 }} onClick={() => handleCancel(ride.id)}>
                             <CancelRoundedIcon style={{ fontSize: 15 }} />
                           </button>
                         </div>
@@ -518,7 +509,7 @@ export default function UpcomingRidesPage() {
                     </tr>
                   ))}
                   {Array.from({ length: ghostCount }).map((_, i) => (
-                    <tr key={`g-${i}`} style={{ height: ROW_H }}><td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} /></tr>
+                    <tr key={`g-${i}`} style={{ height: ROW_H }}><td colSpan={6} style={{ borderBottom: "1px solid var(--border-row)" }} /></tr>
                   ))}
                 </>
               )}
@@ -535,8 +526,16 @@ export default function UpcomingRidesPage() {
 
       {/* ── Toast ── */}
       {toast && (
-        <div style={{ position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 100, padding: ".625rem 1rem", borderRadius: ".6rem", background: "#111827", color: "#fff", fontSize: ".78rem", fontWeight: 500, display: "flex", alignItems: "center", gap: ".5rem", boxShadow: "0 4px 20px rgba(0,0,0,.25)", animation: "tsSettingsIn .25s ease" }}>
-          <CheckRoundedIcon style={{ fontSize: 14, color: "#34d399" }} /> {toast}
+        <div style={{
+          position: "fixed", bottom: "1.5rem", right: "1.5rem", zIndex: 100,
+          padding: ".625rem 1rem", borderRadius: "var(--r-inner)",
+          background: "var(--bg-card)", color: "var(--text-h)",
+          border: "1px solid var(--border)",
+          fontSize: ".78rem", fontWeight: 500,
+          display: "flex", alignItems: "center", gap: ".5rem",
+          boxShadow: "var(--shadow-modal)", animation: "tsSettingsIn .25s ease",
+        }}>
+          <CheckRoundedIcon style={{ fontSize: 14, color: "var(--active-fg)" }} /> {toast}
         </div>
       )}
     </div>

@@ -23,7 +23,7 @@ interface ErrState  { firstName: string; lastName: string; phone: string; email:
 const EMPTY_FORM: FormState = { firstName: "", lastName: "", phone: "", email: "", language: "" };
 const EMPTY_ERRS: ErrState  = { firstName: "", lastName: "", phone: "", email: "", language: "" };
 
-/* ─── VALIDATION ──────────────────────────────────────────────────────── */
+/* ─── VALIDATION ─────────────────────────────────────────────────────── */
 function validate(f: FormState): ErrState {
   const e = { ...EMPTY_ERRS };
   if (!f.firstName.trim())                               e.firstName = "First name is required.";
@@ -61,8 +61,7 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const selected    = options.find(o => o.value === value);
-  const borderColor = error ? "#ef4444" : "var(--border, #d1d5db)";
+  const selected = options.find(o => o.value === value);
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
@@ -70,12 +69,12 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
         onClick={() => setOpen(o => !o)}
         style={{
           padding: ".55rem .75rem",
-          border: `1px solid ${borderColor}`,
-          borderBottom: open ? "none" : `1px solid ${borderColor}`,
+          border: `1px solid ${error ? "var(--blocked-fg)" : "var(--border)"}`,
+          borderBottom: open ? "none" : `1px solid ${error ? "var(--blocked-fg)" : "var(--border)"}`,
           borderRadius: open ? ".4rem .4rem 0 0" : ".4rem",
-          background: "#fff",
+          background: "var(--bg-card)",
           fontSize: ".82rem",
-          color: selected ? "#111827" : "#6b7280",
+          color: selected ? "var(--text-h)" : "var(--text-faint)",
           cursor: "pointer",
           userSelect: "none",
         }}
@@ -89,10 +88,10 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
           top: "100%",
           left: 0,
           right: 0,
-          border: `1px solid ${borderColor}`,
+          border: `1px solid ${error ? "var(--blocked-fg)" : "var(--border)"}`,
           borderTop: "none",
           borderRadius: "0 0 .4rem .4rem",
-          background: "#fff",
+          background: "var(--bg-card)",
           zIndex: 999,
           overflow: "hidden",
         }}>
@@ -106,10 +105,10 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
                 padding: ".55rem .75rem",
                 paddingLeft: hovered === opt.value ? "1.1rem" : ".75rem",
                 fontSize: ".82rem",
-                color: hovered === opt.value ? "#1d4ed8" : "#374151",
-                background: hovered === opt.value ? "#eff6ff" : "transparent",
+                color: hovered === opt.value ? "var(--rider-fg)" : "var(--text-body)",
+                background: hovered === opt.value ? "var(--rider-bg)" : "transparent",
                 cursor: "pointer",
-                transition: "background .15s ease, color .15s ease, padding-left .15s ease",
+                transition: "background var(--t-fast), color var(--t-fast), padding-left var(--t-fast)",
               }}
             >
               {opt.label}
@@ -122,19 +121,13 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
 }
 
 /* ─── FIELD WRAPPER ──────────────────────────────────────────────────── */
-function Field({
-  label, error, children,
-}: {
-  label: string;
-  error: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, error, children }: { label: string; error: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: ".35rem" }}>
       <label className="ts-label">{label}</label>
       {children}
       {error && (
-        <p style={{ display: "flex", alignItems: "center", gap: ".25rem", fontSize: ".7rem", color: "#ef4444", marginTop: ".1rem" }}>
+        <p className="ts-err" style={{ display: "flex", alignItems: "center", gap: ".25rem", marginTop: ".1rem" }}>
           <ErrorRoundedIcon style={{ fontSize: 12 }} /> {error}
         </p>
       )}
@@ -203,9 +196,7 @@ export default function AddDriverPage({ prefill, setDrivers, onNavigate }: AddDr
           <ArrowBackRoundedIcon style={{ fontSize: 18 }} />
         </button>
         <div>
-          <h1 className="ts-page-title" style={{ fontSize: "1.15rem" }}>
-            {isEdit ? "Edit Driver" : "Add New Driver"}
-          </h1>
+          <h1 className="ts-page-title">{isEdit ? "Edit Driver" : "Add New Driver"}</h1>
           <p className="ts-page-subtitle">
             {isEdit
               ? `Editing profile for ${prefill!.first} ${prefill!.last}`
@@ -246,25 +237,25 @@ export default function AddDriverPage({ prefill, setDrivers, onNavigate }: AddDr
               width: "100%",
               height: "2.25rem",
               fontSize: ".85rem",
-              borderRadius: "var(--radius, .5rem)",
+              borderRadius: "var(--r-inner)",
               border: errs.phone
-                ? "1.5px solid #ef4444"
+                ? "1.5px solid var(--blocked-fg)"
                 : "1.5px solid var(--border)",
-              background: "var(--bg-input, #fff)",
+              background: "var(--bg-card)",
               color: "var(--text-h)",
               paddingLeft: "3rem",
-              fontFamily: "inherit",
+              fontFamily: "var(--font)",
             }}
             buttonStyle={{
               border: errs.phone
-                ? "1.5px solid #ef4444"
+                ? "1.5px solid var(--blocked-fg)"
                 : "1.5px solid var(--border)",
               borderRight: "none",
-              borderRadius: "var(--radius, .5rem) 0 0 var(--radius, .5rem)",
-              background: "var(--bg-input, #fff)",
+              borderRadius: "var(--r-inner) 0 0 var(--r-inner)",
+              background: "var(--bg-card)",
             }}
             dropdownStyle={{
-              borderRadius: ".5rem",
+              borderRadius: "var(--r-inner)",
               fontSize: ".82rem",
               zIndex: 999,
             }}

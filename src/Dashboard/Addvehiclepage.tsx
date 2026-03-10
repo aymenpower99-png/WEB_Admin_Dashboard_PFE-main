@@ -26,10 +26,10 @@ const YEARS         = Array.from({ length: 11 }, (_, i) => 2016 + i).reverse();
 const COLORS        = ["White", "Black", "Silver"] as const;
 const SEAT_COUNTS   = [2, 3, 4, 5, 6, 7, 8] as const;
 const STATUSES      = [
-  { value: "active",       label: "Active" },
-  { value: "inactive",     label: "Inactive" },
-  { value: "Disponible",   label: "Disponible" },
-  { value: "Maintenance",  label: "Maintenance" },
+  { value: "active",      label: "Active" },
+  { value: "inactive",    label: "Inactive" },
+  { value: "Disponible",  label: "Disponible" },
+  { value: "Maintenance", label: "Maintenance" },
 ] as const;
 
 const VEHICLE_CLASSES = [
@@ -47,21 +47,21 @@ const EMPTY_ERRS: ErrState  = { make: "", model: "", year: "", plate: "", color:
 
 function validate(f: FormState): ErrState {
   const e: ErrState = { ...EMPTY_ERRS };
-  if (!f.make.trim())       e.make         = "Make is required.";
-  if (!f.model.trim())      e.model        = "Model is required.";
-  if (!f.year)              e.year         = "Year is required.";
-  if (!f.plate.trim())      e.plate        = "Plate number is required.";
-  if (!f.color)             e.color        = "Color is required.";
-  if (!f.type)              e.type         = "Vehicle type is required.";
-  if (!f.vehicleClass)      e.vehicleClass = "Vehicle class is required.";
-  if (!f.seats)             e.seats        = "Seat count is required.";
-  if (!f.status)            e.status       = "Status is required.";
+  if (!f.make.trim())  e.make         = "Make is required.";
+  if (!f.model.trim()) e.model        = "Model is required.";
+  if (!f.year)         e.year         = "Year is required.";
+  if (!f.plate.trim()) e.plate        = "Plate number is required.";
+  if (!f.color)        e.color        = "Color is required.";
+  if (!f.type)         e.type         = "Vehicle type is required.";
+  if (!f.vehicleClass) e.vehicleClass = "Vehicle class is required.";
+  if (!f.seats)        e.seats        = "Seat count is required.";
+  if (!f.status)       e.status       = "Status is required.";
   return e;
 }
 
 const hasErrors = (e: ErrState): boolean => Object.values(e).some(Boolean);
 
-// ─── Dropdown ────────────────────────────────────────────────────────────────
+/* ─── Dropdown ───────────────────────────────────────────────────────── */
 interface DropdownOption { value: string; label: string; }
 
 interface PlainDropdownProps {
@@ -85,8 +85,7 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const selected    = options.find(o => o.value === value);
-  const borderColor = error ? "#ef4444" : "var(--border, #d1d5db)";
+  const selected = options.find(o => o.value === value);
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
@@ -94,12 +93,12 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
         onClick={() => setOpen(o => !o)}
         style={{
           padding: ".55rem .75rem",
-          border: `1px solid ${borderColor}`,
-          borderBottom: open ? "none" : `1px solid ${borderColor}`,
+          border: `1px solid ${error ? "var(--blocked-fg)" : "var(--border)"}`,
+          borderBottom: open ? "none" : `1px solid ${error ? "var(--blocked-fg)" : "var(--border)"}`,
           borderRadius: open ? ".4rem .4rem 0 0" : ".4rem",
-          background: "#fff",
+          background: "var(--bg-card)",
           fontSize: ".82rem",
-          color: selected ? "#111827" : "#6b7280",
+          color: selected ? "var(--text-h)" : "var(--text-faint)",
           cursor: "pointer",
           userSelect: "none",
         }}
@@ -113,10 +112,10 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
           top: "100%",
           left: 0,
           right: 0,
-          border: `1px solid ${borderColor}`,
+          border: `1px solid ${error ? "var(--blocked-fg)" : "var(--border)"}`,
           borderTop: "none",
           borderRadius: "0 0 .4rem .4rem",
-          background: "#fff",
+          background: "var(--bg-card)",
           zIndex: 999,
           overflow: "hidden",
         }}>
@@ -130,10 +129,10 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
                 padding: ".55rem .75rem",
                 paddingLeft: hovered === opt.value ? "1.1rem" : ".75rem",
                 fontSize: ".82rem",
-                color: hovered === opt.value ? "#1d4ed8" : "#374151",
-                background: hovered === opt.value ? "#eff6ff" : "transparent",
+                color: hovered === opt.value ? "var(--rider-fg)" : "var(--text-body)",
+                background: hovered === opt.value ? "var(--rider-bg)" : "transparent",
                 cursor: "pointer",
-                transition: "background .15s ease, color .15s ease, padding-left .15s ease",
+                transition: "background var(--t-fast), color var(--t-fast), padding-left var(--t-fast)",
               }}
             >
               {opt.label}
@@ -144,15 +143,15 @@ function PlainDropdown({ value, onChange, options, error, placeholder = "SELECT"
     </div>
   );
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
+/* ─── Field ──────────────────────────────────────────────────────────── */
 function Field({ label, error, children }: { label: string; error: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: ".35rem" }}>
       <label className="ts-label">{label}</label>
       {children}
       {error && (
-        <p style={{ display: "flex", alignItems: "center", gap: ".25rem", fontSize: ".7rem", color: "#ef4444", marginTop: ".1rem" }}>
+        <p className="ts-err" style={{ display: "flex", alignItems: "center", gap: ".25rem", marginTop: ".1rem" }}>
           <ErrorRoundedIcon style={{ fontSize: 12 }} /> {error}
         </p>
       )}
@@ -160,16 +159,23 @@ function Field({ label, error, children }: { label: string; error: string; child
   );
 }
 
+/* ─── Vehicle Class Reference Grid ───────────────────────────────────── */
 function VehicleClassGrid() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", border: "1px solid var(--border)", borderRadius: ".6rem", overflow: "hidden", marginTop: ".4rem" }}>
+    <div style={{
+      display: "grid", gridTemplateColumns: "repeat(5, 1fr)",
+      border: "1px solid var(--border)", borderRadius: "var(--r-inner)",
+      overflow: "hidden", marginTop: ".4rem",
+    }}>
       {VEHICLE_CLASSES.slice(0, 5).map((cls, i) => (
-        <div key={cls.key} style={{ padding: ".6rem .75rem", borderRight: i < 4 ? "1px solid var(--border)" : "none", background: "var(--bg-main, #f8f9fb)" }}>
-          <p style={{ fontSize: ".68rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".04em", marginBottom: ".35rem" }}>
-            {cls.label}
-          </p>
+        <div key={cls.key} style={{
+          padding: ".6rem .75rem",
+          borderRight: i < 4 ? "1px solid var(--border)" : "none",
+          background: "var(--bg-inner)",
+        }}>
+          <p className="ts-section-label" style={{ marginBottom: ".35rem" }}>{cls.label}</p>
           {cls.examples.map(ex => (
-            <p key={ex} style={{ fontSize: ".7rem", color: "var(--text-body)", lineHeight: 1.65 }}>{ex}</p>
+            <p key={ex} className="ts-body" style={{ fontSize: ".7rem", lineHeight: 1.65 }}>{ex}</p>
           ))}
         </div>
       ))}
@@ -177,21 +183,17 @@ function VehicleClassGrid() {
   );
 }
 
+/* ─── Main Page ──────────────────────────────────────────────────────── */
 export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: AddVehiclePageProps) {
   const isEdit = !!prefill;
 
   const [form, setForm] = useState<FormState>(
     prefill
       ? {
-          make: prefill.make,
-          model: prefill.model,
-          year: String(prefill.year),
-          plate: prefill.plate,
-          color: prefill.color,
-          type: prefill.type,
+          make: prefill.make, model: prefill.model, year: String(prefill.year),
+          plate: prefill.plate, color: prefill.color, type: prefill.type,
           vehicleClass: (prefill as any).vehicleClass ?? "",
-          seats: String(prefill.seats),
-          driver: prefill.driver,
+          seats: String(prefill.seats), driver: prefill.driver,
           status: prefill.status ?? "",
         }
       : { ...EMPTY_FORM }
@@ -230,8 +232,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
     onNavigate("vehicles");
   };
 
-  const displayName = form.make && form.model ? `${form.year} ${form.make} ${form.model}`.trim() : "Vehicle";
-
   const yearOptions:   DropdownOption[] = YEARS.map(y => ({ value: String(y), label: String(y) }));
   const typeOptions:   DropdownOption[] = VEHICLE_TYPES.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }));
   const classOptions:  DropdownOption[] = VEHICLE_CLASSES.map(c => ({ value: c.key, label: c.label }));
@@ -248,7 +248,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           <ArrowBackRoundedIcon style={{ fontSize: 18 }} />
         </button>
         <div>
-          <h1 className="ts-page-title" style={{ fontSize: "1.15rem" }}>{isEdit ? "Edit Vehicle" : "Add New Vehicle"}</h1>
+          <h1 className="ts-page-title">{isEdit ? "Edit Vehicle" : "Add New Vehicle"}</h1>
           <p className="ts-page-subtitle">{isEdit ? `Editing ${prefill!.year} ${prefill!.make} ${prefill!.model}` : "Register a new vehicle to your fleet"}</p>
         </div>
       </div>
@@ -279,7 +279,13 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
               <PlainDropdown value={form.year} onChange={v => set("year", v)} options={yearOptions} error={errs.year} />
             </Field>
             <Field label="Plate Number" error={errs.plate}>
-              <input className={`ts-input${errs.plate ? " ts-input-error" : ""}`} placeholder="e.g. ABC-1234" value={form.plate} onChange={e => set("plate", e.target.value.toUpperCase())} style={{ fontFamily: "monospace", letterSpacing: ".05em" }} />
+              <input
+                className={`ts-input${errs.plate ? " ts-input-error" : ""}`}
+                placeholder="e.g. ABC-1234"
+                value={form.plate}
+                onChange={e => set("plate", e.target.value.toUpperCase())}
+                style={{ fontFamily: "monospace", letterSpacing: ".05em" }}
+              />
             </Field>
           </div>
 
