@@ -49,7 +49,7 @@ export const INITIAL_DRIVERS: Driver[] = [
 
 /* ─── CONSTANTS ──────────────────────────────────────────────────────── */
 const ROWS  = 10;
-const ROW_H = 54; // taller rows = more breathing room
+const ROW_H = 54;
 
 const STATUS_CFG = {
   online:  { label:"Online",  dot:"#10b981", bg:"#d1fae5", fg:"#065f46" },
@@ -77,10 +77,10 @@ function Stars({ rating }: { rating: number }) {
   return (
     <span style={{
       display:"inline-flex", alignItems:"center", gap:".2rem",
-      fontSize:".82rem",   // ← was .72rem
+      fontSize:".82rem",
       color:"#f59e0b", fontWeight:700,
     }}>
-      <StarRoundedIcon style={{ fontSize:16 }} />{rating}   {/* ← icon was 14 */}
+      <StarRoundedIcon style={{ fontSize:16 }} />{rating}
     </span>
   );
 }
@@ -91,26 +91,33 @@ function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
   onPrev: () => void; onNext: () => void; setPage: (n: number) => void;
 }) {
   const btn = (active: boolean, disabled: boolean): React.CSSProperties => ({
-    display:"flex", alignItems:"center", justifyContent:"center",
-    width:26, height:26, borderRadius:"0.375rem",
-    border:"1px solid var(--border)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    width: 26, height: 26, borderRadius: "0.375rem",
+    border: "1px solid var(--border)",
     background: active ? "#7c3aed" : disabled ? "transparent" : "var(--bg-card)",
     color: active ? "#fff" : disabled ? "var(--text-faint)" : "var(--text-muted)",
-    fontWeight: active ? 700 : 500, fontSize:"0.75rem",  // ← was 0.68rem
-    cursor: disabled ? "not-allowed" : "pointer", transition:"all .15s",
+    fontWeight: active ? 700 : 500, fontSize: "0.75rem",
+    cursor: disabled ? "not-allowed" : "pointer", transition: "all .15s",
   });
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0.6rem 1rem", borderTop:"1px solid var(--border)", flexShrink:0 }}>
-      <span style={{ fontSize:"0.75rem", color:"var(--text-faint)", fontWeight:500 }}>Page {page} of {totalPages}</span>
-      <div style={{ display:"flex", gap:"0.3rem" }}>
-        <button onClick={onPrev} disabled={page===1} style={btn(false, page===1)}>
-          <ChevronLeftRoundedIcon style={{ fontSize:14 }}/>
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0.6rem 1rem",
+      borderTop: "1px solid var(--border)",
+      flexShrink: 0,
+    }}>
+      <span style={{ fontSize: "0.75rem", color: "var(--text-faint)", fontWeight: 500 }}>
+        Page {page} of {totalPages}
+      </span>
+      <div style={{ display: "flex", gap: "0.3rem" }}>
+        <button onClick={onPrev} disabled={page === 1} style={btn(false, page === 1)}>
+          <ChevronLeftRoundedIcon style={{ fontSize: 13 }} />
         </button>
-        {Array.from({ length: totalPages }, (_, i) => i+1).map(n => (
-          <button key={n} onClick={() => setPage(n)} style={btn(n===page, false)}>{n}</button>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+          <button key={n} onClick={() => setPage(n)} style={btn(n === page, false)}>{n}</button>
         ))}
-        <button onClick={onNext} disabled={page===totalPages} style={btn(false, page===totalPages)}>
-          <ChevronRightRoundedIcon style={{ fontSize:14 }}/>
+        <button onClick={onNext} disabled={page === totalPages} style={btn(false, page === totalPages)}>
+          <ChevronRightRoundedIcon style={{ fontSize: 13 }} />
         </button>
       </div>
     </div>
@@ -164,7 +171,6 @@ export default function DriversPage({ drivers, setDrivers, onNavigate }: Drivers
     offline: drivers.filter(d => d.status === "offline").length,
   };
 
-  /* ── shared th style ── */
   const TH: React.CSSProperties = {
     padding: "0.65rem 1rem",
     fontSize: ".78rem",
@@ -177,11 +183,10 @@ export default function DriversPage({ drivers, setDrivers, onNavigate }: Drivers
     whiteSpace: "nowrap",
   };
 
-  /* ── shared td style ── */
   const TD: React.CSSProperties = {
     padding: "0 1rem",
     height: ROW_H,
-    fontSize: ".85rem",        // ← was .73–.8rem — matches reference screenshot
+    fontSize: ".85rem",
     color: "var(--text-body)",
     borderBottom: "1px solid var(--border)",
     verticalAlign: "middle",
@@ -280,39 +285,31 @@ export default function DriversPage({ drivers, setDrivers, onNavigate }: Drivers
                     {paged.map(d => (
                       <tr key={d.id} className="ts-tr" style={{ height: ROW_H }}>
 
-                        {/* Driver name */}
                         <td style={{ ...TD, fontWeight:600, color:"var(--text-h)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                           {d.first} {d.last}
                         </td>
 
-                        {/* Status */}
                         <td style={TD}><StatusPill status={d.status} /></td>
 
-                        {/* Vehicle */}
                         <td style={{ ...TD, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                           {d.vehicle}
                         </td>
 
-                        {/* Language */}
                         <td style={{ ...TD, color:"var(--text-muted)" }}>{d.lang}</td>
 
-                        {/* Trips */}
                         <td style={{ ...TD, fontWeight:600, color:"var(--text-h)" }}>{d.trips}</td>
 
-                        {/* Earnings */}
                         <td style={{ ...TD, fontWeight:700, color:"#7c3aed" }}>${d.earnings}</td>
 
-                        {/* Rating */}
                         <td style={TD}><Stars rating={d.rating} /></td>
 
-                        {/* Actions */}
                         <td style={TD}>
                           <div style={{ display:"flex", alignItems:"center", gap:".35rem" }}>
                             <button
                               title="Edit Driver"
                               className="ts-icon-btn"
                               onClick={() => onNavigate("agency-drivers", d)}
-                              style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:".375rem" }}
+                              style={{ width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:".375rem" }}
                             >
                               <EditRoundedIcon style={{ fontSize:16 }}/>
                             </button>
@@ -320,7 +317,7 @@ export default function DriversPage({ drivers, setDrivers, onNavigate }: Drivers
                               title="Remove Driver"
                               className="ts-icon-btn ts-icon-btn-del"
                               onClick={() => setRemoveId(d.id)}
-                              style={{ width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:".375rem" }}
+                              style={{ width:32, height:32, display:"flex", alignItems:"center", justifyContent:"center", borderRadius:".375rem" }}
                             >
                               <DeleteOutlineRoundedIcon style={{ fontSize:16 }}/>
                             </button>
@@ -329,7 +326,6 @@ export default function DriversPage({ drivers, setDrivers, onNavigate }: Drivers
                       </tr>
                     ))}
 
-                    {/* Ghost rows */}
                     {Array.from({ length: ghostCount }).map((_, i) => (
                       <tr key={`g-${i}`} style={{ height: ROW_H }}>
                         <td colSpan={8} style={{ borderBottom:"1px solid var(--border)" }} />

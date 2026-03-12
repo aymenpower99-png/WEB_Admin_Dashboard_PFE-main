@@ -1,16 +1,21 @@
 import { useState } from "react";
-import { USERS } from "./constants";
-import './travelsync-design-system.css'
+import { USERS } from "../constants";
+import "../travelsync-design-system.css";
 
-interface UsersTableProps { dark: boolean; }
+interface UsersTableProps {
+  dark: boolean;
+}
 
 interface User {
-  name: string; email: string; role: string;
-  status: "active" | "pending" | "blocked"; trips: number;
+  name: string;
+  email: string;
+  role: string;
+  status: "active" | "pending" | "blocked";
+  trips: number;
 }
 
 const STATUS_PILL: Record<string, string> = {
-  active:  "ts-pill ts-pill-active",
+  active: "ts-pill ts-pill-active",
   pending: "ts-pill ts-pill-pending",
   blocked: "ts-pill ts-pill-blocked",
 };
@@ -22,7 +27,10 @@ export default function UsersTable({ dark: _ }: UsersTableProps) {
   const users = USERS as User[];
 
   const totalPages = Math.ceil(users.length / ROWS_PER_PAGE);
-  const paginated = users.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+  const paginated = users.slice(
+    (page - 1) * ROWS_PER_PAGE,
+    page * ROWS_PER_PAGE,
+  );
 
   const rows = [
     ...paginated,
@@ -34,7 +42,6 @@ export default function UsersTable({ dark: _ }: UsersTableProps) {
 
   return (
     <div className="ts-card overflow-hidden" style={{ padding: "1.5rem" }}>
-
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
@@ -57,7 +64,10 @@ export default function UsersTable({ dark: _ }: UsersTableProps) {
       </div>
 
       {/* Rows — fixed height container so last page never collapses */}
-      <div className="flex flex-col" style={{ minHeight: `${ROWS_PER_PAGE * 41}px` }}>
+      <div
+        className="flex flex-col"
+        style={{ minHeight: `${ROWS_PER_PAGE * 41}px` }}
+      >
         {rows.map((user, i) => (
           <div
             key={i}
@@ -75,7 +85,9 @@ export default function UsersTable({ dark: _ }: UsersTableProps) {
                   {user.name}
                 </span>
                 <span className="ts-muted">{user.email}</span>
-                <span><span className="ts-chip">{user.role}</span></span>
+                <span>
+                  <span className="ts-chip">{user.role}</span>
+                </span>
                 <span>
                   <span className={STATUS_PILL[user.status]}>
                     {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
@@ -103,19 +115,21 @@ export default function UsersTable({ dark: _ }: UsersTableProps) {
         style={BORDER}
       >
         <span>
-          Showing {(page - 1) * ROWS_PER_PAGE + 1}–{Math.min(page * ROWS_PER_PAGE, users.length)} of {users.length} entries
+          Showing {(page - 1) * ROWS_PER_PAGE + 1}–
+          {Math.min(page * ROWS_PER_PAGE, users.length)} of {users.length}{" "}
+          entries
         </span>
 
         <div className="flex items-center gap-1">
           <button
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
             className="px-2 py-1 rounded ts-link disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Previous
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
             <button
               key={n}
               onClick={() => setPage(n)}
@@ -130,7 +144,7 @@ export default function UsersTable({ dark: _ }: UsersTableProps) {
           ))}
 
           <button
-            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
             className="px-2 py-1 rounded ts-link disabled:opacity-30 disabled:cursor-not-allowed"
           >
@@ -138,7 +152,6 @@ export default function UsersTable({ dark: _ }: UsersTableProps) {
           </button>
         </div>
       </div>
-
     </div>
   );
 }

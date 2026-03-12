@@ -1,9 +1,7 @@
 import { useState, useRef, useLayoutEffect } from "react";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
 import PaymentsRoundedIcon from "@mui/icons-material/PaymentsRounded";
-import HeadsetMicRoundedIcon from "@mui/icons-material/HeadsetMicRounded";
 import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
@@ -12,15 +10,13 @@ import MapRoundedIcon from "@mui/icons-material/MapRounded";
 import "./travelsync-design-system.css";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  dashboard:        <DashboardRoundedIcon       style={{ fontSize: 22 }} />,
-  people:           <PeopleAltRoundedIcon       style={{ fontSize: 22 }} />,
-  flight:           <FlightTakeoffRoundedIcon   style={{ fontSize: 22 }} />,
-  payments:         <PaymentsRoundedIcon        style={{ fontSize: 22 }} />,
-  headset_mic:      <HeadsetMicRoundedIcon      style={{ fontSize: 22 }} />,
-  manage_accounts:  <ManageAccountsRoundedIcon  style={{ fontSize: 22 }} />,
-  directions_car:   <DirectionsCarRoundedIcon   style={{ fontSize: 22 }} />,
-  person:           <PersonRoundedIcon          style={{ fontSize: 22 }} />,
-  map:              <MapRoundedIcon             style={{ fontSize: 22 }} />,
+  dashboard:        <DashboardRoundedIcon       style={{ fontSize: 20 }} />,
+  people:           <PeopleAltRoundedIcon       style={{ fontSize: 20 }} />,
+  payments:         <PaymentsRoundedIcon        style={{ fontSize: 20 }} />,
+  manage_accounts:  <ManageAccountsRoundedIcon  style={{ fontSize: 20 }} />,
+  directions_car:   <DirectionsCarRoundedIcon   style={{ fontSize: 20 }} />,
+  person:           <PersonRoundedIcon          style={{ fontSize: 20 }} />,
+  map:              <MapRoundedIcon             style={{ fontSize: 20 }} />,
 };
 
 interface NavItem {
@@ -48,7 +44,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
       {
         label: "Drivers",
         icon: "person",
-        page: "drivers",
+        page: "drivers-parent",
         children: [
           { label: "Drivers",    page: "drivers" },
           { label: "Add Driver", page: "agency-drivers" },
@@ -57,7 +53,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
       {
         label: "Vehicles",
         icon: "directions_car",
-        page: "vehicles",
+        page: "vehicles-parent",
         children: [
           { label: "Vehicles",    page: "vehicles" },
           { label: "Add Vehicle", page: "agency-vehicles" },
@@ -68,11 +64,10 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "RIDES",
     items: [
-      { label: "Trips", icon: "flight", page: "trips" },
       {
         label: "Rides",
         icon: "directions_car",
-        page: "rides",
+        page: "rides-parent",
         children: [
           { label: "Available Rides", page: "available-rides" },
           { label: "Upcoming Rides",  page: "upcoming-rides" },
@@ -84,8 +79,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "BILLING",
     items: [
-      { label: "Payments",       icon: "payments", page: "payments" },
-      { label: "Agency Billing", icon: "payments", page: "agency-billing" },
+      { label: "Agency Billing", icon: "payments", page: "payments" },
     ],
   },
   {
@@ -98,7 +92,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
       {
         label: "Settings",
         icon: "manage_accounts",
-        page: "settings",
+        page: "settings-parent",
         children: [
           { label: "Help Center", page: "help" },
           { label: "Settings",    page: "settings" },
@@ -108,7 +102,11 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   },
 ];
 
-// Animated dropdown container
+/* ───────────────────────────────────────────────
+   Animated collapse wrapper
+   overflow:hidden only on the height dimension so
+   the gradient pill is never clipped horizontally.
+─────────────────────────────────────────────── */
 function AnimatedDropdown({
   isOpen,
   children,
@@ -116,48 +114,86 @@ function AnimatedDropdown({
   isOpen: boolean;
   children: React.ReactNode;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
 
-  // useLayoutEffect runs synchronously after DOM mutations but before paint,
-  // which avoids the "setState in effect" cascading-render lint warning while
-  // still correctly measuring scrollHeight before the browser paints.
   useLayoutEffect(() => {
-    if (ref.current) {
-      setHeight(isOpen ? ref.current.scrollHeight : 0);
+    if (innerRef.current) {
+      setHeight(isOpen ? innerRef.current.scrollHeight : 0);
     }
   }, [isOpen]);
 
   return (
     <div
       style={{
-        overflow: "hidden",
-        height: height,
-        // Fix: was two separate `transition` keys (duplicate) — merged into one value
-        transition: "height 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease",
+        height,
+        overflow: "hidden",            /* clips the slide animation */
+        transition: "height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease",
         opacity: isOpen ? 1 : 0,
       }}
     >
-      <div ref={ref}>
-        <div
-          style={{
-            marginLeft: "2.25rem",
-            marginTop: 6,
-            marginBottom: 4,
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-            borderLeft: "1px solid var(--border)",
-            paddingLeft: "1.125rem",
-          }}
-        >
-          {children}
-        </div>
-      </div>
+      <div ref={innerRef}>{children}</div>
     </div>
   );
 }
 
+/* ───────────────────────────────────────────────
+   Child nav button — self-contained so its
+   width:100% is relative to its own container,
+   never the full sidebar.
+─────────────────────────────────────────────── */
+function ChildNavButton({
+  label,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const bg = isActive
+    ? "linear-gradient(135deg, var(--brand-from), var(--brand-to))"
+    : hovered
+    ? "var(--bg-inner)"
+    : "transparent";
+
+  const color = isActive ? "#fff" : hovered ? "var(--text-h)" : "var(--text-muted)";
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "block",
+        width: "100%",           /* fills the indented container only */
+        boxSizing: "border-box",
+        padding: "6px 12px",
+        borderRadius: "8px",
+        fontSize: "0.8125rem",
+        fontWeight: isActive ? 600 : 500,
+        fontFamily: "var(--font)",
+        lineHeight: 1.5,
+        color,
+        background: bg,
+        border: "none",
+        cursor: "pointer",
+        textAlign: "left",
+        transition: "background 150ms ease, color 150ms ease",
+        transform: "none",       /* no scale — keep inside indented lane */
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+/* ───────────────────────────────────────────────
+   Main Sidebar
+─────────────────────────────────────────────── */
 interface SidebarProps {
   dark: boolean;
   onToggleDark: () => void;
@@ -168,29 +204,33 @@ interface SidebarProps {
 export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const getInitialExpanded = () => {
     const result: Record<string, boolean> = {};
-    for (const group of NAV_GROUPS) {
-      for (const item of group.items) {
-        if (item.children?.some((c) => c.page === activePage)) {
+    for (const group of NAV_GROUPS)
+      for (const item of group.items)
+        if (item.children?.some((c) => c.page === activePage))
           result[item.label] = true;
-        }
-      }
-    }
     return result;
   };
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>(getInitialExpanded);
-
-  // Accordion: only one open at a time
   const toggle = (label: string) =>
     setExpanded((p) => ({ [label]: !p[label] }));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 0 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: "2rem", flex: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
         {NAV_GROUPS.map((group) => (
-          <div key={group.section}>
-            <div className="ts-section-label">{group.section}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div key={group.section} style={{ marginBottom: "1.25rem" }}>
+
+            {/* ── Section label ── */}
+            <div
+              className="ts-section-label"
+              style={{ marginBottom: 6, fontSize: "0.65rem", letterSpacing: "0.07em" }}
+            >
+              {group.section}
+            </div>
+
+            {/* ── Nav items ── */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {group.items.map((item) => {
                 const hasChildren    = !!item.children?.length;
                 const isExp          = !!expanded[item.label];
@@ -199,24 +239,25 @@ export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
 
                 return (
                   <div key={item.label}>
+
+                    {/* Parent button */}
                     <button
-                      onClick={() => {
-                        if (hasChildren) {
-                          toggle(item.label);
-                        } else {
-                          onNavigate(item.page);
-                        }
-                      }}
+                      onClick={() =>
+                        hasChildren ? toggle(item.label) : onNavigate(item.page)
+                      }
                       className={`ts-nav-item${isParentActive ? " ts-nav-active" : ""}`}
                       style={{
                         justifyContent: "space-between",
-                        ...(isChildActive
-                          ? { background: "var(--brand-soft)", color: "#7c3aed" }
+                        fontSize: "0.9375rem",
+                        paddingTop: 9,
+                        paddingBottom: 9,
+                        ...(isChildActive && !isParentActive
+                          ? { color: "var(--brand-to)" }
                           : {}),
                       }}
                     >
                       <span style={{ display: "flex", alignItems: "center", gap: "0.875rem" }}>
-                        <span style={{ display: "flex", alignItems: "center", width: 24, height: 24 }}>
+                        <span style={{ display: "flex", alignItems: "center", width: 22, height: 22 }}>
                           {ICON_MAP[item.icon]}
                         </span>
                         {item.label}
@@ -224,33 +265,65 @@ export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
                       {hasChildren && (
                         <ExpandMoreRoundedIcon
                           style={{
-                            fontSize: 20,
+                            fontSize: 18,
                             color: isChildActive
-                              ? "#7c3aed"
+                              ? "var(--brand-to)"
                               : isParentActive
                               ? "rgba(255,255,255,0.7)"
                               : "var(--text-faint)",
-                            transition: "transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)",
+                            transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
                             transform: isExp ? "rotate(180deg)" : "rotate(0deg)",
                           }}
                         />
                       )}
                     </button>
 
+                    {/* ── Indented children ── */}
                     {hasChildren && (
                       <AnimatedDropdown isOpen={isExp}>
-                        {item.children!.map((child) => (
-                          <button
-                            key={child.label}
-                            onClick={() => onNavigate(child.page)}
-                            className={`ts-nav-item${activePage === child.page ? " ts-nav-active" : ""}`}
-                            style={{ fontSize: "0.9375rem" }}
-                          >
-                            {child.label}
-                          </button>
-                        ))}
+                        {/*
+                          KEY: use padding-left (NOT margin-left) so that
+                          child buttons' width:100% resolves to THIS box width.
+                          margin-left would make width:100% still reference
+                          the sidebar width → pill overflow bug.
+                        */}
+                        <div
+                          style={{
+                            paddingTop: 4,
+                            paddingBottom: 4,
+                            paddingLeft: "3.5rem",    /* aligns with parent label text */
+                            paddingRight: "0.5rem",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                            position: "relative",
+                          }}
+                        >
+                          {/* Decorative left accent line */}
+                          <span
+                            style={{
+                              position: "absolute",
+                              left: "2.625rem",
+                              top: 8,
+                              bottom: 8,
+                              width: 1,
+                              background: "var(--border)",
+                              borderRadius: 1,
+                              pointerEvents: "none",
+                            }}
+                          />
+                          {item.children!.map((child) => (
+                            <ChildNavButton
+                              key={child.page}
+                              label={child.label}
+                              isActive={activePage === child.page}
+                              onClick={() => onNavigate(child.page)}
+                            />
+                          ))}
+                        </div>
                       </AnimatedDropdown>
                     )}
+
                   </div>
                 );
               })}

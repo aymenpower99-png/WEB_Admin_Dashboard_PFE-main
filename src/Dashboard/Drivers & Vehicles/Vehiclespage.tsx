@@ -57,11 +57,11 @@ const STATUS_CFG: Record<Vehicle["status"], { label: string; dot: string; bg: st
 };
 
 const CLASS_CFG: Record<string, { label: string; color: string }> = {
-  economy:           { label: "Economy",            color: "#6366f1" },
-  standard:          { label: "Standard",           color: "#0ea5e9" },
-  first_class:       { label: "First Class",        color: "#f59e0b" },
-  standard_van:      { label: "Standard Van",       color: "#10b981" },
-  suv_first_class_van: { label: "SUV / 1st Class Van", color: "#8b5cf6" },
+  economy:               { label: "Economy",            color: "#6366f1" },
+  standard:              { label: "Standard",           color: "#0ea5e9" },
+  first_class:           { label: "First Class",        color: "#f59e0b" },
+  standard_van:          { label: "Standard Van",       color: "#10b981" },
+  suv_first_class_van:   { label: "SUV / 1st Class Van", color: "#8b5cf6" },
 };
 
 /* ─── SUB-COMPONENTS ─────────────────────────────────────────────────── */
@@ -114,19 +114,24 @@ function Pagination({ page, totalPages, onPrev, onNext, setPage }: PaginationPro
     cursor: disabled ? "not-allowed" : "pointer", transition: "all .15s",
   });
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 1rem", borderTop: "1px solid var(--border)", flexShrink: 0 }}>
+    <div style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0.6rem 1rem",
+      borderTop: "1px solid var(--border)",
+      flexShrink: 0,
+    }}>
       <span style={{ fontSize: "0.75rem", color: "var(--text-faint)", fontWeight: 500 }}>
         Page {page} of {totalPages}
       </span>
       <div style={{ display: "flex", gap: "0.3rem" }}>
         <button onClick={onPrev} disabled={page === 1} style={btn(false, page === 1)}>
-          <ChevronLeftRoundedIcon style={{ fontSize: 14 }} />
+          <ChevronLeftRoundedIcon style={{ fontSize: 13 }} />
         </button>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
           <button key={n} onClick={() => setPage(n)} style={btn(n === page, false)}>{n}</button>
         ))}
         <button onClick={onNext} disabled={page === totalPages} style={btn(false, page === totalPages)}>
-          <ChevronRightRoundedIcon style={{ fontSize: 14 }} />
+          <ChevronRightRoundedIcon style={{ fontSize: 13 }} />
         </button>
       </div>
     </div>
@@ -305,40 +310,33 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                     {paged.map(v => (
                       <tr key={v.id} className="ts-tr" style={{ height: ROW_H }}>
 
-                        {/* Vehicle — no icon */}
                         <td style={{ ...TD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          <span style={{ fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <span style={{ fontWeight: 600, color: "var(--text-h)" }}>
                             {v.year} {v.make} {v.model}
                           </span>
                         </td>
 
-                        {/* Status */}
                         <td style={TD}><StatusPill status={v.status} /></td>
 
-                        {/* Plate */}
                         <td style={{ ...TD, fontWeight: 700, color: "var(--text-h)", fontFamily: "monospace", fontSize: ".82rem", letterSpacing: ".04em" }}>
                           {v.plate}
                         </td>
 
-                        {/* Driver */}
                         <td style={{ ...TD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "var(--text-muted)" }}>
                           {v.driver || "—"}
                         </td>
 
-                        {/* Class */}
                         <td style={TD}><ClassBadge vehicleClass={v.vehicleClass} /></td>
 
-                        {/* Seats */}
                         <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>{v.seats}</td>
 
-                        {/* Actions */}
                         <td style={TD}>
                           <div style={{ display: "flex", alignItems: "center", gap: ".35rem" }}>
                             <button
                               title="Edit Vehicle"
                               className="ts-icon-btn"
                               onClick={() => onNavigate("agency-vehicles", v)}
-                              style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: ".375rem" }}
+                              style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: ".375rem" }}
                             >
                               <EditRoundedIcon style={{ fontSize: 16 }} />
                             </button>
@@ -346,7 +344,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                               title="Remove Vehicle"
                               className="ts-icon-btn ts-icon-btn-del"
                               onClick={() => setRemoveId(v.id)}
-                              style={{ width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: ".375rem" }}
+                              style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: ".375rem" }}
                             >
                               <DeleteOutlineRoundedIcon style={{ fontSize: 16 }} />
                             </button>
@@ -355,7 +353,6 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                       </tr>
                     ))}
 
-                    {/* Ghost rows */}
                     {Array.from({ length: ghostCount }).map((_, i) => (
                       <tr key={`g-${i}`} style={{ height: ROW_H }}>
                         <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />

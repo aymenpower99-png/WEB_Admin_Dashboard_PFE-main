@@ -54,7 +54,7 @@
   --shadow-card:       0 1px 3px rgba(0,0,0,.07),0 1px 2px -1px rgba(0,0,0,.07);
   --shadow-modal:      0 25px 50px -12px rgba(0,0,0,.25);
   --nav-h:             64px;
-  --sidebar-w:         320px;/* ← widened from 280px */
+  --sidebar-w:         290px;
   --t-fast:            150ms ease;
   --t-med:             300ms ease;
   --font:              'DM Sans', system-ui, sans-serif;
@@ -107,8 +107,8 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-sidebar {
   position: fixed; left: 0; top: var(--nav-h); z-index: 40;
   width: var(--sidebar-w); height: calc(100vh - var(--nav-h));
-  display: flex; flex-direction: column; gap: 2rem;   /* ← was 1.5rem */
-  padding: 1.75rem 1.5rem;                             /* ← was 1.5rem 1.25rem */
+  display: flex; flex-direction: column; gap: 2rem;
+  padding: 1.75rem 1.5rem;
   overflow-y: auto;
   background: var(--bg-sidebar); border-right: 1px solid var(--border);
 }
@@ -122,15 +122,14 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-page-title    { font-size: 1.25rem; font-weight: 600; color: var(--text-h); }
 .ts-page-subtitle { font-size: .75rem; color: var(--text-muted); margin-top: .125rem; }
 
-/* Section label — bold and spacious like Transfeero */
 .ts-section-label {
-  font-size: .75rem;           /* ← was .6875rem */
+  font-size: .75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
   color: var(--text-faint);
-  padding: 0 1rem;             /* ← was 0 .875rem */
-  margin-bottom: .75rem;       /* ← was .625rem */
+  padding: 0 1rem;
+  margin-bottom: .75rem;
   margin-top: .125rem;
 }
 
@@ -255,19 +254,84 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-icon-btn:hover       { color: var(--text-h);   background: var(--bg-inner); }
 .ts-icon-btn-del:hover   { color: #ef4444; background: #fee2e2; }
 
-/* Nav item — maximum extended Transfeero style */
+/* ─── NAV ITEMS ─────────────────────────────────────────────────────── */
+
+/* Parent nav item */
 .ts-nav-item {
-  display: flex; align-items: center; gap: .875rem;   /* ← was .75rem */
-  padding: .75rem 1rem;                                /* ← was .625rem .875rem */
-  border-radius: .75rem;                               /* ← was .625rem */
-  font-size: 1rem;                                     /* ← was .9375rem */
-  font-weight: 500; color: var(--text-muted);
-  background: transparent; border: none; cursor: pointer;
-  text-align: left; width: 100%;
+  display: flex;
+  align-items: center;
+  gap: .875rem;
+  padding: .625rem 1rem;
+  border-radius: .75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
   transition: color var(--t-fast), background var(--t-fast), transform var(--t-fast);
 }
-.ts-nav-item:hover   { color: var(--text-h); background: var(--bg-inner); }
-.ts-nav-active       { color: #fff !important; background: linear-gradient(135deg, var(--brand-from), var(--brand-to)) !important; transform: scale(1.01); }
+.ts-nav-item:hover {
+  color: var(--text-h);
+  background: var(--bg-inner);
+}
+
+/* Active parent nav item */
+.ts-nav-active {
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--brand-from), var(--brand-to)) !important;
+  transform: scale(1.01);
+}
+.ts-nav-active:hover {
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--brand-from), var(--brand-to)) !important;
+}
+
+/* Ensure non-active items never get the gradient */
+.ts-nav-item:not(.ts-nav-active) {
+  background: transparent;
+  color: var(--text-muted);
+}
+.ts-nav-item:not(.ts-nav-active):hover {
+  background: var(--bg-inner) !important;
+  color: var(--text-h) !important;
+}
+
+/* ─── CHILD NAV ITEMS ───────────────────────────────────────────────── */
+/*
+ * Child items use inline styles in the TSX component for active state.
+ * This rule only handles the base / hover fallback for non-JS environments.
+ */
+.ts-nav-child {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: var(--font);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+.ts-nav-child:hover {
+  background: var(--bg-inner);
+  color: var(--text-h);
+}
+.ts-nav-child.ts-nav-active {
+  color: #fff !important;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--brand-from), var(--brand-to)) !important;
+  transform: none; /* no scale on child items */
+}
 
 /* Filter chip */
 .ts-filter-chip {

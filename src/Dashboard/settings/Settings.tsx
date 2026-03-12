@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type FC } from "react";
-import './travelsync-design-system.css'
+import '../travelsync-design-system.css'
 // ── Types ──────────────────────────────────────────────────────────────
 interface IconProps { d: string|string[]; size?: number; stroke?: string; sw?: number; }
 interface ToggleProps { checked: boolean; onChange: (val: boolean) => void; }
@@ -18,14 +18,16 @@ const Icon: FC<IconProps> = ({ d, size=18, stroke="currentColor", sw=1.6 }) => (
 );
 
 const icons: Record<string,string|string[]> = {
-  user:     ["M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2","M12 11a4 4 0 100-8 4 4 0 000 8z"],
-  lock:     ["M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z","M7 11V7a5 5 0 0110 0v4"],
-  bell:     ["M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9","M13.73 21a2 2 0 01-3.46 0"],
-  currency: ["M12 1v22","M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"],
-  eye:      ["M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z","M12 9a3 3 0 100 6 3 3 0 000-6z"],
-  eyeOff:   ["M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94","M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19","M1 1l22 22"],
-  check:    "M20 6L9 17l-5-5",
-  camera:   ["M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z","M12 17a4 4 0 100-8 4 4 0 000 8z"],
+  user:       ["M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2","M12 11a4 4 0 100-8 4 4 0 000 8z"],
+  lock:       ["M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z","M7 11V7a5 5 0 0110 0v4"],
+  appearance: ["M2 13.5A10 10 0 1010.5 22","M13 2.05A10 10 0 0121.95 11","M12 12m-3 0a3 3 0 106 0 3 3 0 10-6 0","M3 3l18 18"],
+  currency:   ["M12 1v22","M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"],
+  eye:        ["M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z","M12 9a3 3 0 100 6 3 3 0 000-6z"],
+  eyeOff:     ["M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94","M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19","M1 1l22 22"],
+  check:      "M20 6L9 17l-5-5",
+  sun:        ["M12 17a5 5 0 100-10 5 5 0 000 10z","M12 1v2","M12 21v2","M4.22 4.22l1.42 1.42","M18.36 18.36l1.42 1.42","M1 12h2","M21 12h2","M4.22 19.78l1.42-1.42","M18.36 5.64l1.42-1.42"],
+  moon:       "M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z",
+  palette:    ["M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 1.657-1.343 3-3 3h-1.5a1.5 1.5 0 000 3 1.5 1.5 0 001.5 1.5c0 1.38-3.134 2.5-7 2.5z","M7 13a1 1 0 100-2 1 1 0 000 2z","M10 9a1 1 0 100-2 1 1 0 000 2z","M14 9a1 1 0 100-2 1 1 0 000 2z","M17 13a1 1 0 100-2 1 1 0 000 2z"],
 };
 
 // ── Sub-components ─────────────────────────────────────────────────────
@@ -65,8 +67,6 @@ const SectionHead: FC<SectionHeadProps> = ({ title, desc }) => (
   </div>
 );
 
-const Divider: FC = () => <hr className="ts-divider" />;
-
 const SaveBtn: FC<SaveBtnProps> = ({ onClick, saved }) => (
   <button type="button" onClick={onClick}
     className={`ts-btn-primary ${saved?"!bg-green-500":""}` }
@@ -85,19 +85,6 @@ const PersonalPanel: FC = () => {
   return (
     <div>
       <SectionHead title="Personal Information" desc="Update your name, contact details, and profile info." />
-      <div className="flex items-center gap-5 mb-6">
-        <div className="relative">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-violet-200">SL</div>
-          <button type="button" className="ts-modal-close absolute -bottom-1 -right-1 w-7 h-7 border-2 bg-white border-gray-100 shadow hover:text-violet-600">
-            <Icon d={icons.camera} size={13} sw={2} />
-          </button>
-        </div>
-        <div>
-          <p className="ts-td-h text-sm font-medium">Profile photo</p>
-          <p className="ts-faint text-xs mt-0.5">JPG or PNG. Max 2MB.</p>
-          <button type="button" className="mt-2 text-xs text-violet-600 font-medium hover:underline">Upload new photo</button>
-        </div>
-      </div>
       <div className="grid grid-cols-2 gap-4">
         <SettingsInput label="First name"        value={form.firstName} onChange={set("firstName")} />
         <SettingsInput label="Last name"         value={form.lastName}  onChange={set("lastName")}  />
@@ -208,78 +195,233 @@ const CurrencyPanel: FC = () => {
   );
 };
 
-const NotificationsPanel: FC = () => {
-  const [saved, setSaved] = useState(false);
-  const [settings, setSettings] = useState({
-    newBooking:true, tripReminder:true, paymentReceived:true, paymentFailed:true,
-    agentActivity:false, systemAlerts:true, weeklyReport:false, marketingEmails:false,
-    smsAlerts:true, pushNotifs:false,
-  });
-  type K = keyof typeof settings;
-  const set = (k: K) => (v: boolean) => setSettings((s) => ({...s,[k]:v}));
-  const save = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+// ── Appearance Panel ───────────────────────────────────────────────────
+interface AppearancePanelProps {
+  dark: boolean;
+  onToggleDark: () => void;
+}
 
-  const groups: { label: string; items: { key: K; label: string; desc: string }[] }[] = [
-    { label:"Bookings & Trips", items:[
-      {key:"newBooking",   label:"New booking",   desc:"When a new trip is created or assigned to you"},
-      {key:"tripReminder", label:"Trip reminders", desc:"24h before departure or check-in"},
-    ]},
-    { label:"Payments", items:[
-      {key:"paymentReceived", label:"Payment received", desc:"When a client payment is confirmed"},
-      {key:"paymentFailed",   label:"Payment failed",   desc:"When a payment attempt fails"},
-    ]},
-    { label:"System", items:[
-      {key:"agentActivity",   label:"Agent activity",    desc:"Actions taken by team members"},
-      {key:"systemAlerts",    label:"System alerts",     desc:"Downtime, updates, or critical notices"},
-      {key:"weeklyReport",    label:"Weekly summary",    desc:"Digest of your week every Monday"},
-      {key:"marketingEmails", label:"Product updates",   desc:"New features and announcements"},
-    ]},
-    { label:"Delivery channels", items:[
-      {key:"smsAlerts",  label:"SMS alerts",          desc:"Send critical alerts via text message"},
-      {key:"pushNotifs", label:"Push notifications",  desc:"Browser and mobile push"},
-    ]},
-  ];
+const AppearancePanel: FC<AppearancePanelProps> = ({ dark, onToggleDark }) => {
+  const [saved, setSaved] = useState(false);
+
+  const current: "light" | "dark" = dark ? "dark" : "light";
+
+  const handleSelect = (id: "light" | "dark") => {
+    if (id === current) return;
+    onToggleDark();
+  };
+
+  const save = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
 
   return (
     <div>
-      <SectionHead title="Notification Preferences" desc="Choose what you want to be notified about and how." />
-      {groups.map((g) => (
-        <div key={g.label} className="mb-5">
-          <p className="ts-section-label mb-2">{g.label}</p>
-          <div className="ts-card-inner overflow-hidden divide-y" style={{borderColor:"var(--border-inner)"}}>
-            {g.items.map(({key,label,desc}) => (
-              <div key={key} className="flex items-center justify-between p-4 ts-tr-hover">
-                <div>
-                  <p className="ts-td-h text-sm font-medium">{label}</p>
-                  <p className="ts-faint text-xs mt-0.5">{desc}</p>
-                </div>
-                <Toggle checked={settings[key]} onChange={set(key)} />
+      <SectionHead title="Appearance" desc="Customize the look and feel of your workspace." />
+
+      {/* Theme label */}
+      <p className="ts-section-label mb-4">Theme</p>
+
+      {/* Theme cards */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem" }}>
+
+        {/* Light card */}
+        <button
+          type="button"
+          onClick={() => handleSelect("light")}
+          style={{
+            flex: 1,
+            maxWidth: 200,
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+            borderRadius: "1rem",
+            border: current === "light" ? "2px solid #7c3aed" : "1.5px solid var(--border)",
+            background: current === "light" ? "#faf5ff" : "var(--bg-card)",
+            cursor: "pointer",
+            overflow: "hidden",
+            transition: "all .18s",
+            boxShadow: current === "light" ? "0 0 0 3px #ede9fe" : "none",
+          }}
+        >
+          {/* Preview mockup */}
+          <div style={{
+            height: 90,
+            background: "#f8fafc",
+            borderBottom: "1px solid #e2e8f0",
+            padding: "10px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            position: "relative",
+            overflow: "hidden",
+          }}>
+            {/* Fake topbar */}
+            <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+              <div style={{ width: 28, height: 7, borderRadius: 4, background: "#e2e8f0" }} />
+              <div style={{ flex: 1 }} />
+              <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#ddd6fe" }} />
+            </div>
+            {/* Fake content rows */}
+            <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ width: 40, height: 50, borderRadius: 6, background: "#ede9fe" }} />
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, paddingTop: 4 }}>
+                <div style={{ height: 6, borderRadius: 3, background: "#e2e8f0", width: "80%" }} />
+                <div style={{ height: 5, borderRadius: 3, background: "#e2e8f0", width: "60%" }} />
+                <div style={{ height: 5, borderRadius: 3, background: "#e2e8f0", width: "70%" }} />
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      ))}
-      <div className="mt-2 flex justify-end"><SaveBtn onClick={save} saved={saved} /></div>
+          {/* Label row */}
+          <div style={{
+            padding: "10px 14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <span style={{ color: current === "light" ? "#7c3aed" : "var(--text-muted)" }}>
+                <Icon d={icons.sun} size={15} sw={1.8} />
+              </span>
+              <span style={{
+                fontSize: ".8rem",
+                fontWeight: current === "light" ? 700 : 500,
+                color: current === "light" ? "#7c3aed" : "var(--text-h)",
+              }}>Light</span>
+            </div>
+            {current === "light" && (
+              <div style={{
+                width: 16, height: 16, borderRadius: "50%",
+                background: "#7c3aed",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon d={icons.check} size={9} stroke="white" sw={3} />
+              </div>
+            )}
+          </div>
+        </button>
+
+        {/* Dark card */}
+        <button
+          type="button"
+          onClick={() => handleSelect("dark")}
+          style={{
+            flex: 1,
+            maxWidth: 200,
+            display: "flex",
+            flexDirection: "column",
+            gap: 0,
+            borderRadius: "1rem",
+            border: current === "dark" ? "2px solid #7c3aed" : "1.5px solid var(--border)",
+            background: current === "dark" ? "#faf5ff" : "var(--bg-card)",
+            cursor: "pointer",
+            overflow: "hidden",
+            transition: "all .18s",
+            boxShadow: current === "dark" ? "0 0 0 3px #ede9fe" : "none",
+          }}
+        >
+          {/* Preview mockup — dark */}
+          <div style={{
+            height: 90,
+            background: "#1e1b2e",
+            borderBottom: "1px solid #2d2a40",
+            padding: "10px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            overflow: "hidden",
+          }}>
+            <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+              <div style={{ width: 28, height: 7, borderRadius: 4, background: "#2d2a40" }} />
+              <div style={{ flex: 1 }} />
+              <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#4c1d95" }} />
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ width: 40, height: 50, borderRadius: 6, background: "#3b1f6b" }} />
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4, paddingTop: 4 }}>
+                <div style={{ height: 6, borderRadius: 3, background: "#2d2a40", width: "80%" }} />
+                <div style={{ height: 5, borderRadius: 3, background: "#2d2a40", width: "60%" }} />
+                <div style={{ height: 5, borderRadius: 3, background: "#2d2a40", width: "70%" }} />
+              </div>
+            </div>
+          </div>
+          {/* Label row */}
+          <div style={{
+            padding: "10px 14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <span style={{ color: current === "dark" ? "#7c3aed" : "var(--text-muted)" }}>
+                <Icon d={icons.moon} size={15} sw={1.8} />
+              </span>
+              <span style={{
+                fontSize: ".8rem",
+                fontWeight: current === "dark" ? 700 : 500,
+                color: current === "dark" ? "#7c3aed" : "var(--text-h)",
+              }}>Dark</span>
+            </div>
+            {current === "dark" && (
+              <div style={{
+                width: 16, height: 16, borderRadius: "50%",
+                background: "#7c3aed",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon d={icons.check} size={9} stroke="white" sw={3} />
+              </div>
+            )}
+          </div>
+        </button>
+
+      </div>
+
+      {/* Active badge */}
+      <div style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "5px 12px",
+        borderRadius: 999,
+        background: "#ede9fe",
+        marginBottom: "1.5rem",
+      }}>
+        <span style={{ color: "#7c3aed" }}>
+          <Icon d={current === "dark" ? icons.moon : icons.sun} size={12} sw={2} />
+        </span>
+        <span style={{ fontSize: ".72rem", fontWeight: 600, color: "#7c3aed", letterSpacing: "0.02em" }}>
+          {current === "dark" ? "Dark mode active" : "Light mode active"}
+        </span>
+      </div>
+
+      <div className="flex justify-end">
+        <SaveBtn onClick={save} saved={saved} />
+      </div>
     </div>
   );
 };
 
 // ── Root ───────────────────────────────────────────────────────────────
-type TabId = "personal"|"password"|"notifications"|"currency";
+type TabId = "personal"|"password"|"appearance"|"currency";
 const tabs: TabItem[] = [
-  {id:"personal",      label:"Personal",      icon:icons.user},
-  {id:"password",      label:"Password",      icon:icons.lock},
-  {id:"notifications", label:"Notifications", icon:icons.bell},
-  {id:"currency",      label:"Currency",      icon:icons.currency},
+  {id:"personal",   label:"Personal",   icon:icons.user},
+  {id:"password",   label:"Password",   icon:icons.lock},
+  {id:"appearance", label:"Appearance", icon:icons.palette},
+  {id:"currency",   label:"Currency",   icon:icons.currency},
 ];
 
-const TravelSyncSettings: FC = () => {
+// Accept dark/onToggleDark from the parent (same state used by TopNav)
+interface SettingsProps {
+  dark: boolean;
+  onToggleDark: () => void;
+}
+
+const Settings: FC<SettingsProps> = ({ dark, onToggleDark }) => {
   const [activeTab, setActiveTab] = useState<TabId>("personal");
-  const panelMap: Record<TabId,ReactNode> = {
-    personal:      <PersonalPanel />,
-    password:      <PasswordPanel />,
-    notifications: <NotificationsPanel />,
-    currency:      <CurrencyPanel />,
+
+  const panelMap: Record<TabId, ReactNode> = {
+    personal:   <PersonalPanel />,
+    password:   <PasswordPanel />,
+    appearance: <AppearancePanel dark={dark} onToggleDark={onToggleDark} />,
+    currency:   <CurrencyPanel />,
   };
 
   return (
@@ -310,4 +452,4 @@ const TravelSyncSettings: FC = () => {
   );
 };
 
-export default TravelSyncSettings;
+export default Settings;
