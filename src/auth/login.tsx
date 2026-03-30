@@ -1,70 +1,76 @@
 import { useState } from "react";
 import logoLight from "../assets/light.png";
 import logoDark from "../assets/dark.png";
-import { useNavigate } from "react-router-dom";
-import { loginRequest } from "../lib/api";
-import { useAuth } from "../contexts/AuthContext";
 
-/* ─────────────────────────────────────────────────────────────
-   LoginAdmin — fully migrated to TravelSync design-system CSS.
-   All dark-mode switching is handled by toggling the `.dark`
-   class on the root wrapper (no more per-token ternaries).
-───────────────────────────────────────────────────────────── */
-
-export default function LoginAdmin() {
+export default function LoginAdmin({
+  onLogin,
+}: {
+  onLogin: (dark: boolean) => void;
+}) {
   const [showPass, setShowPass] = useState(false);
-  const [remember, setRemember] = useState(false);
-  const [email,    setEmail]    = useState("");
+  const [remember, setRemember] = useState(
+    () => !!localStorage.getItem("rememberedEmail")
+  );
+  const [email, setEmail] = useState(
+    () => localStorage.getItem("rememberedEmail") ?? ""
+  );
   const [password, setPassword] = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [dark, setDark] = useState(
     localStorage.getItem("dark") === "true"
   );
-
-  const navigate  = useNavigate();
-  const { login } = useAuth();
 
   const toggleDark = () => setDark((d) => !d);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg("");
+    setError(null);
     setLoading(true);
     try {
-      const data = await loginRequest({ email, password });
-      login(data.accessToken, data.user);
-      navigate("/dashboard", { replace: true });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Login failed. Try again.";
-      setErrorMsg(msg);
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.message || "Invalid credentials. Please try again.");
+        return;
+      }
+      // Persist tokens so LoginWithIntro can pick them up
+      localStorage.setItem("accessToken",  data.accessToken);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (remember) {
+        localStorage.setItem("rememberedEmail", email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
+      // Hand off to parent — navigation is handled there
+      onLogin(dark);
+    } catch {
+      setError("Unable to reach the server. Please check your connection.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    /* Root wrapper — add/remove `.dark` to flip every CSS variable */
     <div
       className={`ts-shell login-shell${dark ? " dark" : ""}`}
       style={{ fontFamily: "var(--font)" }}
     >
-      {/* ── decorative grid overlay ── */}
       <div className="login-grid-overlay" aria-hidden />
-      {/* ── glow blobs ── */}
       <div className="login-glow login-glow--tl" aria-hidden />
       <div className="login-glow login-glow--br" aria-hidden />
 
-      {/* ════════════ LEFT PANEL ════════════ */}
+      {/* ═══════════�� LEFT PANEL ════════════ */}
       <div className="login-left">
-        {/* Logo + wordmark */}
         <div className="login-brand">
           <div className="login-logo-wrap">
-            <img
-              src={dark ? logoDark : logoLight}
-              alt="Moviroo logo"
-              className="login-logo-img"
-            />
+            <img src={dark ? logoDark : logoLight} alt="Moviroo logo" className="login-logo-img" />
           </div>
           <div>
             <div className="login-brand-name ts-h">Moviroo</div>
@@ -72,35 +78,24 @@ export default function LoginAdmin() {
           </div>
         </div>
 
-        {/* Hero copy */}
         <div className="login-hero">
-          {/* Status badge */}
           <div className="login-status-badge">
             <span className="login-status-dot" aria-hidden />
             <span>SYSTEM OPERATIONAL</span>
           </div>
-
           <h1 className="login-headline ts-h">
-            Transport
-            <span className="login-headline-accent"> Command</span> Center.
+            Transport<span className="login-headline-accent"> Command</span> Center.
           </h1>
-
           <p className="login-subheadline ts-muted">
-            Real-time fleet oversight, driver management, and route
-            optimization — built for professionals.
+            Real-time fleet oversight, driver management, and route optimization — built for professionals.
           </p>
-
-          {/* KPI strip */}
           <div className="ts-card login-kpi-strip">
             {[
               { value: "312",   label: "Active Vehicles" },
               { value: "98.2%", label: "On-Time Rate"    },
               { value: "4.8K",  label: "Trips Today"     },
             ].map((s, i) => (
-              <div
-                key={s.label}
-                className={`login-kpi-cell${i < 2 ? " login-kpi-cell--bordered" : ""}`}
-              >
+              <div key={s.label} className={`login-kpi-cell${i < 2 ? " login-kpi-cell--bordered" : ""}`}>
                 <div className="ts-stat-value">{s.value}</div>
                 <div className="ts-stat-label">{s.label}</div>
               </div>
@@ -108,7 +103,6 @@ export default function LoginAdmin() {
           </div>
         </div>
 
-        {/* Footer */}
         <p className="login-footer ts-faint">
           © {new Date().getFullYear()} moviroo Inc. — All rights reserved.
         </p>
@@ -116,17 +110,10 @@ export default function LoginAdmin() {
 
       {/* ════════════ RIGHT PANEL ════════════ */}
       <div className="ts-card login-right">
-        {/* Dark-mode toggle */}
-        <button
-          type="button"
-          onClick={toggleDark}
-          className="ts-btn-ghost login-theme-toggle"
-          aria-label="Toggle dark mode"
-        >
+        <button type="button" onClick={toggleDark} className="ts-btn-ghost login-theme-toggle" aria-label="Toggle dark mode">
           {dark ? "☀️ Light" : "🌙 Dark"}
         </button>
 
-        {/* Heading */}
         <div className="login-form-header">
           <h2 className="login-form-title ts-h">Sign in</h2>
           <p className="ts-muted" style={{ fontSize: ".875rem" }}>
@@ -135,57 +122,40 @@ export default function LoginAdmin() {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
-          {/* ── Email ── */}
+          {/* Email */}
           <div>
-            <label className="ts-label" htmlFor="login-email">
-              Email Address
-            </label>
+            <label className="ts-label" htmlFor="login-email">Email Address</label>
             <div className="login-input-wrap">
               <span className="login-input-icon" aria-hidden>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="4" width="20" height="16" rx="2"/>
-                  <path d="m2 7 10 7 10-7"/>
+                  <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/>
                 </svg>
               </span>
               <input
-                id="login-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="login-email" type="email" required
+                value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="operator@moviroo.io"
                 className="ts-input login-input-padded"
               />
             </div>
           </div>
 
-          {/* ── Password ── */}
+          {/* Password */}
           <div>
-            <label className="ts-label" htmlFor="login-password">
-              Password
-            </label>
+            <label className="ts-label" htmlFor="login-password">Password</label>
             <div className="login-input-wrap">
               <span className="login-input-icon" aria-hidden>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
               </span>
               <input
-                id="login-password"
-                type={showPass ? "text" : "password"}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                id="login-password" type={showPass ? "text" : "password"} required
+                value={password} onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
                 className="ts-input login-input-padded login-input-padded--right"
               />
-              <button
-                type="button"
-                onClick={() => setShowPass((v) => !v)}
-                className="ts-icon-btn login-pass-toggle"
-                aria-label={showPass ? "Hide password" : "Show password"}
-              >
+              <button type="button" onClick={() => setShowPass((v) => !v)} className="ts-icon-btn login-pass-toggle" aria-label={showPass ? "Hide password" : "Show password"}>
                 {showPass ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
@@ -202,18 +172,13 @@ export default function LoginAdmin() {
             </div>
           </div>
 
-          {/* ── Remember + Forgot ── */}
+          {/* Remember + Forgot */}
           <div className="login-row-between">
             <label className="login-remember-label" onClick={() => setRemember((r) => !r)}>
-              <div
-                className="login-checkbox"
-                style={{
-                  borderColor: remember ? "var(--brand-from)" : "var(--border)",
-                  background: remember
-                    ? "linear-gradient(135deg, var(--brand-from), var(--brand-to))"
-                    : "transparent",
-                }}
-              >
+              <div className="login-checkbox" style={{
+                borderColor: remember ? "var(--brand-from)" : "var(--border)",
+                background: remember ? "linear-gradient(135deg, var(--brand-from), var(--brand-to))" : "transparent",
+              }}>
                 {remember && (
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
@@ -225,31 +190,27 @@ export default function LoginAdmin() {
             <button type="button" className="ts-link">Forgot password?</button>
           </div>
 
-          {/* ── Error message ── */}
-          {errorMsg && (
+          {/* Error banner */}
+          {error && (
             <div style={{
-              padding: "10px 14px",
-              background: "#FEE2E2",
-              border: "1px solid #FCA5A5",
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.35)",
               borderRadius: "8px",
-              color: "#991B1B",
-              fontSize: "14px",
+              padding: "10px 14px",
+              color: "#ef4444",
+              fontSize: ".875rem",
+              textAlign: "center",
             }}>
-              {errorMsg}
+              {error}
             </div>
           )}
 
-          {/* ── Submit ── */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="ts-btn-primary login-submit-btn"
-          >
+          {/* Submit */}
+          <button type="submit" disabled={loading} className="ts-btn-primary login-submit-btn">
             {loading ? "Authenticating…" : "Sign in to Dashboard"}
           </button>
         </form>
 
-        {/* Security note */}
         <div className="ts-card-inner login-security-note">
           <span aria-hidden style={{ fontSize: "1rem", flexShrink: 0, marginTop: "2px" }}>🛡️</span>
           <p className="ts-muted" style={{ fontSize: ".75rem", margin: 0, lineHeight: 1.6 }}>

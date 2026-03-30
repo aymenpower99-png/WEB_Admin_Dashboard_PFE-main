@@ -1,43 +1,72 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { AuthUser } from '../types/user';
-import { saveSession, clearSession, getStoredUser, getToken } from '../lib/auth';
+import { createContext, useContext, useState } from "react";
+import type { ReactNode } from "react";
 
-interface AuthContextValue {
+interface AuthUser {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string | null;
+}
+
+interface AuthContextType {
   user: AuthUser | null;
-  token: string | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
-  login: (token: string, user: AuthUser) => void;
+  login: (data: { accessToken: string; refreshToken: string; user: AuthUser }) => void;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user,  setUser]  = useState<AuthUser | null>(getStoredUser);
-  const [token, setToken] = useState<string | null>(getToken);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
 
-  function login(accessToken: string, authUser: AuthUser) {
-    saveSession(accessToken, authUser);
-    setToken(accessToken);
-    setUser(authUser);
-  }
+  const [accessToken, setAccessToken] = useState<string | null>(
+    () => localStorage.getItem("accessToken")
+  );
 
-  function logout() {
-    clearSession();
-    setToken(null);
+  const login = (data: { accessToken: string; refreshToken: string; user: AuthUser }) => {
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    setAccessToken(data.accessToken);
+    setUser(data.user);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    setAccessToken(null);
     setUser(null);
-  }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        accessToken,
+        isAuthenticated: !!accessToken,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export function useAuth(): AuthContextValue {
+export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be inside <AuthProvider>');
+  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
 }

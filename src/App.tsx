@@ -19,12 +19,12 @@ import "./Dashboard/travelsync-design-system.css";
 export default function App() {
   const [dark, setDark] = useState(() => localStorage.getItem("dark") === "true");
 
-  const [drivers,        setDrivers]        = useState<Driver[]>(INITIAL_DRIVERS);
-  const [editDriver,     setEditDriver]      = useState<Driver | null>(null);
-  const [vehicles,       setVehicles]        = useState<Vehicle[]>(INITIAL_VEHICLES);
-  const [editVehicle,    setEditVehicle]     = useState<Vehicle | null>(null);
-  const [areas,          setAreas]           = useState<WorkArea[]>(INITIAL_AREAS);
-  const [workAreaDrivers, setWorkAreaDrivers] = useState<WorkAreaDriver[]>(INITIAL_WORK_AREA_DRIVERS);
+  const [drivers,         setDrivers]         = useState<Driver[]>(INITIAL_DRIVERS);
+  const [editDriver,      setEditDriver]       = useState<Driver | null>(null);
+  const [vehicles,        setVehicles]         = useState<Vehicle[]>(INITIAL_VEHICLES);
+  const [editVehicle,     setEditVehicle]      = useState<Vehicle | null>(null);
+  const [areas,           setAreas]            = useState<WorkArea[]>(INITIAL_AREAS);
+  const [workAreaDrivers, setWorkAreaDrivers]  = useState<WorkAreaDriver[]>(INITIAL_WORK_AREA_DRIVERS);
 
   function toggleDark() {
     const next = !dark;

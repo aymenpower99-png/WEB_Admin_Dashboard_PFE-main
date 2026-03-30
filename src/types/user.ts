@@ -1,22 +1,16 @@
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  status: string;
-  emailVerified: boolean;
-  is2faEnabled: boolean;
-  totpEnabled: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+export type UserRole   = 'admin' | 'passenger' | 'driver';
+export type UserStatus = 'active' | 'pending' | 'blocked';
 
 export interface AuthUser {
   id: string;
-  email: string;
   firstName: string;
   lastName: string;
-  role: string;
-  status: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  emailVerified: boolean;
+  is2faEnabled?: boolean;
+  totpEnabled?: boolean;
+  lastLoginAt?: string;
+  createdAt?: string;
 }
