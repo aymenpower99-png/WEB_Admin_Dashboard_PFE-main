@@ -68,6 +68,7 @@ const INITIAL_USERS: User[] = [
     role: "Rider",
     status: "blocked" as UserStatus,
     trips: 9,
+    
   },
   {
     name: "Aiko Tanaka",
