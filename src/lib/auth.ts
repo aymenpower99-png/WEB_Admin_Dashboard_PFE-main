@@ -25,7 +25,10 @@ export interface UpdateUserPayload {
   status?: "active" | "pending" | "blocked";
 }
 
-const TOKEN_KEY = "admin_token";
+// ─── Token helpers ────────────────────────────────────────────────────────────
+// Key must match what login.tsx stores: localStorage.setItem("accessToken", ...)
+
+const TOKEN_KEY = "accessToken";
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -37,21 +40,25 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
 }
 
 export function isAuthenticated(): boolean {
   return !!getToken();
 }
 
-const USER_KEY = "admin_user";
+// ─── Session helpers ──────────────────────────────────────────────────────────
+
+const USER_KEY = "user"; // matches login.tsx: localStorage.setItem("user", ...)
 
 export function saveSession(user: AdminUser): void {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
 export function clearSession(): void {
-  localStorage.removeItem(USER_KEY);
   clearToken();
+  localStorage.removeItem(USER_KEY);
 }
 
 export function getStoredUser(): AdminUser | null {

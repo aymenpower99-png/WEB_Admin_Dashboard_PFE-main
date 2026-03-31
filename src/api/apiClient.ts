@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken } from "../lib/auth";
 
 const apiClient = axios.create({
-  baseURL: (import.meta as { env: Record<string, string> }).env.VITE_API_URL ?? "http://localhost:3000",
+  baseURL: "/api",
   headers: { "Content-Type": "application/json" },
 });
 

@@ -10,12 +10,12 @@ export default defineConfig({
       },
     }),
   ],
-  // ▼ ADD THIS — forwards /api/* requests to your backend on port 3000
   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
+        // NO rewrite — backend expects /api prefix
       },
     },
   },
