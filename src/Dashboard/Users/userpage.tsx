@@ -14,10 +14,9 @@ interface UsersPageProps {
 
 type FilterTab = "All" | "Riders" | "Drivers";
 
-// ── matches backend lowercase values ──────────────────────────────────────────
 const ROLE_MAP: Record<FilterTab, UserRole | null> = {
   All:     null,
-  Riders:  "rider",
+  Riders:  "passenger",
   Drivers: "driver",
 };
 
@@ -27,32 +26,31 @@ const STATUS_PILL: Record<UserStatus, string> = {
   blocked: "ts-pill ts-pill-blocked",
 };
 
-// Colored role badge styles
 const ROLE_BADGE: Record<UserRole, React.CSSProperties> = {
-  rider: {
+  passenger: {
     display: "inline-flex", alignItems: "center",
     padding: "0.2rem 0.65rem", borderRadius: "999px", fontSize: "0.75rem",
     fontWeight: 700, letterSpacing: "0.02em",
-    background: "#dbeafe", color: "#1d4ed8",   // blue
+    background: "#dbeafe", color: "#1d4ed8",
   },
   driver: {
     display: "inline-flex", alignItems: "center",
     padding: "0.2rem 0.65rem", borderRadius: "999px", fontSize: "0.75rem",
     fontWeight: 700, letterSpacing: "0.02em",
-    background: "#fce7f3", color: "#be185d",   // pink
+    background: "#fce7f3", color: "#be185d",
   },
   admin: {
     display: "inline-flex", alignItems: "center",
     padding: "0.2rem 0.65rem", borderRadius: "999px", fontSize: "0.75rem",
     fontWeight: 700, letterSpacing: "0.02em",
-    background: "#ede9fe", color: "#6d28d9",   // purple
+    background: "#ede9fe", color: "#6d28d9",
   },
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {
-  rider:  "Rider",
-  driver: "Driver",
-  admin:  "Admin",
+  passenger: "Rider",
+  driver:    "Driver",
+  admin:     "Admin",
 };
 
 const ROWS_PER_PAGE = 5;
@@ -100,10 +98,10 @@ function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
 }
 
 // ─── Invite Modal ─────────────────────────────────────────────────────────────
-interface InviteFormState { firstName: string; lastName: string; email: string; role: "rider" | "driver"; }
+interface InviteFormState { firstName: string; lastName: string; email: string; role: "passenger" | "driver"; }
 
 function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const [form, setForm] = useState<InviteFormState>({ firstName: "", lastName: "", email: "", role: "rider" });
+  const [form, setForm] = useState<InviteFormState>({ firstName: "", lastName: "", email: "", role: "passenger" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -183,8 +181,8 @@ function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginTop: "0.75rem" }}>
             <label className="ts-label">Role</label>
             <select className="ts-input" style={{ cursor: "pointer" }} value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value as "rider" | "driver" })}>
-              <option value="rider">Rider</option>
+              onChange={(e) => setForm({ ...form, role: e.target.value as "passenger" | "driver" })}>
+              <option value="passenger">Rider</option>
               <option value="driver">Driver</option>
             </select>
           </div>
@@ -201,14 +199,14 @@ function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
 }
 
 // ─── Edit Modal ───────────────────────────────────────────────────────────────
-interface EditFormState { firstName: string; lastName: string; email: string; role: "rider" | "driver"; }
+interface EditFormState { firstName: string; lastName: string; email: string; role: "passenger" | "driver"; }
 
 function EditModal({ user, onClose, onSave }: { user: AdminUser; onClose: () => void; onSave: (u: AdminUser) => void }) {
   const [form, setForm] = useState<EditFormState>({
     firstName: user.firstName,
     lastName:  user.lastName,
     email:     user.email,
-    role:      user.role === "driver" ? "driver" : "rider",
+    role:      user.role === "driver" ? "driver" : "passenger",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -283,8 +281,8 @@ function EditModal({ user, onClose, onSave }: { user: AdminUser; onClose: () => 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginTop: "0.75rem" }}>
             <label className="ts-label">Role</label>
             <select className="ts-input" style={{ cursor: "pointer" }} value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value as "rider" | "driver" })}>
-              <option value="rider">Rider</option>
+              onChange={(e) => setForm({ ...form, role: e.target.value as "passenger" | "driver" })}>
+              <option value="passenger">Rider</option>
               <option value="driver">Driver</option>
             </select>
           </div>
@@ -332,9 +330,8 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
 
   useEffect(() => { loadUsers(); }, []);
 
-  // Filter compares lowercase role values from backend
   const filteredUsers = useMemo(() => {
-    const roleFilter = ROLE_MAP[activeFilter]; // null | "rider" | "driver"
+    const roleFilter = ROLE_MAP[activeFilter];
     return users.filter((u) => {
       const matchesRole   = roleFilter ? u.role === roleFilter : true;
       const fullName      = `${u.firstName} ${u.lastName}`.toLowerCase();
@@ -374,7 +371,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
 
   const kpiCards = [
     { Icon: Users,     iconBg: "#ede9fe", iconFg: "#7c3aed", label: "Total Users",   value: users.length },
-    { Icon: Car,       iconBg: "#dbeafe", iconFg: "#2563eb", label: "Total Riders",  value: users.filter((u) => u.role === "rider").length },
+    { Icon: Car,       iconBg: "#dbeafe", iconFg: "#2563eb", label: "Total Riders",  value: users.filter((u) => u.role === "passenger").length },
     { Icon: UserCheck, iconBg: "#fce7f3", iconFg: "#db2777", label: "Total Drivers", value: users.filter((u) => u.role === "driver").length },
     { Icon: UserCheck, iconBg: "#d1fae5", iconFg: "#059669", label: "Active",        value: users.filter((u) => u.status === "active").length },
     { Icon: Clock,     iconBg: "#fef3c7", iconFg: "#d97706", label: "Pending",       value: users.filter((u) => u.status === "pending").length },
@@ -477,36 +474,30 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
                         style={{ height: ROW_H, cursor: "pointer" }}
                         onClick={() => onSelectUser?.(`${u.firstName} ${u.lastName}`)}
                       >
-                        {/* Name */}
                         <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>
                           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
                             {u.firstName} {u.lastName}
                           </span>
                         </td>
 
-                        {/* Email */}
                         <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {u.email}
                         </td>
 
-                        {/* Role — colored badge */}
                         <td style={TD}>
-                          <span style={ROLE_BADGE[u.role] ?? ROLE_BADGE.rider}>
+                          <span style={ROLE_BADGE[u.role] ?? ROLE_BADGE.passenger}>
                             {ROLE_LABEL[u.role] ?? u.role}
                           </span>
                         </td>
 
-                        {/* Status */}
                         <td style={TD}>
                           <span className={STATUS_PILL[u.status]}>
                             {u.status.charAt(0).toUpperCase() + u.status.slice(1)}
                           </span>
                         </td>
 
-                        {/* Trips */}
                         <td style={{ ...TD, fontWeight: 700, color: "#7c3aed" }}>{u.trips ?? 0}</td>
 
-                        {/* Actions */}
                         <td style={TD} onClick={(e) => e.stopPropagation()}>
                           <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
                             <button

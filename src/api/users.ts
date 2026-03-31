@@ -1,7 +1,7 @@
 import apiClient from "./apiClient";
 import type { UserStatus } from "../Dashboard/constants";
 
-export type UserRole = "rider" | "driver" | "admin";
+export type UserRole = "passenger" | "driver" | "admin";
 
 export interface AdminUser {
   id: string;
@@ -16,16 +16,16 @@ export interface AdminUser {
 
 export interface InviteUserPayload {
   firstName: string;
-  lastName: string;
-  email: string;
-  role: "rider" | "driver";
+  lastName:  string;
+  email:     string;
+  role: "passenger" | "driver";
 }
 
 export interface UpdateUserPayload {
   firstName?: string;
-  lastName?: string;
-  email?: string;
-  role?: "rider" | "driver";
+  lastName?:  string;
+  email?:     string;
+  role?: "passenger" | "driver";
 }
 
 export const usersApi = {
