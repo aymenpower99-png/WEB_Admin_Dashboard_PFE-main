@@ -6,6 +6,13 @@ const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+// ─── Shared hook so AuthContext can register its updater ──────────────────────
+let _updateAccessToken: ((token: string) => void) | null = null;
+
+export function registerTokenUpdater(fn: (token: string) => void) {
+  _updateAccessToken = fn;
+}
+
 // ─── Request: attach access token ────────────────────────────────────────────
 apiClient.interceptors.request.use((config) => {
   const token = getToken();
@@ -27,21 +34,18 @@ apiClient.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // Only intercept 401s that haven't already been retried
     if (error.response?.status !== 401 || original._retry) {
       return Promise.reject(error);
     }
 
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) {
-      // No refresh token — clear session and let the app redirect to login
       clearToken();
       window.location.href = "/";
       return Promise.reject(error);
     }
 
     if (isRefreshing) {
-      // Another refresh is in flight — queue this request
       return new Promise((resolve, reject) => {
         queue.push({
           resolve: (token) => {
@@ -53,8 +57,8 @@ apiClient.interceptors.response.use(
       });
     }
 
-    original._retry   = true;
-    isRefreshing      = true;
+    original._retry = true;
+    isRefreshing = true;
 
     try {
       const res = await axios.post<{ accessToken: string; refreshToken?: string }>(
@@ -66,7 +70,9 @@ apiClient.interceptors.response.use(
       const newAccess = res.data.accessToken;
       setToken(newAccess);
 
-      // If the backend also rotates the refresh token, save it
+      // ← Sync React state so isAuthenticated stays true
+      _updateAccessToken?.(newAccess);
+
       if (res.data.refreshToken) {
         localStorage.setItem("refreshToken", res.data.refreshToken);
       }

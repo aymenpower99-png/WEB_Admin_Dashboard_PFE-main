@@ -542,6 +542,8 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 }
 .login-headline-accent {
   background: linear-gradient(135deg, var(--brand-from) 20%, var(--brand-to) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .login-subheadline {

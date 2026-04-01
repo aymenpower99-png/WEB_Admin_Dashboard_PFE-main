@@ -1,5 +1,10 @@
-import { createContext, useContext, useState } from "react";
+import { useEffect, createContext, useContext, useState, useCallback } from "react";
 import type { ReactNode } from "react";
+import { registerTokenUpdater } from "../api/apiClient";
+
+
+
+
 
 interface AuthUser {
   id: string;
@@ -15,6 +20,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (data: { accessToken: string; refreshToken: string; user: AuthUser }) => void;
   logout: () => void;
+  updateAccessToken: (token: string) => void; // ← NEW
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -49,6 +55,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
+  // Called by the axios interceptor after a silent token refresh
+  const updateAccessToken = useCallback((token: string) => {
+    localStorage.setItem("accessToken", token);
+    setAccessToken(token);
+  }, []);
+
+  useEffect(() => {
+  registerTokenUpdater(updateAccessToken);
+}, [updateAccessToken]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -57,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!accessToken,
         login,
         logout,
+        updateAccessToken,
       }}
     >
       {children}
