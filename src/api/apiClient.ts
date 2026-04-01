@@ -34,6 +34,13 @@ apiClient.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
+    // Don't retry the refresh endpoint itself to avoid infinite loops
+    if (original.url?.includes("/auth/refresh")) {
+      clearToken();
+      window.location.href = "/";
+      return Promise.reject(error);
+    }
+
     if (error.response?.status !== 401 || original._retry) {
       return Promise.reject(error);
     }
@@ -61,18 +68,27 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
+      // ✅ THE FIX: refreshToken goes in Authorization header as Bearer
+      // NOT in the request body — backend reads it via
+      // ExtractJwt.fromAuthHeaderAsBearerToken() in jwt-refresh.strategy.ts
       const res = await axios.post<{ accessToken: string; refreshToken?: string }>(
         "/api/auth/refresh",
-        { refreshToken },
-        { headers: { "Content-Type": "application/json" } }
+        {},                                          // empty body
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${refreshToken}`, // token here ✅
+          },
+        }
       );
 
       const newAccess = res.data.accessToken;
       setToken(newAccess);
 
-      // ← Sync React state so isAuthenticated stays true
+      // Sync React state so isAuthenticated stays true
       _updateAccessToken?.(newAccess);
 
+      // Store the new rotated refresh token
       if (res.data.refreshToken) {
         localStorage.setItem("refreshToken", res.data.refreshToken);
       }

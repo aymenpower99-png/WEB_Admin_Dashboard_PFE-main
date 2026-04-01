@@ -45,24 +45,32 @@ const ROLE_BADGE: Record<UserRole, React.CSSProperties> = {
     fontWeight: 700, letterSpacing: "0.02em",
     background: "#ede9fe", color: "#6d28d9",
   },
+  // ✅ Added super_admin so John Doe's badge renders correctly
+  super_admin: {
+    display: "inline-flex", alignItems: "center",
+    padding: "0.2rem 0.65rem", borderRadius: "999px", fontSize: "0.75rem",
+    fontWeight: 700, letterSpacing: "0.02em",
+    background: "#fef9c3", color: "#92400e",
+  },
 };
 
 const ROLE_LABEL: Record<UserRole, string> = {
-  passenger: "Rider",
-  driver:    "Driver",
-  admin:     "Admin",
+  passenger:   "Rider",
+  driver:      "Driver",
+  admin:       "Admin",
+  super_admin: "Super Admin", // ✅ Added
 };
 
 const ROWS_PER_PAGE = 5;
 const ROW_H = 88;
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
+// ─── KPI Card ──────────────────────────────────────────────────────────────
 function KpiCard({ Icon, iconBg, iconFg, label, value }: {
   Icon: React.ElementType; iconBg: string; iconFg: string; label: string; value: string | number;
 }) {
   return (
-    <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "0.75rem", padding: "0.85rem 1.1rem", display: "flex", flexDirection: "column", justifyContent: "space-between", position: "relative", minHeight: "80px" }}>
-      <div style={{ position: "absolute", top: "0.85rem", right: "1.1rem", width: 36, height: 36, borderRadius: "50%", background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "0.75rem", padding: "0.85rem 1.1rem", display: "flex", flexDirection: "column", justifyContent: "space-between", position: "relative", overflow: "hidden", minHeight: 80 }}>
+      <div style={{ position: "absolute", top: "0.85rem", right: "1.1rem", width: 36, height: 36, borderRadius: "50%", background: iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Icon size={16} color={iconFg} strokeWidth={1.75} />
       </div>
       <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 500, paddingRight: "44px" }}>{label}</span>
@@ -71,7 +79,7 @@ function KpiCard({ Icon, iconBg, iconFg, label, value }: {
   );
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+// ─── Pagination ────────────────────────────────────────────────────────────
 function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
   page: number; totalPages: number; onPrev: () => void; onNext: () => void; setPage: (n: number) => void;
 }) {
@@ -97,7 +105,7 @@ function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
   );
 }
 
-// ─── Invite Modal ─────────────────────────────────────────────────────────────
+// ─── Invite Modal ──────────────────────────────────────────────────────────
 interface InviteFormState { firstName: string; lastName: string; email: string; role: "passenger" | "driver"; }
 
 function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
@@ -198,7 +206,7 @@ function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
   );
 }
 
-// ─── Edit Modal ───────────────────────────────────────────────────────────────
+// ─── Edit Modal ────────────────────────────────────────────────────────────
 interface EditFormState { firstName: string; lastName: string; email: string; role: "passenger" | "driver"; }
 
 function EditModal({ user, onClose, onSave }: { user: AdminUser; onClose: () => void; onSave: (u: AdminUser) => void }) {
@@ -298,7 +306,7 @@ function EditModal({ user, onClose, onSave }: { user: AdminUser; onClose: () => 
   );
 }
 
-// ─── Table styles ─────────────────────────────────────────────────────────────
+// ─── Table styles ──────────────────────────────────────────────────────────
 const TH: React.CSSProperties = {
   padding: "0.65rem 1rem", fontSize: ".78rem", fontWeight: 800,
   textTransform: "uppercase", letterSpacing: ".06em", color: "var(--text-body)",
@@ -309,7 +317,7 @@ const TD: React.CSSProperties = {
   color: "var(--text-body)", borderBottom: "1px solid var(--border)", verticalAlign: "middle",
 };
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Page ─────────────────────────────────────────────────────────────
 export default function UsersPage({ onSelectUser }: UsersPageProps) {
   const [users, setUsers]                 = useState<AdminUser[]>([]);
   const [loading, setLoading]             = useState(false);
@@ -485,7 +493,8 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
                         </td>
 
                         <td style={TD}>
-                          <span style={ROLE_BADGE[u.role] ?? ROLE_BADGE.passenger}>
+                          {/* ✅ Falls back to admin style if role is unknown */}
+                          <span style={ROLE_BADGE[u.role] ?? ROLE_BADGE.admin}>
                             {ROLE_LABEL[u.role] ?? u.role}
                           </span>
                         </td>

@@ -1,7 +1,8 @@
 import apiClient from "./apiClient";
 import type { UserStatus } from "../Dashboard/constants";
 
-export type UserRole = "passenger" | "driver" | "admin";
+// ✅ Added super_admin to match what the backend actually returns
+export type UserRole = "passenger" | "driver" | "admin" | "super_admin";
 
 export interface AdminUser {
   id: string;
