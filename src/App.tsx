@@ -6,11 +6,11 @@ import LoginWithIntro from "./auth/LoginWithIntro";
 import Shell from "./routes/ShellRoutes";
 
 import { INITIAL_DRIVERS } from "./Dashboard/Drivers & Vehicles/DriversPage";
-import { INITIAL_VEHICLES } from "./Dashboard/Drivers & Vehicles/Vehiclespage";
+import { INITIAL_VEHICLES } from "./Dashboard/Vehicles/Vehiclespage";
 import { INITIAL_AREAS, INITIAL_DRIVERS as INITIAL_WORK_AREA_DRIVERS } from "./Dashboard/WorkArea/WorkAreasPage";
 
 import type { Driver }  from "./Dashboard/Drivers & Vehicles/DriversPage";
-import type { Vehicle } from "./Dashboard/Drivers & Vehicles/Vehiclespage";
+import type { Vehicle } from "./Dashboard/Vehicles/Vehiclespage";
 import type { WorkArea, Driver as WorkAreaDriver } from "./Dashboard/WorkArea/WorkAreasPage";
 
 import "./App.css";

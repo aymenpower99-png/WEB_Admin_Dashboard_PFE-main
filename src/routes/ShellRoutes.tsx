@@ -11,8 +11,8 @@ import AgencyDashboard  from "../Dashboard/Overview/AgencyDashboard";
 import UsersPage        from "../Dashboard/Users/userpage";
 import DriversPage      from "../Dashboard/Drivers & Vehicles/DriversPage";
 import AddDriverPage    from "../Dashboard/Drivers & Vehicles/AddDriverPage";
-import VehiclesPage     from "../Dashboard/Drivers & Vehicles/Vehiclespage";
-import AddVehiclePage   from "../Dashboard/Drivers & Vehicles/Addvehiclepage";
+import VehiclesPage     from "../Dashboard/Vehicles/Vehiclespage";
+import AddVehiclePage   from "../Dashboard/Vehicles/Addvehiclepage";
 import TripsPage        from "../Dashboard/BookingsPage";
 import AgencyPaymentsData from "../Dashboard/billing/AgencyBillingPage";
 import HelpCenter       from "../Dashboard/HelpCentre";
@@ -23,7 +23,7 @@ import PastRidesPage      from "../Dashboard/Rides/PastRides";
 import WorkAreasPage      from "../Dashboard/WorkArea/WorkAreasPage";
 
 import type { Driver }  from "../Dashboard/Drivers & Vehicles/DriversPage";
-import type { Vehicle } from "../Dashboard/Drivers & Vehicles/Vehiclespage";
+import type { Vehicle } from "../Dashboard/Vehicles/Vehiclespage";
 import type { WorkArea, Driver as WorkAreaDriver } from "../Dashboard/WorkArea/WorkAreasPage";
 
 /* ─── Page transition order ─────────────────────────────────── */
