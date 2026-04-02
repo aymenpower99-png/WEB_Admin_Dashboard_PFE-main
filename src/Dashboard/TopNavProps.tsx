@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 interface TopNavProps {
   onToggleSidebar?: () => void;
@@ -38,6 +39,12 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
   const [open, setOpen] = useState(false);
   const popRef     = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const { user, logout } = useAuth();
+
+  const displayName = user
+    ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Admin"
+    : "Admin";
+  const displayRole = "Super Admin";
 
   useEffect(() => {
     if (!open) return;
@@ -54,6 +61,22 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
   const handleNavigate = (page: string) => {
     setOpen(false);
     onNavigate?.(page);
+  };
+
+  const handleLogout = async () => {
+    setOpen(false);
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+    } catch {
+      // ignore network errors — still clear session locally
+    }
+    logout();
   };
 
   return (
@@ -102,7 +125,6 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
               borderRadius:"9999px",
               border:"1px solid rgba(168,85,247,0.25)",
               background:"rgba(168,85,247,0.05)",
-              // amber tint in dark, violet in light
               color: dark ? "#fbbf24" : "#7c3aed",
               cursor:"pointer",
               fontSize:"0.75rem",
@@ -112,9 +134,7 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
               letterSpacing:"0.02em",
             }}
           >
-            {/* Show moon when dark (current mode), sun when light (current mode) */}
             {dark ? <MoonIcon /> : <SunIcon />}
-            {/* Label = current active mode */}
             <span>{dark ? "Dark" : "Light"}</span>
           </button>
 
@@ -137,10 +157,10 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
                 fontSize:"0.8125rem", fontWeight:700,
                 color:"var(--text-h)", whiteSpace:"nowrap", lineHeight:1.2,
               }}>
-                Sarah Lee
+                {displayName}
               </span>
               <span style={{ fontSize:"0.65rem", color:"#a855f7", fontWeight:600, letterSpacing:"0.02em" }}>
-                Agency Manager
+                {displayRole}
               </span>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -172,8 +192,8 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
                 padding:"0.875rem 1rem", borderBottom:"1px solid var(--border)",
                 background:"var(--bg-card)",
               }}>
-                <div style={{ fontSize:"0.875rem", fontWeight:700, color:"var(--text-h)" }}>Sarah Lee</div>
-                <div style={{ fontSize:"0.75rem", color:"#a855f7", fontWeight:600, marginTop:"0.1rem" }}>Agency Manager</div>
+                <div style={{ fontSize:"0.875rem", fontWeight:700, color:"var(--text-h)" }}>{displayName}</div>
+                <div style={{ fontSize:"0.75rem", color:"#a855f7", fontWeight:600, marginTop:"0.1rem" }}>{displayRole}</div>
               </div>
 
               <div style={{ padding:"0.375rem", background:"var(--bg-card)" }}>
@@ -197,7 +217,7 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
                 <div style={{ height:1, background:"var(--border)", margin:"0.25rem 0" }} />
 
                 {/* Log out */}
-                <button className="pop-item pop-logout" onClick={() => setOpen(false)}
+                <button className="pop-item pop-logout" onClick={handleLogout}
                   style={{
                     width:"100%", display:"flex", alignItems:"center", gap:"0.625rem",
                     padding:"0.5rem 0.625rem", borderRadius:"0.5rem",

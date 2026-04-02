@@ -10,6 +10,40 @@ import apiClient from "../../api/apiClient";
 import { mapBackendVehicle } from "./types";
 import type { Vehicle } from "./types";
 
+const MAX_MB  = 5;
+const MAX_DIM = 1200;
+const QUALITY = 0.75;
+
+/** Resizes and recompresses an image File to a base64 JPEG string via canvas. */
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        if (width >= height) {
+          height = Math.round((height / width) * MAX_DIM);
+          width  = MAX_DIM;
+        } else {
+          width  = Math.round((width / height) * MAX_DIM);
+          height = MAX_DIM;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width  = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas context unavailable")); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", QUALITY));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 export default function UpdatePhotoModal({ vehicle, onClose, onUploaded }: {
   vehicle: Vehicle;
   onClose: () => void;
@@ -24,6 +58,12 @@ export default function UpdatePhotoModal({ vehicle, onClose, onUploaded }: {
   const addFiles = (picked: FileList | null) => {
     if (!picked) return;
     const arr = Array.from(picked).filter(f => f.type.startsWith("image/"));
+    const oversize = arr.filter(f => f.size > MAX_MB * 1024 * 1024);
+    if (oversize.length > 0) {
+      setErr(`${oversize.length} file(s) exceed ${MAX_MB} MB — they will be compressed automatically.`);
+    } else {
+      setErr(null);
+    }
     setFiles(prev => [...prev, ...arr]);
     arr.forEach(f => {
       const r = new FileReader();
@@ -41,14 +81,8 @@ export default function UpdatePhotoModal({ vehicle, onClose, onUploaded }: {
     if (files.length === 0) { setErr("Please attach at least one photo."); return; }
     setUploading(true); setErr(null);
     try {
-      const photoUrls = await Promise.all(
-        files.map(f => new Promise<string>((res, rej) => {
-          const r = new FileReader();
-          r.onload = e => res(e.target!.result as string);
-          r.onerror = rej;
-          r.readAsDataURL(f);
-        }))
-      );
+      // Compress every image before sending — prevents 413 Payload Too Large
+      const photoUrls = await Promise.all(files.map(f => compressImage(f)));
       const res = await apiClient.patch<any>(`/vehicles/${vehicle.id}`, { photos: photoUrls });
       onUploaded(mapBackendVehicle(res.data));
     } catch (e: any) {
@@ -89,7 +123,7 @@ export default function UpdatePhotoModal({ vehicle, onClose, onUploaded }: {
               Click or drag &amp; drop photos
             </p>
             <p style={{ margin: 0, fontSize: ".72rem", color: "var(--text-faint)" }}>
-              JPG · PNG · WEBP · Multiple
+              JPG · PNG · WEBP · Multiple — auto-compressed before upload
             </p>
             <input ref={inputRef} type="file" accept="image/*" multiple
               style={{ display: "none" }} onChange={e => addFiles(e.target.files)} />

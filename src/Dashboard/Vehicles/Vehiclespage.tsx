@@ -1,6 +1,6 @@
 // ============================================================
 // FILE: VehiclesPage.tsx
-// PATH: src/Dashboard/vehicles/VehiclesPage.tsx
+// PATH: src/Dashboard/Vehicles/VehiclesPage.tsx
 // ============================================================
 
 import { useState, useEffect } from "react";
@@ -25,14 +25,12 @@ import UpdatePhotoModal                        from "./UpdatePhotoModal";
 export { INITIAL_VEHICLES, mapBackendVehicle };
 export type { Vehicle, VehiclesPageProps };
 
-/* ─── Constants ──────────────────────────────────────────────────────── */
-const ROWS  = 10;
-const LIMIT = 20;
-const ROW_H = 64; // taller rows like Users page
+const ROWS  = 5;
+const LIMIT = 5;
+const ROW_H = 88;
 
 type FilterKey = "all" | Vehicle["status"];
 
-/* ─── Main Page ──────────────────────────────────────────────────────── */
 export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: VehiclesPageProps) {
   const [filter,       setFilter]       = useState<FilterKey>("all");
   const [search,       setSearch]       = useState("");
@@ -68,7 +66,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
     return () => { cancelled = true; };
   }, [page, filter, setVehicles]);
 
-  /* ── Delete ── */
+  /* ── Delete — any status ── */
   const handleRemoveConfirm = async () => {
     if (!removeTarget) return;
     setRemoving(true);
@@ -76,8 +74,13 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
       await apiClient.delete(`/vehicles/${removeTarget.id}`);
       setVehicles(prev => prev.filter(v => v.id !== removeTarget.id));
       setTotalCount(c => Math.max(0, c - 1));
-    } catch { alert("Failed to remove vehicle."); }
-    finally { setRemoving(false); setRemoveTarget(null); }
+    } catch (e: any) {
+      const msg = e?.response?.data?.message ?? e?.message ?? "Failed to remove vehicle.";
+      alert(typeof msg === "string" ? msg : JSON.stringify(msg));
+    } finally {
+      setRemoving(false);
+      setRemoveTarget(null);
+    }
   };
 
   const counts = {
@@ -87,7 +90,6 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
     onTrip:      vehicles.filter(v => v.status === "On_Trip").length,
   };
 
-  /* ── Client search ── */
   const filtered = vehicles.filter(v => {
     const q = search.toLowerCase();
     return !q
@@ -98,14 +100,13 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
   const totalPages = Math.max(1, Math.ceil(totalCount / LIMIT));
   const ghostCount = Math.max(0, ROWS - filtered.length);
 
-  /* ── Styles matching Users page exactly ── */
   const TH: React.CSSProperties = {
     padding: "0.75rem 1.25rem",
     fontSize: ".78rem",
     fontWeight: 700,
     textTransform: "uppercase",
     letterSpacing: ".07em",
-    color: "#111827",            // black like Users page
+    color: "#111827",
     textAlign: "left",
     borderBottom: "1px solid var(--border)",
     whiteSpace: "nowrap",
@@ -174,12 +175,8 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
           onTrip={counts.onTrip}
         />
 
-        {/* ── Filter bar — NO counts, just labels + search on right ── */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: ".5rem",
-          flexWrap: "wrap",
-        }}>
-          {/* Filter pills — same style as Users page All/Riders/Drivers */}
+        {/* ── Filter bar ── */}
+        <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: ".35rem" }}>
             {(["all", "Available", "Pending", "On_Trip", "Maintenance"] as const).map(k => (
               <button
@@ -197,14 +194,10 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                   transition: "all .15s",
                 }}
               >
-                {k === "all"     ? "All"
-                : k === "On_Trip" ? "On Trip"
-                : k}
+                {k === "all" ? "All" : k === "On_Trip" ? "On Trip" : k}
               </button>
             ))}
           </div>
-
-          {/* Search — pushed to the right */}
           <div style={{ marginLeft: "auto" }}>
             <div className="ts-search-bar" style={{ minWidth: 240 }}>
               <SearchRoundedIcon style={{ fontSize: 15, flexShrink: 0 }} />
@@ -231,19 +224,27 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
           </div>
         )}
 
-        {/* ── Table card ── */}
+        {/* ── Table ── */}
         <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
               <colgroup>
-                <col style={{ width: "22%" }} /> {/* Vehicle */}
-                <col style={{ width: "8%"  }} /> {/* Year */}
-                <col style={{ width: "13%" }} /> {/* Status */}
-                <col style={{ width: "9%"  }} /> {/* Color */}
-                <col style={{ width: "12%" }} /> {/* Class */}
-                <col style={{ width: "6%"  }} /> {/* Seats */}
-                <col style={{ width: "12%" }} /> {/* Driver */}
-                <col style={{ width: "18%" }} /> {/* Actions */}
+                {/* Vehicle */}
+                <col style={{ width: "22%" }} />
+                {/* Year */}
+                <col style={{ width: "8%" }} />
+                {/* Status */}
+                <col style={{ width: "13%" }} />
+                {/* Color */}
+                <col style={{ width: "9%" }} />
+                {/* Class */}
+                <col style={{ width: "12%" }} />
+                {/* Seats */}
+                <col style={{ width: "6%" }} />
+                {/* Driver */}
+                <col style={{ width: "12%" }} />
+                {/* Actions */}
+                <col style={{ width: "18%" }} />
               </colgroup>
 
               <thead>
@@ -289,14 +290,21 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                 ) : (
                   <>
                     {filtered.map(v => {
-                      const needsPhoto = v.status === "Pending"
-                        && !(Array.isArray(v.photos) && v.photos.length > 0);
-                      const canChange  = v.status === "Available" || v.status === "Maintenance";
+                      // "Add Photos" button: only Pending vehicles that have NO photos yet
+                      const needsPhoto =
+                        v.status === "Pending" &&
+                        !(Array.isArray(v.photos) && v.photos.length > 0);
+
+                      // "Change Status" button: ONLY when status is Available or Maintenance
+                      // - Pending  → hidden (vehicle auto-promotes when photos+driver are set)
+                      // - On_Trip  → hidden (trip system controls this)
+                      const canChange =
+                        v.status === "Available" || v.status === "Maintenance";
 
                       return (
                         <tr key={v.id} className="ts-tr" style={{ height: ROW_H }}>
 
-                          {/* Vehicle — bold name, muted make below */}
+                          {/* Vehicle */}
                           <td style={{ ...TD, overflow: "hidden" }}>
                             <p style={{
                               margin: 0, fontWeight: 700,
@@ -307,17 +315,17 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                             </p>
                           </td>
 
-                          {/* Year — standalone */}
+                          {/* Year */}
                           <td style={{ ...TD, color: "var(--text-muted)", fontWeight: 500 }}>
                             {v.year}
                           </td>
 
-                          {/* Status — clean pill only, NO extra badge */}
+                          {/* Status */}
                           <td style={TD}>
                             <StatusPill status={v.status} />
                           </td>
 
-                          {/* Color — plain text only, no dot/circle */}
+                          {/* Color */}
                           <td style={{ ...TD, color: "var(--text-body)" }}>
                             {v.color || "—"}
                           </td>
@@ -345,7 +353,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                           <td style={TD}>
                             <div style={{ display: "flex", alignItems: "center", gap: ".3rem" }}>
 
-                              {/* Edit */}
+                              {/* Edit — always shown */}
                               <button
                                 title="Edit"
                                 className="ts-icon-btn"
@@ -359,7 +367,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                                 <EditRoundedIcon style={{ fontSize: 16 }} />
                               </button>
 
-                              {/* Add Photos — amber, only Pending with no photos */}
+                              {/* Add Photos — amber, only Pending + no photos */}
                               {needsPhoto && (
                                 <button
                                   title="Add Photos"
@@ -376,7 +384,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                                 </button>
                               )}
 
-                              {/* Change Status — purple, only Available or Maintenance */}
+                              {/* Change Status — purple, ONLY Available or Maintenance */}
                               {canChange && (
                                 <button
                                   title="Change Status"
@@ -393,7 +401,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                                 </button>
                               )}
 
-                              {/* Delete */}
+                              {/* Delete — always shown, works for any status */}
                               <button
                                 title="Remove"
                                 className="ts-icon-btn ts-icon-btn-del"
@@ -413,7 +421,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                       );
                     })}
 
-                    {/* Ghost rows to keep table height stable */}
+                    {/* Ghost rows — keep table height stable */}
                     {Array.from({ length: ghostCount }).map((_, i) => (
                       <tr key={`g-${i}`} style={{ height: ROW_H }}>
                         <td colSpan={8} style={{ borderBottom: "1px solid var(--border)" }} />

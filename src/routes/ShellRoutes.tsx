@@ -120,7 +120,7 @@ export default function Shell({
           <TravelSyncTopNav onToggleSidebar={() => setSidebarOpen((v) => !v)} dark={dark} onToggleDark={onToggleDark} onNavigate={navigate} />
         </header>
 
-        <main style={{ flex:1, minHeight:0, overflow:"hidden", padding:"1rem 1.5rem", display:"flex", flexDirection:"column" }}>
+        <main style={{ flex:1, minHeight:0, overflow:"auto", padding:"1rem 1.5rem", display:"flex", flexDirection:"column" }}>
           <div className={slideClass} style={{ flex:1, minHeight:0, display:"flex", flexDirection:"column" }}>
             <Routes>
               <Route index element={<Navigate to="dashboard" replace />} />
