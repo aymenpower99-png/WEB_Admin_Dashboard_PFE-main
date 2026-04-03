@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginWithIntro from "./auth/LoginWithIntro";
+import VerifyEmailChange from "./auth/VerifyEmailChange";
 import Shell from "./routes/ShellRoutes";
 
 import { INITIAL_DRIVERS } from "./Dashboard/Drivers & Vehicles/DriversPage";
@@ -19,12 +20,12 @@ import "./Dashboard/travelsync-design-system.css";
 export default function App() {
   const [dark, setDark] = useState(() => localStorage.getItem("dark") === "true");
 
-  const [drivers,         setDrivers]         = useState<Driver[]>(INITIAL_DRIVERS);
-  const [editDriver,      setEditDriver]       = useState<Driver | null>(null);
-  const [vehicles,        setVehicles]         = useState<Vehicle[]>(INITIAL_VEHICLES);
-  const [editVehicle,     setEditVehicle]      = useState<Vehicle | null>(null);
-  const [areas,           setAreas]            = useState<WorkArea[]>(INITIAL_AREAS);
-  const [workAreaDrivers, setWorkAreaDrivers]  = useState<WorkAreaDriver[]>(INITIAL_WORK_AREA_DRIVERS);
+  const [drivers,         setDrivers]        = useState<Driver[]>(INITIAL_DRIVERS);
+  const [editDriver,      setEditDriver]      = useState<Driver | null>(null);
+  const [vehicles,        setVehicles]        = useState<Vehicle[]>(INITIAL_VEHICLES);
+  const [editVehicle,     setEditVehicle]     = useState<Vehicle | null>(null);
+  const [areas,           setAreas]           = useState<WorkArea[]>(INITIAL_AREAS);
+  const [workAreaDrivers, setWorkAreaDrivers] = useState<WorkAreaDriver[]>(INITIAL_WORK_AREA_DRIVERS);
 
   function toggleDark() {
     const next = !dark;
@@ -39,6 +40,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginWithIntro />} />
+
+          {/* ── Public route: email change confirmation link from inbox ── */}
+          <Route path="/verify-email-change" element={<VerifyEmailChange />} />
+
           <Route
             path="/dashboard/*"
             element={
