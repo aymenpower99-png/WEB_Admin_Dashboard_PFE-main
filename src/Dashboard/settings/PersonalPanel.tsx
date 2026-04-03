@@ -4,15 +4,21 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Icon, SettingsInput, SectionHead, SaveBtn } from "./SettingsComponents";
 import { icons } from "./settingsTypes";
 
+const ROLE_LABEL: Record<string, string> = {
+  super_admin: "Super Admin",
+  admin:       "Admin",
+  passenger:   "Rider",
+  driver:      "Driver",
+};
+
 const PersonalPanel: FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [form, setForm] = useState({
     firstName: user?.firstName ?? "",
     lastName:  user?.lastName  ?? "",
     email:     user?.email     ?? "",
     phone:     (user?.phone    ?? "") as string,
-    role:      "Super Admin",
   });
 
   const [pendingEmail,       setPendingEmail]       = useState<string | null>(null);
@@ -23,34 +29,53 @@ const PersonalPanel: FC = () => {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMsg,     setResendMsg]     = useState("");
 
-  // Seed from auth context + fetch pending state
+  // ── On mount: fetch fresh /auth/me from backend ──────────────────────────
+  // This is the KEY fix: if the user confirmed their email in another tab,
+  // the backend already has the new email. We fetch it and sync into context.
   useEffect(() => {
-    if (user) {
-      setForm(f => ({
-        ...f,
-        firstName: user.firstName ?? f.firstName,
-        lastName:  user.lastName  ?? f.lastName,
-        email:     user.email     ?? f.email,
-        phone:     (user.phone    ?? f.phone) as string,
-      }));
-    }
     apiClient.get("/auth/me").then(res => {
-      if (res.data.emailChangePending) {
+      const data = res.data;
+
+      // Sync fresh data into AuthContext + localStorage
+      updateUser({
+        email:     data.email,
+        firstName: data.firstName,
+        lastName:  data.lastName,
+        phone:     data.phone,
+        role:      data.role,
+      });
+
+      // Populate form with latest values from backend
+      setForm({
+        firstName: data.firstName ?? "",
+        lastName:  data.lastName  ?? "",
+        email:     data.email     ?? "",
+        phone:     data.phone     ?? "",
+      });
+
+      // Check if there's still a pending email change
+      if (data.emailChangePending && data.pendingEmail) {
         setEmailChangePending(true);
-        setPendingEmail(res.data.pendingEmail ?? null);
+        setPendingEmail(data.pendingEmail);
+      } else {
+        setEmailChangePending(false);
+        setPendingEmail(null);
       }
     }).catch(() => {});
-  }, [user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ← runs once on mount, intentionally not re-running on user change
 
   const set = (k: keyof typeof form) => (v: string) => setForm(f => ({ ...f, [k]: v }));
 
   const save = async () => {
     setLoading(true);
     setError("");
-    try {
-      const currentEmail = user?.email ?? "";
-      const emailChanged = form.email.trim() !== "" && form.email.trim() !== currentEmail;
+    setSaved(false);
 
+    const currentEmail = user?.email ?? "";
+    const emailChanged = form.email.trim() !== "" && form.email.trim() !== currentEmail;
+
+    try {
       const payload: Record<string, string> = {
         firstName: form.firstName,
         lastName:  form.lastName,
@@ -60,14 +85,18 @@ const PersonalPanel: FC = () => {
 
       const res = await apiClient.patch("/auth/me", payload);
 
-      if (res.data.emailChangePending) {
+      if (emailChanged) {
+        // Email change requested → backend sent verification email
         setEmailChangePending(true);
         setPendingEmail(res.data.pendingEmail ?? form.email.trim());
-        // Reset email field back to current (old) email
         setForm(f => ({ ...f, email: currentEmail }));
+        // Only update name/phone in context — email stays until verified
+        updateUser({ firstName: form.firstName, lastName: form.lastName, phone: form.phone });
       } else {
+        // Name/phone only → update context + show Saved!
+        updateUser({ firstName: form.firstName, lastName: form.lastName, phone: form.phone });
         setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        setTimeout(() => setSaved(false), 2500);
       }
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Failed to save changes.");
@@ -95,18 +124,19 @@ const PersonalPanel: FC = () => {
       setEmailChangePending(false);
       setPendingEmail(null);
       setResendMsg("");
-      // Restore current email in field
       setForm(f => ({ ...f, email: user?.email ?? f.email }));
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Failed to cancel.");
     }
   };
 
+  const roleLabel = ROLE_LABEL[user?.role ?? ""] ?? (user?.role ?? "—");
+
   return (
     <div>
       <SectionHead title="Personal Information" desc="Update your name, contact details, and profile info." />
 
-      {/* ── Pending email change banner ────────────────────────────── */}
+      {/* ── Pending email change banner ──────────────────────────── */}
       {emailChangePending && pendingEmail && (
         <div style={{
           background: "#F0FDF4", border: "1px solid #86EFAC",
@@ -125,7 +155,7 @@ const PersonalPanel: FC = () => {
                 Please verify to complete your email update.
               </p>
               <div style={{ fontSize: 11, color: "#6B7280", marginBottom: 6 }}>
-                Current email: <strong style={{ color: "#374151" }}>{user?.email}</strong>
+                Current: <strong style={{ color: "#374151" }}>{user?.email}</strong>
                 &nbsp;→&nbsp;
                 Pending: <strong style={{ color: "#7C3AED" }}>{pendingEmail}</strong>
               </div>
@@ -164,11 +194,24 @@ const PersonalPanel: FC = () => {
           label="Email address" type="email"
           value={form.email} onChange={set("email")}
           readOnly={emailChangePending}
-          hint={emailChangePending ? "Email locked until pending change is verified or cancelled." : undefined}
+          hint={emailChangePending
+            ? "Email locked until pending change is verified or cancelled."
+            : undefined}
         />
-        <SettingsInput label="Phone number" value={form.phone} onChange={set("phone")} />
-        <div className="col-span-2">
-          <SettingsInput label="Job title / Role" value={form.role} onChange={set("role")} />
+        <SettingsInput label="Phone number" value={form.phone} onChange={set("phone")} placeholder="+1 234 567 890" />
+
+        {/* Role — read-only */}
+        <div className="col-span-2 space-y-1.5">
+          <label className="ts-label">Job title / Role</label>
+          <div
+            className="ts-input flex items-center gap-2"
+            style={{ opacity: 0.7, cursor: "not-allowed", background: "var(--input-bg, #f9fafb)" }}
+          >
+            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-700">
+              {roleLabel}
+            </span>
+            <span className="text-xs ts-muted">Role is managed by your system administrator.</span>
+          </div>
         </div>
       </div>
 

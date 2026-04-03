@@ -2,13 +2,10 @@ import { useEffect, createContext, useContext, useState, useCallback } from "rea
 import type { ReactNode } from "react";
 import { registerTokenUpdater } from "../api/apiClient";
 
-
-
-
-
 interface AuthUser {
   id: string;
   email: string;
+  role?: string;
   firstName?: string;
   lastName?: string;
   phone?: string | null;
@@ -20,7 +17,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (data: { accessToken: string; refreshToken: string; user: AuthUser }) => void;
   logout: () => void;
-  updateAccessToken: (token: string) => void; // ← NEW
+  updateAccessToken: (token: string) => void;
+  updateUser: (partial: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -55,15 +53,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  // Called by the axios interceptor after a silent token refresh
   const updateAccessToken = useCallback((token: string) => {
     localStorage.setItem("accessToken", token);
     setAccessToken(token);
   }, []);
 
+  // Updates user fields in both React state and localStorage
+  const updateUser = useCallback((partial: Partial<AuthUser>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...partial };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   useEffect(() => {
-  registerTokenUpdater(updateAccessToken);
-}, [updateAccessToken]);
+    registerTokenUpdater(updateAccessToken);
+  }, [updateAccessToken]);
 
   return (
     <AuthContext.Provider
@@ -74,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         updateAccessToken,
+        updateUser,
       }}
     >
       {children}
