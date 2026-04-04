@@ -1,4 +1,4 @@
-import { Edit2, ShieldX, ShieldCheck, Mail, Trash2 } from "lucide-react";
+import { Edit2, ShieldX, ShieldCheck, Mail, Trash2, UserCog } from "lucide-react";
 import type { AdminUser } from "../../../api/users";
 
 interface Props {
@@ -21,6 +21,12 @@ export default function UsersRowActions({
   user, actionLoading,
   onEdit, onBlock, onUnblock, onResend, onCompleteProfile, onDelete,
 }: Props) {
+
+  const needsProfileCompletion =
+    user.role === "driver" &&
+    user.status === "active" &&
+    user.profileComplete === false;
+
   return (
     <div style={{ display:"flex", alignItems:"center", gap:"0.3rem", flexWrap:"nowrap" }}>
 
@@ -56,16 +62,19 @@ export default function UsersRowActions({
         </button>
       )}
 
-      {/* Complete driver profile — active drivers only */}
-      {user.role === "driver" && user.status === "active" && (
-        <button title="Complete Driver Profile" className="ts-icon-btn"
+      {/* Complete driver profile — active driver WITHOUT profile yet */}
+      {needsProfileCompletion && (
+        <button
+          title="Setup Driver Profile"
+          className="ts-icon-btn"
           onClick={onCompleteProfile}
-          style={{ ...BTN, background:"#ede9fe", color:"#7c3aed", border:"none", cursor:"pointer" }}>
-          🪪
+          style={{ ...BTN, background:"#fff7ed", color:"#ea580c", border:"1px solid #fed7aa", cursor:"pointer" }}
+        >
+          <UserCog size={13} />
         </button>
       )}
 
-      {/* Delete — ALWAYS visible, every status */}
+      {/* Delete — always */}
       <button title="Delete user" className="ts-icon-btn ts-icon-btn-del"
         disabled={actionLoading === user.id + "-delete"}
         onClick={onDelete}

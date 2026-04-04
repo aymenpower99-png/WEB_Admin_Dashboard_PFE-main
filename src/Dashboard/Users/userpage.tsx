@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import "../travelsync-design-system.css";
-import { usersApi, type AdminUser }          from "../../api/users";
+import { usersApi, type AdminUser }   from "../../api/users";
 
 import {
   ROLE_MAP, ROLE_BADGE, ROLE_LABEL, STATUS_PILL,
@@ -8,17 +8,54 @@ import {
   type FilterTab,
 } from "./components/users.types";
 
-import UserKpiCards                           from "./components/UserKpiCards";
-import UsersPagination                        from "./components/UsersPagination";
-import InviteModal                            from "./components/InviteModal";
-import EditModal                              from "./components/EditModal";
-import CompleteDriverProfileModal             from "./components/CompleteDriverProfileModal";
-import DeleteConfirmModal                     from "./components/DeleteConfirmModal";
-import UsersRowActions                        from "./components/UsersRowActions";
+import UserKpiCards              from "./components/UserKpiCards";
+import UsersPagination           from "./components/UsersPagination";
+import InviteModal               from "./components/InviteModal";
+import EditModal                 from "./components/EditModal";
+import CompleteDriverProfileModal from "./components/CompleteDriverProfileModal";
+import DeleteConfirmModal        from "./components/DeleteConfirmModal";
+import UsersRowActions           from "./components/UsersRowActions";
 
 interface UsersPageProps {
   dark?: boolean;
   onSelectUser?: (name: string) => void;
+}
+
+// Profile badge cell — shown in the Profile column
+function ProfileCell({ u }: { u: AdminUser }) {
+  if (u.role !== "driver") {
+    return <span style={{ color:"var(--text-faint)", fontSize:".8rem" }}>—</span>;
+  }
+  if (u.status === "pending") {
+    return <span style={{ color:"var(--text-faint)", fontSize:".75rem" }}>Awaiting invite</span>;
+  }
+  if (u.profileComplete === false) {
+    return (
+      <span style={{
+        display:"inline-flex", alignItems:"center", gap:".3rem",
+        padding:".2rem .6rem", borderRadius:"999px",
+        background:"#fff7ed", color:"#ea580c",
+        fontSize:".72rem", fontWeight:700, whiteSpace:"nowrap",
+        border:"1px solid #fed7aa",
+      }}>
+        ⚙ Not set up
+      </span>
+    );
+  }
+  if (u.profileComplete === true) {
+    return (
+      <span style={{
+        display:"inline-flex", alignItems:"center", gap:".3rem",
+        padding:".2rem .6rem", borderRadius:"999px",
+        background:"#d1fae5", color:"#065f46",
+        fontSize:".72rem", fontWeight:700, whiteSpace:"nowrap",
+        border:"1px solid #6ee7b7",
+      }}>
+        ✓ Ready
+      </span>
+    );
+  }
+  return <span style={{ color:"var(--text-faint)", fontSize:".8rem" }}>—</span>;
 }
 
 export default function UsersPage({ onSelectUser }: UsersPageProps) {
@@ -42,6 +79,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
   }
   useEffect(() => { loadUsers(); }, []);
 
+  // Derived from `users` state on every render — no stale data on filter switch
   const filteredUsers = useMemo(() => {
     const roleFilter = ROLE_MAP[activeFilter];
     return users.filter(u => {
@@ -52,7 +90,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
         || u.email.toLowerCase().includes(search.toLowerCase());
       return matchRole && matchSearch;
     });
-  }, [users, activeFilter, search]);
+  }, [users, activeFilter, search]); // ← depends on `users`, so always fresh
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ROWS_PER_PAGE));
   const safePage   = Math.min(page, totalPages);
@@ -82,8 +120,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
     try {
       await usersApi.deleteUser(u.id);
       setUsers(p => p.filter(x => x.id !== u.id));
-      setModal(null);
-      setDeleteTarget(null);
+      setModal(null); setDeleteTarget(null);
     } catch { /* ignore */ } finally { setActionLoading(null); }
   }
 
@@ -139,8 +176,10 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:"0.375rem" }}>
             {(["All","Riders","Drivers"] as FilterTab[]).map(f => (
-              <button key={f} className={`ts-filter-chip${activeFilter === f ? " ts-active" : ""}`}
-                onClick={() => { setActiveFilter(f); setPage(1); }}>{f}
+              <button key={f}
+                className={`ts-filter-chip${activeFilter === f ? " ts-active" : ""}`}
+                onClick={() => { setActiveFilter(f); setPage(1); }}>
+                {f}
               </button>
             ))}
           </div>
@@ -152,31 +191,46 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", borderCollapse:"collapse", tableLayout:"fixed" }}>
               <colgroup>
-                <col style={{ width:"19%" }} /><col style={{ width:"21%" }} /><col style={{ width:"11%" }} />
-                <col style={{ width:"11%" }} /><col style={{ width:"7%"  }} /><col style={{ width:"31%" }} />
+                {/* User | Email | Role | Status | Profile | Trips | Actions */}
+                <col style={{ width:"16%" }} />
+                <col style={{ width:"18%" }} />
+                <col style={{ width:"10%" }} />
+                <col style={{ width:"9%"  }} />
+                <col style={{ width:"12%" }} />
+                <col style={{ width:"6%"  }} />
+                <col style={{ width:"29%" }} />
               </colgroup>
               <thead>
                 <tr>
-                  <th style={TH}>User</th><th style={TH}>Email</th><th style={TH}>Role</th>
-                  <th style={TH}>Status</th><th style={TH}>Trips</th><th style={TH}>Actions</th>
+                  <th style={TH}>User</th>
+                  <th style={TH}>Email</th>
+                  <th style={TH}>Role</th>
+                  <th style={TH}>Status</th>
+                  <th style={TH}>Profile</th>
+                  <th style={TH}>Trips</th>
+                  <th style={TH}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <>
                     <tr style={{ height:ROW_H }}>
-                      <td colSpan={6} style={{ ...TD, textAlign:"center", color:"var(--text-faint)" }}>
-                        No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found{search ? ` matching "${search}"` : ""}.
+                      <td colSpan={7} style={{ ...TD, textAlign:"center", color:"var(--text-faint)" }}>
+                        No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found
+                        {search ? ` matching "${search}"` : ""}.
                       </td>
                     </tr>
                     {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
-                      <tr key={`ge-${i}`} style={{ height:ROW_H }}><td colSpan={6} style={{ borderBottom:"1px solid var(--border)" }} /></tr>
+                      <tr key={`ge-${i}`} style={{ height:ROW_H }}>
+                        <td colSpan={7} style={{ borderBottom:"1px solid var(--border)" }} />
+                      </tr>
                     ))}
                   </>
                 ) : (
                   <>
                     {pagedUsers.map((u, i) => (
-                      <tr key={`${u.id}-${i}`} className="ts-tr" style={{ height:ROW_H, cursor:"pointer" }}
+                      <tr key={`${u.id}-${i}`} className="ts-tr"
+                        style={{ height:ROW_H, cursor:"pointer" }}
                         onClick={() => onSelectUser?.(`${u.firstName} ${u.lastName}`)}>
 
                         <td style={{ ...TD, fontWeight:600, color:"var(--text-h)" }}>
@@ -201,6 +255,11 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
                           </span>
                         </td>
 
+                        {/* Profile column — shows status for drivers */}
+                        <td style={TD} onClick={e => e.stopPropagation()}>
+                          <ProfileCell u={u} />
+                        </td>
+
                         <td style={{ ...TD, fontWeight:700, color:"#7c3aed" }}>{u.trips ?? 0}</td>
 
                         <td style={TD} onClick={e => e.stopPropagation()}>
@@ -218,7 +277,9 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
                       </tr>
                     ))}
                     {Array.from({ length: ghostCount }).map((_, i) => (
-                      <tr key={`g-${i}`} style={{ height:ROW_H }}><td colSpan={6} style={{ borderBottom:"1px solid var(--border)" }} /></tr>
+                      <tr key={`g-${i}`} style={{ height:ROW_H }}>
+                        <td colSpan={7} style={{ borderBottom:"1px solid var(--border)" }} />
+                      </tr>
                     ))}
                   </>
                 )}

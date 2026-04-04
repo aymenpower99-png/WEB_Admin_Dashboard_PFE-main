@@ -1,7 +1,6 @@
 import apiClient from "./apiClient";
 import type { UserStatus } from "../Dashboard/constants";
 
-// ✅ Added super_admin to match what the backend actually returns
 export type UserRole = "passenger" | "driver" | "admin" | "super_admin";
 
 export interface AdminUser {
@@ -13,6 +12,8 @@ export interface AdminUser {
   status: UserStatus;
   createdAt: string;
   trips?: number;
+  // ← NEW: only present for drivers; true = profile created by admin
+  profileComplete?: boolean;
 }
 
 export interface InviteUserPayload {
@@ -44,7 +45,8 @@ export const usersApi = {
   update: (id: string, payload: UpdateUserPayload): Promise<AdminUser> =>
     apiClient.patch(`/admin/users/${id}`, payload).then((r) => r.data),
 
-  delete: (id: string): Promise<{ message: string }> =>
+  // alias used in userpage.tsx
+  deleteUser: (id: string): Promise<{ message: string }> =>
     apiClient.delete(`/admin/users/${id}`).then((r) => r.data),
 
   block: (id: string): Promise<{ message: string }> =>

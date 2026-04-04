@@ -1,33 +1,44 @@
-import { Users, UserCheck, Clock, ShieldOff, Car } from "lucide-react";
 import type { AdminUser } from "../../../api/users";
-import "../../travelsync-design-system.css";
 
-function KpiCard({ Icon, iconBg, iconFg, label, value }: {
-  Icon: React.ElementType; iconBg: string; iconFg: string; label: string; value: number;
-}) {
-  return (
-    <div style={{ background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:"0.75rem", padding:"0.85rem 1.1rem", display:"flex", flexDirection:"column", justifyContent:"space-between", position:"relative", minHeight:72 }}>
-      <div style={{ position:"absolute", top:"0.85rem", right:"1.1rem", width:36, height:36, borderRadius:"50%", background:iconBg, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <Icon size={16} color={iconFg} strokeWidth={1.75} />
-      </div>
-      <span style={{ fontSize:"0.72rem", color:"var(--text-muted)", fontWeight:500, paddingRight:"44px" }}>{label}</span>
-      <span style={{ fontSize:"1.6rem", fontWeight:800, color:"var(--text-h)", lineHeight:1, marginTop:"0.35rem" }}>{value}</span>
-    </div>
-  );
-}
+interface Props { users: AdminUser[]; }
 
-export default function UserKpiCards({ users }: { users: AdminUser[] }) {
+export default function UserKpiCards({ users }: Props) {
+  const total      = users.length;
+  const active     = users.filter(u => u.status === "active").length;
+  const pending    = users.filter(u => u.status === "pending").length;
+  const drivers    = users.filter(u => u.role === "driver").length;
+  // Drivers who are active but profile not yet created by admin
+  const needsSetup = users.filter(u => u.role === "driver" && u.status === "active" && u.profileComplete === false).length;
+
   const cards = [
-    { Icon: Users,     iconBg:"#ede9fe", iconFg:"#7c3aed", label:"Total Users",   value: users.length },
-    { Icon: Car,       iconBg:"#dbeafe", iconFg:"#2563eb", label:"Total Riders",  value: users.filter(u => u.role === "passenger").length },
-    { Icon: UserCheck, iconBg:"#fce7f3", iconFg:"#db2777", label:"Total Drivers", value: users.filter(u => u.role === "driver").length },
-    { Icon: UserCheck, iconBg:"#d1fae5", iconFg:"#059669", label:"Active",        value: users.filter(u => u.status === "active").length },
-    { Icon: Clock,     iconBg:"#fef3c7", iconFg:"#d97706", label:"Pending",       value: users.filter(u => u.status === "pending").length },
-    { Icon: ShieldOff, iconBg:"#fee2e2", iconFg:"#dc2626", label:"Blocked",       value: users.filter(u => u.status === "blocked").length },
+    { label: "Total Users",      value: total,      color: "#7c3aed", bg: "#ede9fe" },
+    { label: "Active",           value: active,     color: "#059669", bg: "#d1fae5" },
+    { label: "Pending",          value: pending,    color: "#d97706", bg: "#fef3c7" },
+    { label: "Drivers",          value: drivers,    color: "#2563eb", bg: "#dbeafe" },
+    { label: "Needs Agency Setup", value: needsSetup, color: "#dc2626", bg: "#fee2e2" },
   ];
+
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:"0.65rem" }}>
-      {cards.map(k => <KpiCard key={k.label} {...k} />)}
+    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(130px, 1fr))", gap:".65rem" }}>
+      {cards.map(c => (
+        <div key={c.label} style={{
+          background: "var(--bg-card)", border: "1px solid var(--border)",
+          borderRadius: ".75rem", padding: ".85rem 1rem",
+          display: "flex", flexDirection: "column", gap: ".3rem",
+        }}>
+          <span style={{ fontSize: ".72rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".05em" }}>
+            {c.label}
+          </span>
+          <span style={{ fontSize: "1.45rem", fontWeight: 800, color: c.color }}>
+            {c.value}
+          </span>
+          {c.label === "Needs Agency Setup" && needsSetup > 0 && (
+            <span style={{ fontSize: ".7rem", color: "#dc2626", fontWeight: 600 }}>
+              ⚠ Action required
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
