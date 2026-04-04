@@ -27,6 +27,8 @@ export interface UpdateUserPayload {
   lastName?:  string;
   email?:     string;
   role?: "passenger" | "driver";
+  phone?:    string;
+  language?: string;
 }
 
 export const usersApi = {
@@ -41,6 +43,9 @@ export const usersApi = {
 
   update: (id: string, payload: UpdateUserPayload): Promise<AdminUser> =>
     apiClient.patch(`/admin/users/${id}`, payload).then((r) => r.data),
+
+  delete: (id: string): Promise<{ message: string }> =>
+    apiClient.delete(`/admin/users/${id}`).then((r) => r.data),
 
   block: (id: string): Promise<{ message: string }> =>
     apiClient.post(`/admin/users/${id}/block`).then((r) => r.data),
