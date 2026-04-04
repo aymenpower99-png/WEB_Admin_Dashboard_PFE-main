@@ -21,10 +21,20 @@ interface UsersPageProps {
   onSelectUser?: (name: string) => void;
 }
 
-// Profile badge cell — shown in the Profile column
 function ProfileCell({ u }: { u: AdminUser }) {
+  // Passengers are always "complete"
   if (u.role !== "driver") {
-    return <span style={{ color:"var(--text-faint)", fontSize:".8rem" }}>—</span>;
+    return (
+      <span style={{
+        display:"inline-flex", alignItems:"center", gap:".3rem",
+        padding: ".2rem .6rem", borderRadius:"999px",
+        background:"#d1fae5", color:"#065f46",
+        fontSize: ".72rem", fontWeight:700, whiteSpace:"nowrap",
+        border:"1px solid #6ee7b7",
+      }}>
+        ✓ Complete
+      </span>
+    );
   }
   if (u.status === "pending") {
     return <span style={{ color:"var(--text-faint)", fontSize:".75rem" }}>Awaiting invite</span>;
@@ -33,10 +43,10 @@ function ProfileCell({ u }: { u: AdminUser }) {
     return (
       <span style={{
         display:"inline-flex", alignItems:"center", gap:".3rem",
-        padding:".2rem .6rem", borderRadius:"999px",
-        background:"#fff7ed", color:"#ea580c",
-        fontSize:".72rem", fontWeight:700, whiteSpace:"nowrap",
-        border:"1px solid #fed7aa",
+        padding: ".2rem .6rem", borderRadius:"999px",
+        background: "#fff7ed", color: "#ea580c",
+        fontSize: ".72rem", fontWeight:700, whiteSpace:"nowrap",
+        border: "1px solid #fed7aa",
       }}>
         ⚙ Not set up
       </span>
@@ -46,28 +56,28 @@ function ProfileCell({ u }: { u: AdminUser }) {
     return (
       <span style={{
         display:"inline-flex", alignItems:"center", gap:".3rem",
-        padding:".2rem .6rem", borderRadius:"999px",
+        padding: ".2rem .6rem", borderRadius:"999px",
         background:"#d1fae5", color:"#065f46",
-        fontSize:".72rem", fontWeight:700, whiteSpace:"nowrap",
+        fontSize: ".72rem", fontWeight:700, whiteSpace:"nowrap",
         border:"1px solid #6ee7b7",
       }}>
-        ✓ Ready
+        ✓ Complete
       </span>
     );
   }
-  return <span style={{ color:"var(--text-faint)", fontSize:".8rem" }}>—</span>;
+  return <span style={{ color:"var(--text-faint)", fontSize: ".8rem" }}>—</span>;
 }
 
 export default function UsersPage({ onSelectUser }: UsersPageProps) {
-  const [users,         setUsers]         = useState<AdminUser[]>([]);
-  const [loading,       setLoading]       = useState(false);
-  const [modal,         setModal]         = useState<"invite"|"edit"|"complete-profile"|"delete"|null>(null);
-  const [editTarget,    setEditTarget]    = useState<AdminUser|null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState<"invite"|"edit"|"complete-profile"|"delete"|null>(null);
+  const [editTarget, setEditTarget] = useState<AdminUser|null>(null);
   const [profileTarget, setProfileTarget] = useState<AdminUser|null>(null);
-  const [deleteTarget,  setDeleteTarget]  = useState<AdminUser|null>(null);
-  const [activeFilter,  setActiveFilter]  = useState<FilterTab>("All");
-  const [search,        setSearch]        = useState("");
-  const [page,          setPage]          = useState(1);
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser|null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<string|null>(null);
 
   function loadUsers() {
@@ -79,7 +89,6 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
   }
   useEffect(() => { loadUsers(); }, []);
 
-  // Derived from `users` state on every render — no stale data on filter switch
   const filteredUsers = useMemo(() => {
     const roleFilter = ROLE_MAP[activeFilter];
     return users.filter(u => {
@@ -90,7 +99,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
         || u.email.toLowerCase().includes(search.toLowerCase());
       return matchRole && matchSearch;
     });
-  }, [users, activeFilter, search]); // ← depends on `users`, so always fresh
+  }, [users, activeFilter, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ROWS_PER_PAGE));
   const safePage   = Math.min(page, totalPages);
@@ -124,6 +133,16 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
     } catch { /* ignore */ } finally { setActionLoading(null); }
   }
 
+  // Called when CompleteDriverProfileModal succeeds — mark driver as complete immediately
+  function handleProfileComplete() {
+    if (profileTarget) {
+      setUsers(p => p.map(x => x.id === profileTarget.id ? { ...x, profileComplete: true } : x));
+    }
+    setModal(null);
+    setProfileTarget(null);
+    loadUsers(); // also refresh from server in background
+  }
+
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:"0.85rem" }}>
 
@@ -139,7 +158,8 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
         <CompleteDriverProfileModal
           userId={profileTarget.id}
           userName={`${profileTarget.firstName} ${profileTarget.lastName}`}
-          onClose={() => setModal(null)} onSuccess={loadUsers} />
+          onClose={() => { setModal(null); setProfileTarget(null); }}
+          onSuccess={handleProfileComplete} />
       )}
       {modal === "delete" && deleteTarget && (
         <DeleteConfirmModal
@@ -154,9 +174,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
         <div>
           <div className="ts-page-title-row">
             <h1 className="ts-page-title" style={{ fontSize:"1.25rem", fontWeight:800 }}>Users</h1>
-            <span className="ts-chip">{users.length} total</span>
           </div>
-          <p className="ts-page-subtitle">Manage riders and drivers.</p>
         </div>
         <button className="ts-btn-primary" onClick={() => setModal("invite")}>
           <span style={{ fontSize:"1rem", lineHeight:1 }}>＋</span> Invite User
@@ -191,14 +209,13 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", borderCollapse:"collapse", tableLayout:"fixed" }}>
               <colgroup>
-                {/* User | Email | Role | Status | Profile | Trips | Actions */}
-                <col style={{ width:"16%" }} />
                 <col style={{ width:"18%" }} />
-                <col style={{ width:"10%" }} />
+                <col style={{ width:"22%" }} />
+                <col style={{ width:"9%"  }} />
                 <col style={{ width:"9%"  }} />
                 <col style={{ width:"12%" }} />
                 <col style={{ width:"6%"  }} />
-                <col style={{ width:"29%" }} />
+                <col style={{ width:"24%" }} />
               </colgroup>
               <thead>
                 <tr>
@@ -255,7 +272,6 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
                           </span>
                         </td>
 
-                        {/* Profile column — shows status for drivers */}
                         <td style={TD} onClick={e => e.stopPropagation()}>
                           <ProfileCell u={u} />
                         </td>

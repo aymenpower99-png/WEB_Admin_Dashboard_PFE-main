@@ -12,10 +12,8 @@ interface Props {
   onDelete:          () => void;
 }
 
-const BTN: React.CSSProperties = {
-  width:30, height:30, display:"flex", alignItems:"center",
-  justifyContent:"center", borderRadius:"0.375rem", flexShrink:0,
-};
+// Shared Tailwind classes for every action button
+const BTN_CLS = "ts-icon-btn w-[30px] h-[30px] flex items-center justify-center rounded-md shrink-0";
 
 export default function UsersRowActions({
   user, actionLoading,
@@ -28,36 +26,40 @@ export default function UsersRowActions({
     user.profileComplete === false;
 
   return (
-    <div style={{ display:"flex", alignItems:"center", gap:"0.3rem", flexWrap:"nowrap" }}>
+    // gap-2 = 0.5rem — previously 0.3rem, gives icons more breathing room
+    <div className="flex items-center gap-2 flex-nowrap">
 
       {/* Edit — always */}
-      <button title="Edit user" className="ts-icon-btn" onClick={onEdit} style={BTN}>
+      <button title="Edit user" className={BTN_CLS} onClick={onEdit}>
         <Edit2 size={13} />
       </button>
 
       {/* Block — when not blocked */}
       {user.status !== "blocked" && (
-        <button title="Block user" className="ts-icon-btn ts-icon-btn-del"
+        <button title="Block user"
+          className={`${BTN_CLS} ts-icon-btn-del`}
           disabled={actionLoading === user.id + "-block"}
-          onClick={onBlock} style={BTN}>
+          onClick={onBlock}>
           <ShieldX size={13} />
         </button>
       )}
 
       {/* Unblock — when blocked */}
       {user.status === "blocked" && (
-        <button title="Unblock user" className="ts-icon-btn"
+        <button title="Unblock user"
+          className={`${BTN_CLS} text-[#059669]`}
           disabled={actionLoading === user.id + "-unblock"}
-          onClick={onUnblock} style={{ ...BTN, color:"#059669" }}>
+          onClick={onUnblock}>
           <ShieldCheck size={13} />
         </button>
       )}
 
       {/* Resend invite — when pending */}
       {user.status === "pending" && (
-        <button title="Resend invitation" className="ts-icon-btn"
+        <button title="Resend invitation"
+          className={`${BTN_CLS} text-[#d97706]`}
           disabled={actionLoading === user.id + "-resend"}
-          onClick={onResend} style={{ ...BTN, color:"#d97706" }}>
+          onClick={onResend}>
           <Mail size={13} />
         </button>
       )}
@@ -66,19 +68,18 @@ export default function UsersRowActions({
       {needsProfileCompletion && (
         <button
           title="Setup Driver Profile"
-          className="ts-icon-btn"
+          className={BTN_CLS}
           onClick={onCompleteProfile}
-          style={{ ...BTN, background:"#fff7ed", color:"#ea580c", border:"1px solid #fed7aa", cursor:"pointer" }}
-        >
+          style={{ background:"#fff7ed", color:"#ea580c", border:"1px solid #fed7aa" }}>
           <UserCog size={13} />
         </button>
       )}
 
       {/* Delete — always */}
-      <button title="Delete user" className="ts-icon-btn ts-icon-btn-del"
+      <button title="Delete user"
+        className={`${BTN_CLS} ts-icon-btn-del text-[#dc2626]`}
         disabled={actionLoading === user.id + "-delete"}
-        onClick={onDelete}
-        style={{ ...BTN, color:"#dc2626" }}>
+        onClick={onDelete}>
         <Trash2 size={13} />
       </button>
 
