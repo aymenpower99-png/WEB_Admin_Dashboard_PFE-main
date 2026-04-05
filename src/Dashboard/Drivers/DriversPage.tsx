@@ -9,14 +9,8 @@ import { ROWS, ROW_H, TH, TD, STATUS_CFG } from "./components/DriversTypes";
 import DriverKpiCards from "./components/DriverKpiCards";
 import DriversPagination from "./components/DriversPagination";
 import DeleteDriverModal from "./components/DeleteDriverModal";
-import { StatusBadge } from "../Users/Badge_action_buttons/UsersBadges";
-import {
-  ActionButton,
-  IconEdit,
-  IconBlock,
-  IconUnblock,
-  IconDelete,
-} from "../Users/Badge_action_buttons/UsersActionButtons";
+import { DriverStatusBadge } from "./Badge_action_buttons/DriversBadges";
+import { DriverInlineRowActions } from "./Badge_action_buttons/DriversActionButtons";
 
 type FilterKey = "all" | "online" | "offline";
 
@@ -58,18 +52,14 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return drivers.filter((d) => {
-      const matchStatus =
-        filter === "all" || d.availabilityStatus === filter;
-      const fullName =
-        `${d.firstName ?? ""} ${d.lastName ?? ""}`.toLowerCase();
+      const matchStatus = filter === "all" || d.availabilityStatus === filter;
+      const fullName = `${d.firstName ?? ""} ${d.lastName ?? ""}`.toLowerCase();
       const matchQuery =
         !q ||
         fullName.includes(q) ||
         (d.email ?? "").toLowerCase().includes(q) ||
         (d.vehicle
-          ? `${d.vehicle.make} ${d.vehicle.model}`
-              .toLowerCase()
-              .includes(q)
+          ? `${d.vehicle.make} ${d.vehicle.model}`.toLowerCase().includes(q)
           : false);
       return matchStatus && matchQuery;
     });
@@ -103,6 +93,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+
         {/* Header */}
         <div className="ts-page-header">
           <div>
@@ -124,22 +115,12 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
         <DriverKpiCards drivers={drivers} />
 
         {/* Filter + Search */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: ".5rem",
-            flexWrap: "wrap",
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: ".35rem" }}>
             {(["all", "online", "offline"] as const).map((k) => (
               <button
                 key={k}
-                onClick={() => {
-                  setFilter(k);
-                  setPage(1);
-                }}
+                onClick={() => { setFilter(k); setPage(1); }}
                 style={{
                   padding: ".3rem .85rem",
                   borderRadius: "9999px",
@@ -165,40 +146,21 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
               <input
                 placeholder="Search name, email or vehicle…"
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               />
             </div>
           </div>
         </div>
 
         {/* Table */}
-        <div
-          className="ts-table-wrap"
-          style={{ display: "flex", flexDirection: "column" }}
-        >
+        <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
           {loading ? (
-            <div
-              style={{
-                padding: "3rem",
-                textAlign: "center",
-                color: "var(--text-faint)",
-                fontSize: ".85rem",
-              }}
-            >
+            <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".85rem" }}>
               Loading drivers…
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  tableLayout: "fixed",
-                }}
-              >
+              <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                 <colgroup>
                   <col style={{ width: "18%" }} />
                   <col style={{ width: "18%" }} />
@@ -225,194 +187,71 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                   {filtered.length === 0 ? (
                     <>
                       <tr style={{ height: ROW_H }}>
-                        <td
-                          colSpan={7}
-                          style={{
-                            ...TD,
-                            textAlign: "center",
-                            color: "var(--text-faint)",
-                          }}
-                        >
-                          No drivers found
-                          {search ? ` matching "${search}"` : ""}.
+                        <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                          No drivers found{search ? ` matching "${search}"` : ""}.
                         </td>
                       </tr>
                       {Array.from({ length: ROWS - 1 }).map((_, i) => (
                         <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                          <td
-                            colSpan={7}
-                            style={{ borderBottom: "1px solid var(--border)" }}
-                          />
+                          <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
                         </tr>
                       ))}
                     </>
                   ) : (
                     <>
                       {paged.map((d) => (
-                        <tr
-                          key={d.id}
-                          className="ts-tr"
-                          style={{ height: ROW_H }}
-                        >
+                        <tr key={d.id} className="ts-tr" style={{ height: ROW_H }}>
+
                           {/* Driver Name */}
-                          <td
-                            style={{
-                              ...TD,
-                              fontWeight: 600,
-                              color: "var(--text-h)",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
+                          <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {d.firstName} {d.lastName}
                           </td>
 
                           {/* Email */}
-                          <td
-                            style={{
-                              ...TD,
-                              color: "var(--text-muted)",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
+                          <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {d.email ?? "—"}
                           </td>
 
-                          {/* Status Badge — same as Users page */}
+                          {/* Status Badge — from DriversBadges */}
                           <td style={TD}>
-                            <StatusBadge
-                              status={
-                                d.availabilityStatus === "online"
-                                  ? "active"
-                                  : "blocked"
-                              }
-                            />
+                            <DriverStatusBadge status={d.availabilityStatus} />
                           </td>
 
                           {/* Vehicle */}
-                          <td
-                            style={{
-                              ...TD,
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {d.vehicle ? (
-                              `${d.vehicle.make} ${d.vehicle.model}`
-                            ) : (
-                              <span style={{ color: "var(--text-faint)" }}>
-                                —
-                              </span>
-                            )}
+                          <td style={{ ...TD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {d.vehicle
+                              ? `${d.vehicle.make} ${d.vehicle.model}`
+                              : <span style={{ color: "var(--text-faint)" }}>—</span>}
                           </td>
 
                           {/* Trips */}
-                          <td
-                            style={{
-                              ...TD,
-                              fontWeight: 800,
-                              color: "#111827",
-                            }}
-                          >
+                          <td style={{ ...TD, fontWeight: 800, color: "#111827" }}>
                             {d.totalTrips ?? 0}
                           </td>
 
-                          {/* Rating — Number() prevents toFixed crash when DB returns string */}
-                          <td
-                            style={{
-                              ...TD,
-                              fontWeight: 700,
-                              color: "#7c3aed",
-                            }}
-                          >
+                          {/* Rating */}
+                          <td style={{ ...TD, fontWeight: 700, color: "#7c3aed" }}>
                             {d.ratingAverage != null
                               ? `★ ${Number(d.ratingAverage).toFixed(1)}`
                               : "—"}
                           </td>
 
-                          {/* Actions — same style as Users page */}
-                          <td
-                            style={TD}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 4,
-                              }}
-                            >
-                              <ActionButton
-                                title="Edit Driver"
-                                onClick={() =>
-                                  onNavigate("agency-drivers", d)
-                                }
-                                hoverStyle={{
-                                  background: "#eff6ff",
-                                  color: "#2563eb",
-                                  borderColor: "#bfdbfe",
-                                }}
-                              >
-                                <IconEdit />
-                              </ActionButton>
-
-                              {d.availabilityStatus === "offline" ? (
-                                <ActionButton
-                                  title="Set Online"
-                                  onClick={() => {}}
-                                  hoverStyle={{
-                                    background: "#f0fdf4",
-                                    color: "#16a34a",
-                                    borderColor: "#bbf7d0",
-                                  }}
-                                >
-                                  <IconUnblock />
-                                </ActionButton>
-                              ) : (
-                                <ActionButton
-                                  title="Set Offline"
-                                  onClick={() => {}}
-                                  hoverStyle={{
-                                    background: "#fef2f2",
-                                    color: "#dc2626",
-                                    borderColor: "#fecaca",
-                                  }}
-                                >
-                                  <IconBlock />
-                                </ActionButton>
-                              )}
-
-                              <ActionButton
-                                title="Delete Driver"
-                                onClick={() => setRemoveId(d.id)}
-                                loading={
-                                  actionLoading === d.id + "-delete"
-                                }
-                                hoverStyle={{
-                                  background: "#fef2f2",
-                                  color: "#dc2626",
-                                  borderColor: "#fecaca",
-                                }}
-                              >
-                                <IconDelete />
-                              </ActionButton>
-                            </div>
+                          {/* Actions — from DriversActionButtons */}
+                          <td style={TD} onClick={(e) => e.stopPropagation()}>
+                            <DriverInlineRowActions
+                              driver={d}
+                              actionLoading={actionLoading}
+                              onEdit={() => onNavigate("agency-drivers", d)}
+                              onDelete={() => setRemoveId(d.id)}
+                            />
                           </td>
+
                         </tr>
                       ))}
 
                       {Array.from({ length: ghostCount }).map((_, i) => (
                         <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                          <td
-                            colSpan={7}
-                            style={{
-                              borderBottom: "1px solid var(--border)",
-                            }}
-                          />
+                          <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
                         </tr>
                       ))}
                     </>
