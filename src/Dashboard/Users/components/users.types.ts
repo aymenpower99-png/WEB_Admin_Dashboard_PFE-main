@@ -28,8 +28,8 @@ export const ROLE_BADGE: Record<UserRole, React.CSSProperties> = {
     fontSize: "0.75rem",
     fontWeight: 700,
     letterSpacing: "0.02em",
-    background: "#dbeafe",
-    color: "#1d4ed8",
+    background: "var(--rider-bg)",
+    color: "var(--rider-fg)",
   },
   driver: {
     display: "inline-flex",
@@ -39,8 +39,8 @@ export const ROLE_BADGE: Record<UserRole, React.CSSProperties> = {
     fontSize: "0.75rem",
     fontWeight: 700,
     letterSpacing: "0.02em",
-    background: "#fce7f3",
-    color: "#be185d",
+    background: "var(--driver-bg)",
+    color: "var(--driver-fg)",
   },
   admin: {
     display: "inline-flex",
@@ -50,8 +50,8 @@ export const ROLE_BADGE: Record<UserRole, React.CSSProperties> = {
     fontSize: "0.75rem",
     fontWeight: 700,
     letterSpacing: "0.02em",
-    background: "#ede9fe",
-    color: "#6d28d9",
+    background: "var(--admin-bg)",
+    color: "var(--admin-fg)",
   },
   super_admin: {
     display: "inline-flex",
@@ -61,8 +61,8 @@ export const ROLE_BADGE: Record<UserRole, React.CSSProperties> = {
     fontSize: "0.75rem",
     fontWeight: 700,
     letterSpacing: "0.02em",
-    background: "#fef9c3",
-    color: "#92400e",
+    background: "var(--pending-bg)",
+    color: "var(--pending-fg)",
   },
 };
 
@@ -83,7 +83,7 @@ export const TH: React.CSSProperties = {
   textAlign: "left",
   borderBottom: "1px solid var(--border)",
   whiteSpace: "nowrap",
-  background: "var(--bg-thead)", // ✅ grey header
+  background: "var(--bg-thead)",
 };
 
 export const TD: React.CSSProperties = {

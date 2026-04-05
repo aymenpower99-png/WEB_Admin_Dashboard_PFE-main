@@ -1,8 +1,7 @@
 import { useState } from "react";
 import type { AdminUser } from "../../../api/users";
 
-// ── Action button base style — uses borderWidth/borderStyle/borderColor
-// separately (NOT the border shorthand) to avoid React hoverStyle conflict ──
+// ── Action button base style — uses CSS variables for full dark/light support ──
 const ACTION_BTN_BASE: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -12,10 +11,10 @@ const ACTION_BTN_BASE: React.CSSProperties = {
   borderRadius: 7,
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "#e5e7eb",
-  background: "white",
+  borderColor: "var(--border)",
+  background: "var(--bg-card)",
   cursor: "pointer",
-  color: "#6b7280",
+  color: "var(--text-muted)",
   flexShrink: 0,
   transition: "all .15s",
   padding: 0,

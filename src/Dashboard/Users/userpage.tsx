@@ -24,7 +24,7 @@ interface UsersPageProps {
   onSelectUser?: (name: string) => void;
 }
 
-export default function UsersPage({ onSelectUser }: UsersPageProps) {
+export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState<"invite" | "edit" | "complete-profile" | "delete" | null>(null);
@@ -99,7 +99,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+    <div className={dark ? "dark" : ""} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
       {/* ── Modals ── */}
       {modal === "invite" && (
@@ -265,7 +265,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
                         </td>
 
                         {/* Trips */}
-                        <td style={{ ...TD, fontWeight: 800, color: "#111827" }}>{u.trips ?? 0}</td>
+                        <td style={{ ...TD, fontWeight: 800, color: "var(--text-h)" }}>{u.trips ?? 0}</td>
 
                         {/* Actions */}
                         <td style={TD} onClick={e => e.stopPropagation()}>

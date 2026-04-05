@@ -45,13 +45,12 @@ function StatCard({
           {label}
         </p>
 
-        {/* number in BLACK (you asked) */}
         <p
           style={{
             margin: 0,
             fontSize: "1.65rem",
             fontWeight: 800,
-            color: "#111827",
+            color: "var(--text-h)",
             lineHeight: 1,
           }}
         >
@@ -85,15 +84,14 @@ export default function UserKpiCards({ users }: { users: AdminUser[] }) {
   const pending = users.filter(u => u.status === "pending").length;
   const blocked = users.filter(u => u.status === "blocked").length;
 
-  // 6 cards like before, but sized like Vehicles now
   return (
     <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
-      <StatCard label="Total Users" value={totalUsers} Icon={Users} iconBg="#ede9fe" iconColor="#7c3aed" />
-      <StatCard label="Total Riders" value={totalRiders} Icon={Car} iconBg="#dbeafe" iconColor="#2563eb" />
-      <StatCard label="Total Drivers" value={totalDrivers} Icon={UserCheck} iconBg="#fce7f3" iconColor="#db2777" />
-      <StatCard label="Active" value={active} Icon={UserCheck} iconBg="#d1fae5" iconColor="#059669" />
-      <StatCard label="Pending" value={pending} Icon={Clock} iconBg="#fef3c7" iconColor="#d97706" />
-      <StatCard label="Blocked" value={blocked} Icon={ShieldOff} iconBg="#fee2e2" iconColor="#dc2626" />
+      <StatCard label="Total Users"   value={totalUsers}   Icon={Users}     iconBg="var(--driver-bg)"  iconColor="var(--driver-fg)" />
+      <StatCard label="Total Riders"  value={totalRiders}  Icon={Car}       iconBg="var(--rider-bg)"   iconColor="var(--rider-fg)"  />
+      <StatCard label="Total Drivers" value={totalDrivers} Icon={UserCheck} iconBg="var(--driver-bg)"  iconColor="var(--driver-fg)" />
+      <StatCard label="Active"        value={active}       Icon={UserCheck} iconBg="var(--active-bg)"  iconColor="var(--active-fg)" />
+      <StatCard label="Pending"       value={pending}      Icon={Clock}     iconBg="var(--pending-bg)" iconColor="var(--pending-fg)" />
+      <StatCard label="Blocked"       value={blocked}      Icon={ShieldOff} iconBg="var(--blocked-bg)" iconColor="var(--blocked-fg)" />
     </div>
   );
 }

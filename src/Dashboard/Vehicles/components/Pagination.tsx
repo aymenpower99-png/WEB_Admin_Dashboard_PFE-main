@@ -1,8 +1,3 @@
-// ============================================================
-// FILE: Pagination.tsx
-// PATH: src/Dashboard/Drivers & Vehicles/vehicles/components/Pagination.tsx
-// ============================================================
-
 import ChevronLeftRoundedIcon  from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 

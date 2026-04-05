@@ -1,8 +1,3 @@
-// ============================================================
-// FILE: ClassBadge.tsx
-// PATH: src/Dashboard/Drivers & Vehicles/vehicles/components/ClassBadge.tsx
-// ============================================================
-
 const CLASS_CFG: Record<string, { label: string; color: string }> = {
   Economy:       { label: "Economy",     color: "#6366f1" },
   Standard:      { label: "Standard",    color: "#0ea5e9" },
@@ -19,8 +14,9 @@ export default function ClassBadge({ vehicleClass }: { vehicleClass?: string | n
     <span style={{
       display: "inline-flex", alignItems: "center",
       padding: ".2rem .65rem", borderRadius: "9999px",
-      background: `${c.color}18`, color: c.color,
+      background: `${c.color}22`, color: c.color,
       fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
+      border: `1px solid ${c.color}44`,
     }}>
       {c.label}
     </span>

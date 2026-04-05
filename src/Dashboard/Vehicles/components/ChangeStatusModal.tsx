@@ -1,12 +1,3 @@
-// ============================================================
-// FILE: ChangeStatusModal.tsx
-// Rules:
-//   Pending     → NO changes allowed (locked until auto-promoted to Available)
-//   Available   → Maintenance only
-//   Maintenance → Available only
-//   On_Trip     → NO changes allowed (trip system controls this)
-// ============================================================
-
 import { useState } from "react";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SyncRoundedIcon  from "@mui/icons-material/SyncRounded";
@@ -16,16 +7,16 @@ import { mapBackendVehicle } from "../types";
 import type { Vehicle } from "../types";
 
 const TRANSITIONS: Partial<Record<Vehicle["status"], Vehicle["status"][]>> = {
-  // Pending and On_Trip have NO transitions — they are locked
   Available:   ["Maintenance"],
   Maintenance: ["Available"],
 };
 
+// Use CSS variables so the modal adapts to dark/light mode
 const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
-  Pending:     { bg: "#fef3c7", fg: "#92400e" },
-  Available:   { bg: "#d1fae5", fg: "#065f46" },
-  On_Trip:     { bg: "#dbeafe", fg: "#1e40af" },
-  Maintenance: { bg: "#fee2e2", fg: "#991b1b" },
+  Pending:     { bg: "var(--pending-bg)", fg: "var(--pending-fg)" },
+  Available:   { bg: "var(--active-bg)",  fg: "var(--active-fg)"  },
+  On_Trip:     { bg: "var(--rider-bg)",   fg: "var(--rider-fg)"   },
+  Maintenance: { bg: "var(--blocked-bg)", fg: "var(--blocked-fg)" },
 };
 
 const LOCKED_MESSAGE: Partial<Record<Vehicle["status"], string>> = {
@@ -33,10 +24,7 @@ const LOCKED_MESSAGE: Partial<Record<Vehicle["status"], string>> = {
   On_Trip: "This vehicle is currently On Trip — status is managed by the trip system.",
 };
 
-async function callBackendTransition(
-  vehicleId: string,
-  to: Vehicle["status"],
-): Promise<any> {
+async function callBackendTransition(vehicleId: string, to: Vehicle["status"]): Promise<any> {
   if (to === "Maintenance") return apiClient.post(`/vehicles/${vehicleId}/maintenance`);
   if (to === "Available")   return apiClient.post(`/vehicles/${vehicleId}/maintenance/complete`);
   return apiClient.patch(`/vehicles/${vehicleId}`, { status: to });
@@ -49,9 +37,9 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
   onClose: () => void;
   onUpdated: (v: Vehicle) => void;
 }) {
-  const options   = TRANSITIONS[vehicle.status] ?? [];
-  const isLocked  = options.length === 0;
-  const lockMsg   = LOCKED_MESSAGE[vehicle.status];
+  const options  = TRANSITIONS[vehicle.status] ?? [];
+  const isLocked = options.length === 0;
+  const lockMsg  = LOCKED_MESSAGE[vehicle.status];
 
   const [selected, setSelected] = useState<Vehicle["status"] | "">(options[0] ?? "");
   const [saving,   setSaving]   = useState(false);
@@ -75,9 +63,7 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
     <div className="ts-overlay">
       <div className="ts-modal ts-modal-sm">
         <div className="ts-modal-header">
-          <p style={{ fontWeight: 700, fontSize: ".88rem", color: "var(--text-h)" }}>
-            Change Status
-          </p>
+          <p style={{ fontWeight: 700, fontSize: ".88rem", color: "var(--text-h)" }}>Change Status</p>
           <button className="ts-modal-close" onClick={onClose} disabled={saving}>
             <CloseRoundedIcon style={{ fontSize: 16 }} />
           </button>
@@ -88,13 +74,13 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
             <strong>{vehicle.year} {vehicle.make} {vehicle.model}</strong>
           </p>
 
-          {/* Current status badge */}
           <div style={{ display: "flex", alignItems: "center", gap: ".75rem", flexWrap: "wrap" }}>
             <span style={{
               padding: ".22rem .75rem", borderRadius: "9999px",
               fontSize: ".78rem", fontWeight: 600,
-              background: STATUS_STYLE[vehicle.status]?.bg ?? "#f3f4f6",
-              color:      STATUS_STYLE[vehicle.status]?.fg ?? "#6b7280",
+              background: STATUS_STYLE[vehicle.status]?.bg ?? "var(--bg-inner)",
+              color:      STATUS_STYLE[vehicle.status]?.fg ?? "var(--text-muted)",
+              border: "1px solid var(--border)",
             }}>
               {labelOf(vehicle.status)}
             </span>
@@ -107,14 +93,12 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
                     padding: ".22rem .75rem", borderRadius: "9999px",
                     fontSize: ".78rem", fontWeight: 600, cursor: "pointer",
                     background: selected === opt
-                      ? (STATUS_STYLE[opt]?.bg ?? "#f3f4f6")
+                      ? (STATUS_STYLE[opt]?.bg ?? "var(--bg-inner)")
                       : "var(--bg-inner)",
                     color: selected === opt
-                      ? (STATUS_STYLE[opt]?.fg ?? "#374151")
+                      ? (STATUS_STYLE[opt]?.fg ?? "var(--text-body)")
                       : "var(--text-muted)",
-                    border: `2px solid ${selected === opt
-                      ? (STATUS_STYLE[opt]?.fg ?? "#9ca3af")
-                      : "var(--border)"}`,
+                    border: `2px solid ${selected === opt ? "var(--brand-from)" : "var(--border)"}`,
                     transition: "all .15s",
                   }}>
                     {labelOf(opt)}
@@ -124,7 +108,6 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
             )}
           </div>
 
-          {/* Locked notice */}
           {isLocked && lockMsg && (
             <div style={{
               display: "flex", alignItems: "flex-start", gap: ".5rem",
@@ -146,11 +129,7 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
             {isLocked ? "Close" : "Cancel"}
           </button>
           {!isLocked && (
-            <button
-              className="ts-btn-primary"
-              onClick={handleSave}
-              disabled={saving || !selected}
-            >
+            <button className="ts-btn-primary" onClick={handleSave} disabled={saving || !selected}>
               {saving ? "Saving…" : "Change Status"}
             </button>
           )}

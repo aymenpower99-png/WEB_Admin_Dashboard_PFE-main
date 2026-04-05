@@ -12,26 +12,26 @@ const BADGE_BASE: React.CSSProperties = {
   lineHeight: 1,
 };
 
-// ── Status badge styles ──────────────────────────────────────────────────────
+// ── Status badge styles — use CSS variables for dark/light support ───────────
 const STATUS_BADGE: Record<string, React.CSSProperties> = {
-  active:  { ...BADGE_BASE, background: "#d1fae5", color: "#065f46", border: "1px solid #6ee7b7" },
-  pending: { ...BADGE_BASE, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa" },
-  blocked: { ...BADGE_BASE, background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" },
+  active:  { ...BADGE_BASE, background: "var(--active-bg)",  color: "var(--active-fg)",  border: "1px solid var(--border)" },
+  pending: { ...BADGE_BASE, background: "var(--pending-bg)", color: "var(--pending-fg)", border: "1px solid var(--border)" },
+  blocked: { ...BADGE_BASE, background: "var(--blocked-bg)", color: "var(--blocked-fg)", border: "1px solid var(--border)" },
 };
 
-// ── Profile badge styles ─────────────────────────────────────────────────────
+// ── Profile badge styles — use CSS variables for dark/light support ──────────
 const PROFILE_COMPLETE_STYLE: React.CSSProperties = {
   ...BADGE_BASE,
-  background: "#d1fae5",
-  color: "#065f46",
-  border: "1px solid #6ee7b7",
+  background: "var(--active-bg)",
+  color: "var(--active-fg)",
+  border: "1px solid var(--border)",
 };
 
 const PROFILE_INCOMPLETE_STYLE: React.CSSProperties = {
   ...BADGE_BASE,
-  background: "#fff7ed",
-  color: "#ea580c",
-  border: "1px solid #fed7aa",
+  background: "var(--pending-bg)",
+  color: "var(--pending-fg)",
+  border: "1px solid var(--border)",
 };
 
 // ── StatusBadge ──────────────────────────────────────────────────────────────

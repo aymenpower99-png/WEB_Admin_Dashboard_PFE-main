@@ -47,14 +47,22 @@ export default function LoginWithIntro() {
     );
   }
 
+  // ── "Forgot password?" clicked → show ForgotPassword view ──────────────
   if (view === "forgot") {
-    return <ForgotPassword onBack={() => setView("login")} />;
+    return (
+      <ForgotPassword
+        onBack={() => {
+          setView("login");
+        }}
+      />
+    );
   }
 
+  // ── Default: Login view ─────────────────────────────────────────────────
   return (
     <LoginAdmin
       onLogin={handleLoginBridge}
-      onForgot={() => setView("forgot")}
+      onForgot={() => setView("forgot")}   // ✅ clicking "Forgot password?" switches view
     />
   );
 }

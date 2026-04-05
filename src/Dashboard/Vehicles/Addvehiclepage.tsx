@@ -124,10 +124,10 @@ function MakeAutocomplete({ value, error, onSelect }:
   const pick = (opt: MakeOption) => { setInputVal(opt.name); onSelect(opt.name, opt.id); setOpen(false); };
   const handleKey = (e: React.KeyboardEvent) => {
     if (!open) return;
-    if      (e.key === "ArrowDown")                    { e.preventDefault(); setActiveIdx(i => Math.min(i+1, suggestions.length-1)); }
-    else if (e.key === "ArrowUp")                      { e.preventDefault(); setActiveIdx(i => Math.max(i-1, 0)); }
-    else if (e.key === "Enter" && activeIdx >= 0)      { e.preventDefault(); pick(suggestions[activeIdx]); }
-    else if (e.key === "Escape")                         setOpen(false);
+    if      (e.key === "ArrowDown")               { e.preventDefault(); setActiveIdx(i => Math.min(i+1, suggestions.length-1)); }
+    else if (e.key === "ArrowUp")                 { e.preventDefault(); setActiveIdx(i => Math.max(i-1, 0)); }
+    else if (e.key === "Enter" && activeIdx >= 0) { e.preventDefault(); pick(suggestions[activeIdx]); }
+    else if (e.key === "Escape")                    setOpen(false);
   };
   return (
     <div ref={ref} style={{ position: "relative" }}>
@@ -183,10 +183,10 @@ function ModelAutocomplete({ value, makeId, error, onChange }:
   const pick = (opt: ModelOption) => { onChange(opt.name); setOpen(false); };
   const handleKey = (e: React.KeyboardEvent) => {
     if (!open) return;
-    if      (e.key === "ArrowDown")                    { e.preventDefault(); setActiveIdx(i => Math.min(i+1, filtered.length-1)); }
-    else if (e.key === "ArrowUp")                      { e.preventDefault(); setActiveIdx(i => Math.max(i-1, 0)); }
-    else if (e.key === "Enter" && activeIdx >= 0)      { e.preventDefault(); pick(filtered[activeIdx]); }
-    else if (e.key === "Escape")                         setOpen(false);
+    if      (e.key === "ArrowDown")               { e.preventDefault(); setActiveIdx(i => Math.min(i+1, filtered.length-1)); }
+    else if (e.key === "ArrowUp")                 { e.preventDefault(); setActiveIdx(i => Math.max(i-1, 0)); }
+    else if (e.key === "Enter" && activeIdx >= 0) { e.preventDefault(); pick(filtered[activeIdx]); }
+    else if (e.key === "Escape")                    setOpen(false);
   };
   return (
     <div ref={ref} style={{ position: "relative" }}>
@@ -202,19 +202,22 @@ function ModelAutocomplete({ value, makeId, error, onChange }:
           border: `1px solid ${error ? "var(--blocked-fg)" : "var(--border)"}`,
           borderTop: "none", borderRadius: "0 0 .4rem .4rem", background: "var(--bg-card)", zIndex: 999,
         }}>
-          {loading ? <div style={{ padding: ".65rem .75rem", fontSize: ".82rem", color: "var(--text-faint)" }}>Loading…</div>
-          : filtered.length === 0 ? <div style={{ padding: ".65rem .75rem", fontSize: ".82rem", color: "var(--text-faint)" }}>No models found</div>
-          : filtered.map((opt, i) => (
-            <div key={opt.id} onMouseDown={e => { e.preventDefault(); pick(opt); }}
-              onMouseEnter={() => { setHovered(opt.id); setActiveIdx(i); }} onMouseLeave={() => setHovered(null)}
-              style={{
-                padding: ".55rem .75rem", paddingLeft: hovered === opt.id || activeIdx === i ? "1.1rem" : ".75rem",
-                fontSize: ".82rem",
-                color: hovered === opt.id || activeIdx === i ? "var(--rider-fg)" : "var(--text-body)",
-                background: hovered === opt.id || activeIdx === i ? "var(--rider-bg)" : "transparent",
-                cursor: "pointer", transition: "background var(--t-fast), color var(--t-fast), padding-left var(--t-fast)",
-              }}>{opt.name}</div>
-          ))}
+          {loading
+            ? <div style={{ padding: ".65rem .75rem", fontSize: ".82rem", color: "var(--text-faint)" }}>Loading…</div>
+            : filtered.length === 0
+              ? <div style={{ padding: ".65rem .75rem", fontSize: ".82rem", color: "var(--text-faint)" }}>No models found</div>
+              : filtered.map((opt, i) => (
+                <div key={opt.id} onMouseDown={e => { e.preventDefault(); pick(opt); }}
+                  onMouseEnter={() => { setHovered(opt.id); setActiveIdx(i); }} onMouseLeave={() => setHovered(null)}
+                  style={{
+                    padding: ".55rem .75rem", paddingLeft: hovered === opt.id || activeIdx === i ? "1.1rem" : ".75rem",
+                    fontSize: ".82rem",
+                    color: hovered === opt.id || activeIdx === i ? "var(--rider-fg)" : "var(--text-body)",
+                    background: hovered === opt.id || activeIdx === i ? "var(--rider-bg)" : "transparent",
+                    cursor: "pointer", transition: "background var(--t-fast), color var(--t-fast), padding-left var(--t-fast)",
+                  }}>{opt.name}</div>
+              ))
+          }
         </div>
       )}
     </div>
@@ -224,14 +227,14 @@ function ModelAutocomplete({ value, makeId, error, onChange }:
 /* ── Field ── */
 function Field({ label, error, hint, children }: { label: string; error: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: ".35rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
       <label className="ts-label">
         {label}
         {hint && <span style={{ marginLeft: ".4rem", fontWeight: 400, color: "var(--text-faint)", fontSize: ".72rem" }}>{hint}</span>}
       </label>
       {children}
       {error && (
-        <p className="ts-err" style={{ display: "flex", alignItems: "center", gap: ".25rem", marginTop: ".1rem" }}>
+        <p className="ts-err" style={{ display: "flex", alignItems: "center", gap: ".25rem", marginTop: ".05rem" }}>
           <ErrorRoundedIcon style={{ fontSize: 12 }} /> {error}
         </p>
       )}
@@ -245,17 +248,17 @@ function VehicleClassGrid() {
     <div style={{
       display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
       border: "1px solid var(--border)", borderRadius: "var(--r-inner)",
-      overflow: "hidden", marginTop: ".4rem",
+      overflow: "hidden", marginTop: ".35rem",
     }}>
       {VEHICLE_CLASSES.map((cls, i) => (
         <div key={cls.key} style={{
-          padding: ".6rem .75rem",
+          padding: ".45rem .65rem",
           borderRight: i % 3 < 2 ? "1px solid var(--border)" : "none",
           borderBottom: i < 3    ? "1px solid var(--border)" : "none",
           background: "var(--bg-inner)",
         }}>
-          <p className="ts-section-label" style={{ marginBottom: ".3rem" }}>{cls.label}</p>
-          {cls.examples.map(ex => <p key={ex} style={{ margin: 0, fontSize: ".7rem", lineHeight: 1.6, color: "var(--text-body)" }}>{ex}</p>)}
+          <p className="ts-section-label" style={{ marginBottom: ".2rem" }}>{cls.label}</p>
+          {cls.examples.map(ex => <p key={ex} style={{ margin: 0, fontSize: ".68rem", lineHeight: 1.5, color: "var(--text-body)" }}>{ex}</p>)}
         </div>
       ))}
     </div>
@@ -268,41 +271,54 @@ function PhotoAttachment({ photos, previews, onAdd, onRemove }:
 ) {
   const inputRef = useRef<HTMLInputElement>(null);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: ".6rem" }}>
-      <div onClick={() => inputRef.current?.click()}
+    <div style={{ display: "flex", alignItems: "center", gap: ".45rem", flexWrap: "wrap" }}>
+      {/* Add button tile */}
+      <div
+        onClick={() => inputRef.current?.click()}
         onDrop={e => { e.preventDefault(); onAdd(e.dataTransfer.files); }}
         onDragOver={e => e.preventDefault()}
+        title="Add photos"
         style={{
-          border: "2px dashed var(--border)", borderRadius: ".6rem", padding: "1.4rem 1rem",
-          textAlign: "center", cursor: "pointer", background: "var(--bg-inner)",
-          display: "flex", flexDirection: "column", alignItems: "center", gap: ".3rem",
-        }}>
-        <AddPhotoAlternateRoundedIcon style={{ fontSize: 26, color: "var(--text-faint)" }} />
-        <p style={{ margin: 0, fontSize: ".82rem", color: "var(--text-muted)", fontWeight: 500 }}>Click or drag &amp; drop vehicle photos</p>
-        <p style={{ margin: 0, fontSize: ".72rem", color: "var(--text-faint)" }}>JPG · PNG · WEBP · Multiple</p>
+          width: 52, height: 52, flexShrink: 0,
+          border: "2px dashed var(--border)", borderRadius: ".45rem",
+          background: "var(--bg-inner)", cursor: "pointer",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: ".1rem",
+          transition: "border-color var(--t-fast), background var(--t-fast)",
+        }}
+      >
+        <AddPhotoAlternateRoundedIcon style={{ fontSize: 18, color: "var(--text-faint)" }} />
+        <span style={{ fontSize: ".58rem", color: "var(--text-faint)", lineHeight: 1 }}>Add</span>
         <input ref={inputRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={e => onAdd(e.target.files)} />
       </div>
-      {photos.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
-          {photos.map((file, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: ".6rem", padding: ".45rem .75rem",
-              borderRadius: ".4rem", border: "1px solid var(--border)", background: "var(--bg-inner)",
-            }}>
-              {previews[i]
-                ? <img src={previews[i]} alt="" style={{ width: 36, height: 36, objectFit: "cover", borderRadius: ".3rem", border: "1px solid var(--border)", flexShrink: 0 }} />
-                : <InsertDriveFileRoundedIcon style={{ fontSize: 26, color: "var(--text-faint)", flexShrink: 0 }} />
-              }
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: ".8rem", fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</p>
-                <p style={{ margin: 0, fontSize: ".72rem", color: "var(--text-faint)" }}>{(file.size / 1024).toFixed(0)} KB</p>
+
+      {/* Thumbnail tiles */}
+      {photos.map((file, i) => (
+        <div key={i} style={{ position: "relative", width: 52, height: 52, flexShrink: 0 }}>
+          {previews[i]
+            ? <img src={previews[i]} alt={file.name} style={{ width: 52, height: 52, objectFit: "cover", borderRadius: ".45rem", border: "1px solid var(--border)", display: "block" }} />
+            : <div style={{ width: 52, height: 52, borderRadius: ".45rem", border: "1px solid var(--border)", background: "var(--bg-inner)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <InsertDriveFileRoundedIcon style={{ fontSize: 20, color: "var(--text-faint)" }} />
               </div>
-              <button onClick={() => onRemove(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-faint)", display: "flex", alignItems: "center", padding: ".2rem", borderRadius: ".25rem" }}>
-                <CloseRoundedIcon style={{ fontSize: 15 }} />
-              </button>
-            </div>
-          ))}
+          }
+          <button
+            onClick={() => onRemove(i)}
+            title="Remove"
+            style={{
+              position: "absolute", top: -5, right: -5,
+              width: 16, height: 16, padding: 0,
+              borderRadius: "50%", border: "1px solid var(--border)",
+              background: "var(--bg-card)", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "var(--text-faint)",
+            }}
+          >
+            <CloseRoundedIcon style={{ fontSize: 10 }} />
+          </button>
         </div>
+      ))}
+
+      {photos.length === 0 && (
+        <span style={{ fontSize: ".73rem", color: "var(--text-faint)" }}>JPG · PNG · WEBP · Multiple files</span>
       )}
     </div>
   );
@@ -389,7 +405,8 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   const seatOptions  = SEAT_COUNTS.map(s => ({ value: String(s), label: `${s} seats` }));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", width: "100%", height: "100%", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: ".75rem", width: "100%", height: "100%", overflow: "hidden" }}>
+      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: ".6rem", flexShrink: 0 }}>
         <button className="ts-icon-btn" onClick={() => onNavigate("vehicles")} title="Back">
           <ArrowBackRoundedIcon style={{ fontSize: 18 }} />
@@ -400,64 +417,67 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
         </div>
       </div>
 
-      <div style={{ overflowY: "auto", flex: 1, paddingRight: ".25rem" }}>
-        <div className="ts-card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      {/* Form — no scroll */}
+      <div className="ts-card" style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem", flex: 1, overflow: "hidden" }}>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <Field label="Make" error={errs.make}>
-              <MakeAutocomplete value={form.make} error={errs.make} onSelect={handleMakeSelect} />
-            </Field>
-            <Field label="Model" error={errs.model}>
-              <ModelAutocomplete value={form.model} makeId={makeId} error={errs.model} onChange={v => set("model", v)} />
-            </Field>
-          </div>
-
-          <Field label="Vehicle Class" error={errs.vehicleClass}>
-            <PlainDropdown value={form.vehicleClass} onChange={v => set("vehicleClass", v)} options={classOptions} error={errs.vehicleClass} />
-            <VehicleClassGrid />
+        {/* Row 1 — Make / Model */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".85rem" }}>
+          <Field label="Make" error={errs.make}>
+            <MakeAutocomplete value={form.make} error={errs.make} onSelect={handleMakeSelect} />
           </Field>
+          <Field label="Model" error={errs.model}>
+            <ModelAutocomplete value={form.model} makeId={makeId} error={errs.model} onChange={v => set("model", v)} />
+          </Field>
+        </div>
 
-          {/* Year alone on left */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <Field label="Year" error={errs.year}>
-              <PlainDropdown value={form.year} onChange={v => set("year", v)} options={yearOptions} error={errs.year} />
-            </Field>
-            <div />
-          </div>
+        {/* Row 2 — Vehicle Class (full width, with grid) */}
+        <Field label="Vehicle Class" error={errs.vehicleClass}>
+          <PlainDropdown value={form.vehicleClass} onChange={v => set("vehicleClass", v)} options={classOptions} error={errs.vehicleClass} />
+          <VehicleClassGrid />
+        </Field>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <Field label="Color" error={errs.color}>
-              <PlainDropdown value={form.color} onChange={v => set("color", v)} options={colorOptions} error={errs.color} />
-            </Field>
-            <Field label="Seat Count" error={errs.seats}>
-              <PlainDropdown value={form.seats} onChange={v => set("seats", v)} options={seatOptions} error={errs.seats} />
-            </Field>
-          </div>
+        {/* Row 3 — Year (full width) */}
+        <Field label="Year" error={errs.year}>
+          <PlainDropdown value={form.year} onChange={v => set("year", v)} options={yearOptions} error={errs.year} />
+        </Field>
 
-          <Field label="Assigned Driver" error={errs.driver} hint="(optional)">
+        {/* Row 4 — Color / Seats */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".85rem" }}>
+          <Field label="Color" error={errs.color}>
+            <PlainDropdown value={form.color} onChange={v => set("color", v)} options={colorOptions} error={errs.color} />
+          </Field>
+          <Field label="Seat Count" error={errs.seats}>
+            <PlainDropdown value={form.seats} onChange={v => set("seats", v)} options={seatOptions} error={errs.seats} />
+          </Field>
+        </div>
+
+        {/* Row 5 — Driver + Photos side by side */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".85rem", alignItems: "start" }}>
+          <Field label="Assigned Driver" error={errs.driver}>
             <input className="ts-input" placeholder="e.g. John Doe" value={form.driver} onChange={e => set("driver", e.target.value)} />
           </Field>
-
-          <Field label="Vehicle Photos" error="" hint="(optional — photos promote status to Available)">
+          <Field label="Vehicle Photos" error="">
             <PhotoAttachment photos={photoFiles} previews={photoPreviews} onAdd={handleAddPhotos} onRemove={handleRemovePhoto} />
           </Field>
-
-          {apiError && (
-            <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: "8px", padding: "10px 14px", color: "#ef4444", fontSize: ".875rem" }}>
-              {apiError}
-            </div>
-          )}
-
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", paddingTop: ".25rem" }}>
-            <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")} disabled={submitting}>Cancel</button>
-            <button className="ts-btn-primary" onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Saving…" : isEdit
-                ? <><SaveRoundedIcon style={{ fontSize: 14 }} /> Save Changes</>
-                : <><AddRoundedIcon  style={{ fontSize: 14 }} /> Add Vehicle</>}
-            </button>
-          </div>
-
         </div>
+
+        {/* API error */}
+        {apiError && (
+          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: "8px", padding: "8px 14px", color: "#ef4444", fontSize: ".875rem" }}>
+            {apiError}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", marginTop: "auto", paddingTop: ".25rem" }}>
+          <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")} disabled={submitting}>Cancel</button>
+          <button className="ts-btn-primary" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Saving…" : isEdit
+              ? <><SaveRoundedIcon style={{ fontSize: 14 }} /> Save Changes</>
+              : <><AddRoundedIcon  style={{ fontSize: 14 }} /> Add Vehicle</>}
+          </button>
+        </div>
+
       </div>
     </div>
   );

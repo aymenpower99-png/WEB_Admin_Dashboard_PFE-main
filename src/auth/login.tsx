@@ -110,7 +110,12 @@ export default function LoginAdmin({
 
       {/* ════════════ RIGHT PANEL ════════════ */}
       <div className="ts-card login-right">
-        <button type="button" onClick={toggleDark} className="ts-btn-ghost login-theme-toggle" aria-label="Toggle dark mode">
+        <button
+          type="button"
+          onClick={toggleDark}
+          className="ts-btn-ghost login-theme-toggle"
+          aria-label="Toggle dark mode"
+        >
           {dark ? "☀️ Light" : "🌙 Dark"}
         </button>
 
@@ -155,7 +160,12 @@ export default function LoginAdmin({
                 placeholder="••••••••••••"
                 className="ts-input login-input-padded login-input-padded--right"
               />
-              <button type="button" onClick={() => setShowPass((v) => !v)} className="ts-icon-btn login-pass-toggle" aria-label={showPass ? "Hide password" : "Show password"}>
+              <button
+                type="button"
+                onClick={() => setShowPass((v) => !v)}
+                className="ts-icon-btn login-pass-toggle"
+                aria-label={showPass ? "Hide password" : "Show password"}
+              >
                 {showPass ? (
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
@@ -188,7 +198,7 @@ export default function LoginAdmin({
               <span className="ts-muted" style={{ fontSize: ".875rem" }}>Remember me</span>
             </label>
 
-            {/* ── Forgot password link ── */}
+            {/* ── Forgot password link — calls onForgot to switch view ── */}
             <button type="button" className="ts-link" onClick={onForgot}>
               Forgot password?
             </button>

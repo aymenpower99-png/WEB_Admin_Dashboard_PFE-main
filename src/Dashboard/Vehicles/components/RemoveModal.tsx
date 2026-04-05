@@ -1,8 +1,3 @@
-// ============================================================
-// FILE: RemoveModal.tsx
-// PATH: src/Dashboard/Drivers & Vehicles/vehicles/components/RemoveModal.tsx
-// ============================================================
-
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 export default function RemoveModal({ onConfirm, onClose, loading }: {
@@ -18,7 +13,7 @@ export default function RemoveModal({ onConfirm, onClose, loading }: {
           </button>
         </div>
         <div className="ts-modal-body">
-          <p style={{ fontSize: ".82rem", color: "var(--text-body)" }}>
+          <p style={{ fontSize: ".82rem", color: "var(--text-body)", margin: 0 }}>
             Are you sure you want to remove this vehicle? This action cannot be undone.
           </p>
         </div>
