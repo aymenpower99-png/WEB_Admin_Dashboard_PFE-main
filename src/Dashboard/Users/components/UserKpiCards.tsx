@@ -2,36 +2,98 @@ import { Users, UserCheck, Clock, ShieldOff, Car } from "lucide-react";
 import type { AdminUser } from "../../../api/users";
 import "../../travelsync-design-system.css";
 
-function KpiCard({ Icon, iconBg, iconFg, label, value }: {
-  Icon: React.ElementType; iconBg: string; iconFg: string; label: string; value: number;
+function StatCard({
+  label,
+  value,
+  Icon,
+  iconBg,
+  iconColor,
+}: {
+  label: string;
+  value: number;
+  Icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
 }) {
   return (
-    <div style={{ background:"var(--bg-card)", border:"1px solid var(--border)", borderRadius:"0.75rem", padding:"0.85rem 1.1rem", display:"flex", flexDirection:"column", justifyContent:"space-between", position:"relative", minHeight:72 }}>
-      <div style={{ position:"absolute", top:"0.85rem", right:"1.1rem", width:36, height:36, borderRadius:"50%", background:iconBg, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <Icon size={16} color={iconFg} strokeWidth={1.75} />
+    <div
+      style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border)",
+        borderRadius: ".75rem",
+        padding: "1.1rem 1.3rem",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flex: 1,
+        minWidth: 0,
+        boxShadow: "0 1px 3px rgba(0,0,0,.04)",
+      }}
+    >
+      <div>
+        <p
+          style={{
+            margin: 0,
+            fontSize: ".78rem",
+            color: "var(--text-muted)",
+            fontWeight: 500,
+            marginBottom: ".3rem",
+            textTransform: "uppercase",
+            letterSpacing: ".05em",
+          }}
+        >
+          {label}
+        </p>
+
+        {/* number in BLACK (you asked) */}
+        <p
+          style={{
+            margin: 0,
+            fontSize: "1.65rem",
+            fontWeight: 800,
+            color: "#111827",
+            lineHeight: 1,
+          }}
+        >
+          {value}
+        </p>
       </div>
-      <span style={{ fontSize:"0.68rem", fontWeight:600, color:"var(--text-muted)", textTransform:"uppercase", letterSpacing:"0.05em", paddingRight:"44px" }}>
-        {label}
-      </span>
-      <span style={{ fontSize:"1.45rem", fontWeight:800, color:iconFg, lineHeight:1, marginTop:"0.35rem" }}>
-        {value}
-      </span>
+
+      <div
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: "50%",
+          background: iconBg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Icon size={18} color={iconColor} strokeWidth={1.75} />
+      </div>
     </div>
   );
 }
 
 export default function UserKpiCards({ users }: { users: AdminUser[] }) {
-  const cards = [
-    { Icon: Users,     iconBg:"#ede9fe", iconFg:"#7c3aed", label:"Total Users",   value: users.length },
-    { Icon: Car,       iconBg:"#dbeafe", iconFg:"#2563eb", label:"Total Riders",  value: users.filter(u => u.role === "passenger").length },
-    { Icon: UserCheck, iconBg:"#fce7f3", iconFg:"#db2777", label:"Total Drivers", value: users.filter(u => u.role === "driver").length },
-    { Icon: UserCheck, iconBg:"#d1fae5", iconFg:"#059669", label:"Active",        value: users.filter(u => u.status === "active").length },
-    { Icon: Clock,     iconBg:"#fef3c7", iconFg:"#d97706", label:"Pending",       value: users.filter(u => u.status === "pending").length },
-    { Icon: ShieldOff, iconBg:"#fee2e2", iconFg:"#dc2626", label:"Blocked",       value: users.filter(u => u.status === "blocked").length },
-  ];
+  const totalUsers = users.length;
+  const totalRiders = users.filter(u => u.role === "passenger").length;
+  const totalDrivers = users.filter(u => u.role === "driver").length;
+  const active = users.filter(u => u.status === "active").length;
+  const pending = users.filter(u => u.status === "pending").length;
+  const blocked = users.filter(u => u.status === "blocked").length;
+
+  // 6 cards like before, but sized like Vehicles now
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:"0.65rem" }}>
-      {cards.map(k => <KpiCard key={k.label} {...k} />)}
+    <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
+      <StatCard label="Total Users" value={totalUsers} Icon={Users} iconBg="#ede9fe" iconColor="#7c3aed" />
+      <StatCard label="Total Riders" value={totalRiders} Icon={Car} iconBg="#dbeafe" iconColor="#2563eb" />
+      <StatCard label="Total Drivers" value={totalDrivers} Icon={UserCheck} iconBg="#fce7f3" iconColor="#db2777" />
+      <StatCard label="Active" value={active} Icon={UserCheck} iconBg="#d1fae5" iconColor="#059669" />
+      <StatCard label="Pending" value={pending} Icon={Clock} iconBg="#fef3c7" iconColor="#d97706" />
+      <StatCard label="Blocked" value={blocked} Icon={ShieldOff} iconBg="#fee2e2" iconColor="#dc2626" />
     </div>
   );
 }

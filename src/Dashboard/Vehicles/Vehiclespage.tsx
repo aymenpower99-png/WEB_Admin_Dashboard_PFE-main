@@ -159,7 +159,6 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
         <div className="ts-page-header">
           <div>
             <h1 className="ts-page-title">Vehicles</h1>
-            <p className="ts-page-subtitle">{totalCount} registered vehicles in your fleet.</p>
           </div>
           <button className="ts-btn-primary" onClick={() => onNavigate("agency-vehicles", null)}>
             <AddRoundedIcon style={{ fontSize: 15 }} /> Add Vehicle
