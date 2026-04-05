@@ -2,13 +2,17 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import IntroLoader from "../into/IntroLoader";
 import LoginAdmin from "./login";
+import ForgotPassword from "./ForgetPassword";
 import { useAuth } from "../contexts/AuthContext";
+
+type View = "login" | "forgot";
 
 // ✅ Splash only shows once per browser session, not on every re-mount
 export default function LoginWithIntro() {
   const [showIntro, setShowIntro] = useState(
     () => !sessionStorage.getItem("introShown")
   );
+  const [view, setView] = useState<View>("login");
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -17,16 +21,8 @@ export default function LoginWithIntro() {
     setShowIntro(false);
   };
 
-  const handleLogin = (dark: boolean) => {
-    // dark is handled inside login.tsx already
-    // This callback is called AFTER a successful API login in login.tsx
-    void dark;
-  };
-
-  // Override: login.tsx calls onLogin(dark) BEFORE navigating.
-  // We wrap it to also call AuthContext.login with stored tokens.
   const handleLoginBridge = (dark: boolean) => {
-    handleLogin(dark);
+    void dark;
     const accessToken  = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
     const userRaw      = localStorage.getItem("user");
@@ -51,5 +47,14 @@ export default function LoginWithIntro() {
     );
   }
 
-  return <LoginAdmin onLogin={handleLoginBridge} />;
+  if (view === "forgot") {
+    return <ForgotPassword onBack={() => setView("login")} />;
+  }
+
+  return (
+    <LoginAdmin
+      onLogin={handleLoginBridge}
+      onForgot={() => setView("forgot")}
+    />
+  );
 }

@@ -10,7 +10,7 @@ export interface DriverProfile {
   driverLicenseExpiry: string;
   driverLicenseFrontUrl: string;
   driverLicenseBackUrl: string;
-  ratingAverage: number;
+  ratingAverage: number | string | null;
   totalRatings: number;
   totalTrips: number;
   availabilityStatus: DriverAvailabilityStatus;
@@ -20,7 +20,6 @@ export interface DriverProfile {
   language: DriverLanguage | null;
   createdAt: string;
   updatedAt: string;
-  // enriched by findAll / findOne
   vehicle: {
     id: string;
     make: string;
@@ -28,7 +27,6 @@ export interface DriverProfile {
     year: number;
     licensePlate: string | null;
   } | null;
-  // joined from users table (added in findAll response)
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -37,7 +35,7 @@ export interface DriverProfile {
 
 export interface CompleteDriverProfilePayload {
   driverLicenseNumber: string;
-  driverLicenseExpiry: string;   // "YYYY-MM-DD"
+  driverLicenseExpiry: string;
   driverLicenseFrontUrl: string;
   driverLicenseBackUrl: string;
   language: DriverLanguage;
@@ -45,6 +43,8 @@ export interface CompleteDriverProfilePayload {
 }
 
 export const driversApi = {
+  // axios response shape: { data: { data: DriverProfile[], total, page, limit } }
+  // so .then(r => r.data) gives us { data: DriverProfile[], total, page, limit }
   getAll: (params?: {
     page?: number;
     limit?: number;
@@ -55,7 +55,10 @@ export const driversApi = {
   getOne: (id: string): Promise<DriverProfile> =>
     apiClient.get(`/drivers/${id}`).then((r) => r.data),
 
-  update: (id: string, payload: Partial<CompleteDriverProfilePayload & { availabilityStatus: DriverAvailabilityStatus }>): Promise<DriverProfile> =>
+  update: (
+    id: string,
+    payload: Partial<CompleteDriverProfilePayload & { availabilityStatus: DriverAvailabilityStatus }>,
+  ): Promise<DriverProfile> =>
     apiClient.patch(`/drivers/${id}`, payload).then((r) => r.data),
 
   remove: (id: string): Promise<{ message: string }> =>

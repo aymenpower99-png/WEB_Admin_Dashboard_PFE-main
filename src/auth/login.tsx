@@ -4,8 +4,10 @@ import logoDark from "../assets/dark.png";
 
 export default function LoginAdmin({
   onLogin,
+  onForgot,
 }: {
   onLogin: (dark: boolean) => void;
+  onForgot: () => void;
 }) {
   const [showPass, setShowPass] = useState(false);
   const [remember, setRemember] = useState(
@@ -38,7 +40,6 @@ export default function LoginAdmin({
         setError(data?.message || "Invalid credentials. Please try again.");
         return;
       }
-      // Persist tokens so LoginWithIntro can pick them up
       localStorage.setItem("accessToken",  data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
@@ -48,7 +49,6 @@ export default function LoginAdmin({
       } else {
         localStorage.removeItem("rememberedEmail");
       }
-      // Hand off to parent — navigation is handled there
       onLogin(dark);
     } catch {
       setError("Unable to reach the server. Please check your connection.");
@@ -66,7 +66,7 @@ export default function LoginAdmin({
       <div className="login-glow login-glow--tl" aria-hidden />
       <div className="login-glow login-glow--br" aria-hidden />
 
-      {/* ═══════════�� LEFT PANEL ════════════ */}
+      {/* ════════════ LEFT PANEL ════════════ */}
       <div className="login-left">
         <div className="login-brand">
           <div className="login-logo-wrap">
@@ -187,7 +187,11 @@ export default function LoginAdmin({
               </div>
               <span className="ts-muted" style={{ fontSize: ".875rem" }}>Remember me</span>
             </label>
-            <button type="button" className="ts-link">Forgot password?</button>
+
+            {/* ── Forgot password link ── */}
+            <button type="button" className="ts-link" onClick={onForgot}>
+              Forgot password?
+            </button>
           </div>
 
           {/* Error banner */}

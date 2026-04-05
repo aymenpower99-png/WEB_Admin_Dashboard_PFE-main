@@ -1,35 +1,56 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 
-
-import type { Driver, DriversPageProps } from "./types";
+import type { DriverProfile } from "../../api/drivers";
+import { driversApi } from "../../api/drivers";
 import { ROWS, ROW_H, TH, TD, STATUS_CFG } from "./components/DriversTypes";
 
 import DriverKpiCards from "./components/DriverKpiCards";
-import DriverStatusPill from "./components/DriverStatusPill";
-import DriverStars from "./components/DriverStars";
 import DriversPagination from "./components/DriversPagination";
 import DeleteDriverModal from "./components/DeleteDriverModal";
-import DriversRowActions from "./components/DriversRowActions";
-type FilterKey = "all" | Driver["status"];
+import { StatusBadge } from "../Users/Badge_action_buttons/UsersBadges";
+import {
+  ActionButton,
+  IconEdit,
+  IconBlock,
+  IconUnblock,
+  IconDelete,
+} from "../Users/Badge_action_buttons/UsersActionButtons";
 
-export default function DriversPage({
-  drivers,
-  setDrivers,
-  onNavigate,
-}: DriversPageProps) {
+type FilterKey = "all" | "online" | "offline";
+
+interface DriversPageProps {
+  onNavigate: (page: string, prefill?: DriverProfile | null) => void;
+}
+
+export default function DriversPage({ onNavigate }: DriversPageProps) {
+  const [drivers, setDrivers] = useState<DriverProfile[]>([]);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [removeId, setRemoveId] = useState<number | null>(null);
+  const [removeId, setRemoveId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  function loadDrivers() {
+    setLoading(true);
+    driversApi
+      .getAll()
+      .then((res) => setDrivers(res.data ?? []))
+      .catch(() => setDrivers([]))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadDrivers();
+  }, []);
 
   const counts = useMemo(
     () => ({
       all: drivers.length,
-      online: drivers.filter((d) => d.status === "online").length,
-      busy: drivers.filter((d) => d.status === "busy").length,
-      offline: drivers.filter((d) => d.status === "offline").length,
+      online: drivers.filter((d) => d.availabilityStatus === "online").length,
+      offline: drivers.filter((d) => d.availabilityStatus === "offline").length,
     }),
     [drivers],
   );
@@ -37,12 +58,19 @@ export default function DriversPage({
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return drivers.filter((d) => {
-      const matchStatus = filter === "all" || d.status === filter;
+      const matchStatus =
+        filter === "all" || d.availabilityStatus === filter;
+      const fullName =
+        `${d.firstName ?? ""} ${d.lastName ?? ""}`.toLowerCase();
       const matchQuery =
         !q ||
-        `${d.first} ${d.last}`.toLowerCase().includes(q) ||
-        d.vehicle.toLowerCase().includes(q) ||
-        d.email.toLowerCase().includes(q);
+        fullName.includes(q) ||
+        (d.email ?? "").toLowerCase().includes(q) ||
+        (d.vehicle
+          ? `${d.vehicle.make} ${d.vehicle.model}`
+              .toLowerCase()
+              .includes(q)
+          : false);
       return matchStatus && matchQuery;
     });
   }, [drivers, filter, search]);
@@ -52,14 +80,24 @@ export default function DriversPage({
   const paged = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
   const ghostCount = ROWS - paged.length;
 
+  async function handleDelete(id: string) {
+    setActionLoading(id + "-delete");
+    try {
+      await driversApi.remove(id);
+      setDrivers((prev) => prev.filter((d) => d.id !== id));
+      setRemoveId(null);
+    } catch {
+      /* ignore */
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
   return (
     <>
       {removeId !== null && (
         <DeleteDriverModal
-          onConfirm={() => {
-            setDrivers((prev) => prev.filter((d) => d.id !== removeId));
-            setRemoveId(null);
-          }}
+          onConfirm={() => handleDelete(removeId)}
           onClose={() => setRemoveId(null)}
         />
       )}
@@ -71,7 +109,7 @@ export default function DriversPage({
             <h1 className="ts-page-title">Drivers</h1>
             <p className="ts-page-subtitle">
               {drivers.length} registered · {counts.online} online ·{" "}
-              {counts.busy} busy
+              {counts.offline} offline
             </p>
           </div>
           <button
@@ -82,10 +120,10 @@ export default function DriversPage({
           </button>
         </div>
 
-        {/* KPI Cards (like Vehicles) */}
+        {/* KPI Cards */}
         <DriverKpiCards drivers={drivers} />
 
-        {/* Filter + Search (like Vehicles/Users) */}
+        {/* Filter + Search */}
         <div
           style={{
             display: "flex",
@@ -95,7 +133,7 @@ export default function DriversPage({
           }}
         >
           <div style={{ display: "flex", gap: ".35rem" }}>
-            {(["all", "online", "busy", "offline"] as const).map((k) => (
+            {(["all", "online", "offline"] as const).map((k) => (
               <button
                 key={k}
                 onClick={() => {
@@ -116,7 +154,7 @@ export default function DriversPage({
               >
                 {k === "all"
                   ? `All (${counts.all})`
-                  : `${STATUS_CFG[k].label} (${counts[k]})`}
+                  : `${STATUS_CFG[k]?.label ?? k} (${counts[k]})`}
               </button>
             ))}
           </div>
@@ -141,141 +179,248 @@ export default function DriversPage({
           className="ts-table-wrap"
           style={{ display: "flex", flexDirection: "column" }}
         >
-          <div style={{ overflowX: "auto" }}>
-            <table
+          {loading ? (
+            <div
               style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                tableLayout: "fixed",
+                padding: "3rem",
+                textAlign: "center",
+                color: "var(--text-faint)",
+                fontSize: ".85rem",
               }}
             >
-              <colgroup>
-                <col style={{ width: "18%" }} /> {/* Driver */}
-                <col style={{ width: "12%" }} /> {/* Status */}
-                <col style={{ width: "18%" }} /> {/* Vehicle */}
-                <col style={{ width: "12%" }} /> {/* Language */}
-                <col style={{ width: "8%" }} /> {/* Trips */}
-                <col style={{ width: "12%" }} /> {/* Earnings */}
-                <col style={{ width: "10%" }} /> {/* Rating */}
-                <col style={{ width: "10%" }} /> {/* Actions */}
-              </colgroup>
+              Loading drivers…
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  tableLayout: "fixed",
+                }}
+              >
+                <colgroup>
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "18%" }} />
+                </colgroup>
 
-              <thead>
-                <tr>
-                  <th style={TH}>Driver</th>
-                  <th style={TH}>Status</th>
-                  <th style={TH}>Vehicle</th>
-                  <th style={TH}>Language</th>
-                  <th style={TH}>Trips</th>
-                  <th style={TH}>Earnings</th>
-                  <th style={TH}>Rating</th>
-                  <th style={TH}>Actions</th>
-                </tr>
-              </thead>
+                <thead>
+                  <tr>
+                    <th style={TH}>Driver</th>
+                    <th style={TH}>Email</th>
+                    <th style={TH}>Status</th>
+                    <th style={TH}>Vehicle</th>
+                    <th style={TH}>Trips</th>
+                    <th style={TH}>Rating</th>
+                    <th style={TH}>Actions</th>
+                  </tr>
+                </thead>
 
-              <tbody>
-                {paged.length === 0 ? (
-                  <>
-                    <tr style={{ height: ROW_H }}>
-                      <td
-                        colSpan={8}
-                        style={{
-                          ...TD,
-                          textAlign: "center",
-                          color: "var(--text-faint)",
-                        }}
-                      >
-                        No drivers match your search.
-                      </td>
-                    </tr>
-                    {Array.from({ length: ROWS - 1 }).map((_, i) => (
-                      <tr key={`ge-${i}`} style={{ height: ROW_H }}>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <>
+                      <tr style={{ height: ROW_H }}>
                         <td
-                          colSpan={8}
-                          style={{ borderBottom: "1px solid var(--border)" }}
-                        />
+                          colSpan={7}
+                          style={{
+                            ...TD,
+                            textAlign: "center",
+                            color: "var(--text-faint)",
+                          }}
+                        >
+                          No drivers found
+                          {search ? ` matching "${search}"` : ""}.
+                        </td>
                       </tr>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {paged.map((d) => (
-                      <tr
-                        key={d.id}
-                        className="ts-tr"
-                        style={{ height: ROW_H }}
-                      >
-                        <td
-                          style={{
-                            ...TD,
-                            fontWeight: 600,
-                            color: "var(--text-h)",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {d.first} {d.last}
-                        </td>
-
-                        <td style={TD}>
-                          <DriverStatusPill status={d.status} />
-                        </td>
-
-                        <td
-                          style={{
-                            ...TD,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {d.vehicle}
-                        </td>
-
-                        <td style={{ ...TD, color: "var(--text-muted)" }}>
-                          {d.lang}
-                        </td>
-
-                        <td
-                          style={{ ...TD, fontWeight: 700, color: "#111827" }}
-                        >
-                          {d.trips}
-                        </td>
-
-                        <td
-                          style={{ ...TD, fontWeight: 700, color: "#7c3aed" }}
-                        >
-                          ${d.earnings}
-                        </td>
-
-                        <td style={TD}>
-                          <DriverStars rating={d.rating} />
-                        </td>
-
-                        <td style={TD}>
-                          <DriversRowActions
-                            driver={d}
-                            onEdit={() => onNavigate("agency-drivers", d)}
-                            onDelete={() => setRemoveId(d.id)}
+                      {Array.from({ length: ROWS - 1 }).map((_, i) => (
+                        <tr key={`ge-${i}`} style={{ height: ROW_H }}>
+                          <td
+                            colSpan={7}
+                            style={{ borderBottom: "1px solid var(--border)" }}
                           />
-                        </td>
-                      </tr>
-                    ))}
+                        </tr>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {paged.map((d) => (
+                        <tr
+                          key={d.id}
+                          className="ts-tr"
+                          style={{ height: ROW_H }}
+                        >
+                          {/* Driver Name */}
+                          <td
+                            style={{
+                              ...TD,
+                              fontWeight: 600,
+                              color: "var(--text-h)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {d.firstName} {d.lastName}
+                          </td>
 
-                    {Array.from({ length: ghostCount }).map((_, i) => (
-                      <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td
-                          colSpan={8}
-                          style={{ borderBottom: "1px solid var(--border)" }}
-                        />
-                      </tr>
-                    ))}
-                  </>
-                )}
-              </tbody>
-            </table>
-          </div>
+                          {/* Email */}
+                          <td
+                            style={{
+                              ...TD,
+                              color: "var(--text-muted)",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {d.email ?? "—"}
+                          </td>
+
+                          {/* Status Badge — same as Users page */}
+                          <td style={TD}>
+                            <StatusBadge
+                              status={
+                                d.availabilityStatus === "online"
+                                  ? "active"
+                                  : "blocked"
+                              }
+                            />
+                          </td>
+
+                          {/* Vehicle */}
+                          <td
+                            style={{
+                              ...TD,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {d.vehicle ? (
+                              `${d.vehicle.make} ${d.vehicle.model}`
+                            ) : (
+                              <span style={{ color: "var(--text-faint)" }}>
+                                —
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Trips */}
+                          <td
+                            style={{
+                              ...TD,
+                              fontWeight: 800,
+                              color: "#111827",
+                            }}
+                          >
+                            {d.totalTrips ?? 0}
+                          </td>
+
+                          {/* Rating — Number() prevents toFixed crash when DB returns string */}
+                          <td
+                            style={{
+                              ...TD,
+                              fontWeight: 700,
+                              color: "#7c3aed",
+                            }}
+                          >
+                            {d.ratingAverage != null
+                              ? `★ ${Number(d.ratingAverage).toFixed(1)}`
+                              : "—"}
+                          </td>
+
+                          {/* Actions — same style as Users page */}
+                          <td
+                            style={TD}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                              }}
+                            >
+                              <ActionButton
+                                title="Edit Driver"
+                                onClick={() =>
+                                  onNavigate("agency-drivers", d)
+                                }
+                                hoverStyle={{
+                                  background: "#eff6ff",
+                                  color: "#2563eb",
+                                  borderColor: "#bfdbfe",
+                                }}
+                              >
+                                <IconEdit />
+                              </ActionButton>
+
+                              {d.availabilityStatus === "offline" ? (
+                                <ActionButton
+                                  title="Set Online"
+                                  onClick={() => {}}
+                                  hoverStyle={{
+                                    background: "#f0fdf4",
+                                    color: "#16a34a",
+                                    borderColor: "#bbf7d0",
+                                  }}
+                                >
+                                  <IconUnblock />
+                                </ActionButton>
+                              ) : (
+                                <ActionButton
+                                  title="Set Offline"
+                                  onClick={() => {}}
+                                  hoverStyle={{
+                                    background: "#fef2f2",
+                                    color: "#dc2626",
+                                    borderColor: "#fecaca",
+                                  }}
+                                >
+                                  <IconBlock />
+                                </ActionButton>
+                              )}
+
+                              <ActionButton
+                                title="Delete Driver"
+                                onClick={() => setRemoveId(d.id)}
+                                loading={
+                                  actionLoading === d.id + "-delete"
+                                }
+                                hoverStyle={{
+                                  background: "#fef2f2",
+                                  color: "#dc2626",
+                                  borderColor: "#fecaca",
+                                }}
+                              >
+                                <IconDelete />
+                              </ActionButton>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {Array.from({ length: ghostCount }).map((_, i) => (
+                        <tr key={`g-${i}`} style={{ height: ROW_H }}>
+                          <td
+                            colSpan={7}
+                            style={{
+                              borderBottom: "1px solid var(--border)",
+                            }}
+                          />
+                        </tr>
+                      ))}
+                    </>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <DriversPagination
             page={safePage}

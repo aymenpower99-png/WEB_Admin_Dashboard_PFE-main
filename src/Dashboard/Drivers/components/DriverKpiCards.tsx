@@ -1,9 +1,9 @@
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
 
-import type { Driver } from "../types";
+import type { DriverProfile } from "../../../api/drivers";
 
 function StatCard({
   label,
@@ -13,7 +13,7 @@ function StatCard({
   iconColor,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   icon: React.ReactNode;
   iconBg: string;
   iconColor: string;
@@ -75,11 +75,19 @@ function StatCard({
   );
 }
 
-export default function DriverKpiCards({ drivers }: { drivers: Driver[] }) {
-  const total = drivers.length;
-  const online = drivers.filter((d) => d.status === "online").length;
-  const busy = drivers.filter((d) => d.status === "busy").length;
-  const offline = drivers.filter((d) => d.status === "offline").length;
+export default function DriverKpiCards({ drivers }: { drivers: DriverProfile[] }) {
+  const total   = drivers.length;
+  const online  = drivers.filter((d) => d.availabilityStatus === "online").length;
+  const offline = drivers.filter((d) => d.availabilityStatus === "offline").length;
+
+  // Number() handles DB returning ratingAverage as a string e.g. "4.50"
+  const avgRating =
+    total > 0
+      ? (
+          drivers.reduce((s, d) => s + Number(d.ratingAverage ?? 0), 0) /
+          total
+        ).toFixed(1)
+      : "—";
 
   return (
     <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
@@ -98,18 +106,18 @@ export default function DriverKpiCards({ drivers }: { drivers: Driver[] }) {
         iconColor="#059669"
       />
       <StatCard
-        label="Busy"
-        value={busy}
-        icon={<HourglassEmptyRoundedIcon style={{ fontSize: 22 }} />}
-        iconBg="#fef3c7"
-        iconColor="#d97706"
-      />
-      <StatCard
         label="Offline"
         value={offline}
         icon={<HighlightOffRoundedIcon style={{ fontSize: 22 }} />}
         iconBg="#e5e7eb"
         iconColor="#4b5563"
+      />
+      <StatCard
+        label="Avg Rating"
+        value={avgRating}
+        icon={<StarRoundedIcon style={{ fontSize: 22 }} />}
+        iconBg="#fef3c7"
+        iconColor="#d97706"
       />
     </div>
   );
