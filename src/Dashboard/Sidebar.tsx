@@ -47,7 +47,6 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         page: "drivers-parent",
         children: [
           { label: "Drivers",    page: "drivers" },
-          { label: "Add Driver", page: "agency-drivers" },
         ],
       },
       {

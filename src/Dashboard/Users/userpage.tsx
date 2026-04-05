@@ -5,7 +5,7 @@ import { usersApi, type AdminUser } from "../../api/users";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 import {
-  ROLE_MAP, ROLE_BADGE, ROLE_LABEL, STATUS_PILL,
+  ROLE_MAP, ROLE_BADGE, ROLE_LABEL,
   ROWS_PER_PAGE, ROW_H, TH, TD,
   type FilterTab,
 } from "./components/users.types";
@@ -16,58 +16,12 @@ import InviteModal from "./components/InviteModal";
 import EditModal from "./components/EditModal";
 import CompleteDriverProfileModal from "./components/CompleteDriverProfileModal";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
-import UsersRowActions from "./components/UsersRowActions";
+import { StatusBadge, ProfileCell } from "./Badge_action_buttons/UsersBadges";
+import { InlineRowActions } from "./Badge_action_buttons/UsersActionButtons";
 
 interface UsersPageProps {
   dark?: boolean;
   onSelectUser?: (name: string) => void;
-}
-
-function ProfileCell({ u }: { u: AdminUser }) {
-  // Passengers are always "complete"
-  if (u.role !== "driver") {
-    return (
-      <span style={{
-        display: "inline-flex", alignItems: "center", gap: ".3rem",
-        padding: ".2rem .6rem", borderRadius: "999px",
-        background: "#d1fae5", color: "#065f46",
-        fontSize: ".72rem", fontWeight: 700, whiteSpace: "nowrap",
-        border: "1px solid #6ee7b7",
-      }}>
-        ✓ Complete
-      </span>
-    );
-  }
-  if (u.status === "pending") {
-    return <span style={{ color: "var(--text-faint)", fontSize: ".75rem" }}>Awaiting invite</span>;
-  }
-  if (u.profileComplete === false) {
-    return (
-      <span style={{
-        display: "inline-flex", alignItems: "center", gap: ".3rem",
-        padding: ".2rem .6rem", borderRadius: "999px",
-        background: "#fff7ed", color: "#ea580c",
-        fontSize: ".72rem", fontWeight: 700, whiteSpace: "nowrap",
-        border: "1px solid #fed7aa",
-      }}>
-        ⚙ Not set up
-      </span>
-    );
-  }
-  if (u.profileComplete === true) {
-    return (
-      <span style={{
-        display: "inline-flex", alignItems: "center", gap: ".3rem",
-        padding: ".2rem .6rem", borderRadius: "999px",
-        background: "#d1fae5", color: "#065f46",
-        fontSize: ".72rem", fontWeight: 700, whiteSpace: "nowrap",
-        border: "1px solid #6ee7b7",
-      }}>
-        ✓ Complete
-      </span>
-    );
-  }
-  return <span style={{ color: "var(--text-faint)", fontSize: ".8rem" }}>—</span>;
 }
 
 export default function UsersPage({ onSelectUser }: UsersPageProps) {
@@ -190,7 +144,7 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
       {/* ── KPI Cards ── */}
       <UserKpiCards users={users} />
 
-      {/* ── Filter bar (same layout as Vehicles page) ── */}
+      {/* ── Filter bar ── */}
       <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: ".35rem" }}>
           {(["All", "Riders", "Drivers"] as FilterTab[]).map(f => (
@@ -236,13 +190,13 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
               <colgroup>
-                <col style={{ width: "18%" }} /> {/* User */}
-                <col style={{ width: "20%" }} /> {/* Email */}
-                <col style={{ width: "9%" }} />  {/* Role */}
-                <col style={{ width: "10%" }} /> {/* Status */}
-                <col style={{ width: "12%" }} /> {/* Profile */}
-                <col style={{ width: "11%" }} /> {/* Trips (wider) */}
-                <col style={{ width: "20%" }} /> {/* Actions (wider) */}
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "20%" }} />
+                <col style={{ width: "9%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "11%" }} />
+                <col style={{ width: "20%" }} />
               </colgroup>
 
               <thead>
@@ -281,37 +235,41 @@ export default function UsersPage({ onSelectUser }: UsersPageProps) {
                         style={{ height: ROW_H, cursor: "pointer" }}
                         onClick={() => onSelectUser?.(`${u.firstName} ${u.lastName}`)}
                       >
+                        {/* Name */}
                         <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>
                           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
                             {u.firstName} {u.lastName}
                           </span>
                         </td>
 
+                        {/* Email */}
                         <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {u.email}
                         </td>
 
+                        {/* Role */}
                         <td style={TD}>
                           <span style={ROLE_BADGE[u.role] ?? ROLE_BADGE.admin}>
                             {ROLE_LABEL[u.role] ?? u.role}
                           </span>
                         </td>
 
+                        {/* Status */}
                         <td style={TD}>
-                          <span className={STATUS_PILL[u.status]}>
-                            {u.status.charAt(0).toUpperCase() + u.status.slice(1)}
-                          </span>
+                          <StatusBadge status={u.status} />
                         </td>
 
+                        {/* Profile */}
                         <td style={TD} onClick={e => e.stopPropagation()}>
                           <ProfileCell u={u} />
                         </td>
 
-                        {/* Trips number in black */}
+                        {/* Trips */}
                         <td style={{ ...TD, fontWeight: 800, color: "#111827" }}>{u.trips ?? 0}</td>
 
+                        {/* Actions */}
                         <td style={TD} onClick={e => e.stopPropagation()}>
-                          <UsersRowActions
+                          <InlineRowActions
                             user={u}
                             actionLoading={actionLoading}
                             onEdit={() => { setEditTarget(u); setModal("edit"); }}
