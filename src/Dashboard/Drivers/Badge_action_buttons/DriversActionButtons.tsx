@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { DriverProfile } from "../../../api/drivers";
 
-// ── Base style — uses borderWidth/borderStyle/borderColor (no shorthand) ─────
+// ── Base style — uses CSS variables for dark-mode compatibility ───────────────
 const ACTION_BTN_BASE: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -11,10 +11,10 @@ const ACTION_BTN_BASE: React.CSSProperties = {
   borderRadius: 7,
   borderWidth: "1px",
   borderStyle: "solid",
-  borderColor: "#e5e7eb",
-  background: "white",
+  borderColor: "var(--border)",       // ✅ was #e5e7eb
+  background: "var(--bg-card)",       // ✅ was "white"
   cursor: "pointer",
-  color: "#6b7280",
+  color: "var(--text-muted)",         // ✅ was #6b7280
   flexShrink: 0,
   transition: "all .15s",
   padding: 0,

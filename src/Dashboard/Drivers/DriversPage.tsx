@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 
 import type { DriverProfile } from "../../api/drivers";
 import { driversApi } from "../../api/drivers";
@@ -103,7 +102,6 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
               {counts.offline} offline
             </p>
           </div>
-       
         </div>
 
         {/* KPI Cards */}
@@ -207,7 +205,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                             {d.email ?? "—"}
                           </td>
 
-                          {/* Status Badge — from DriversBadges */}
+                          {/* Status Badge */}
                           <td style={TD}>
                             <DriverStatusBadge status={d.availabilityStatus} />
                           </td>
@@ -219,8 +217,8 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                               : <span style={{ color: "var(--text-faint)" }}>—</span>}
                           </td>
 
-                          {/* Trips */}
-                          <td style={{ ...TD, fontWeight: 800, color: "#111827" }}>
+                          {/* Trips — ✅ was color: "#111827", now uses CSS var */}
+                          <td style={{ ...TD, fontWeight: 800, color: "var(--text-h)" }}>
                             {d.totalTrips ?? 0}
                           </td>
 
@@ -231,7 +229,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                               : "—"}
                           </td>
 
-                          {/* Actions — from DriversActionButtons */}
+                          {/* Actions */}
                           <td style={TD} onClick={(e) => e.stopPropagation()}>
                             <DriverInlineRowActions
                               driver={d}

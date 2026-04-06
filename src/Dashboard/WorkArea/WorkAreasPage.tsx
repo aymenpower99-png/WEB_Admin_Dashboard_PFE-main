@@ -10,11 +10,11 @@ import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
 import PersonOffRoundedIcon from "@mui/icons-material/PersonOffRounded";
 import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
 
-/* ─── TYPES ─────────────────────────────────────────────────────────── */
+/* ─── TYPES ──────────────────────────────────────────────────────────────── */
 export interface WorkArea {
   id: number;
-  name: string;       // ville name e.g. "Nabeul"
-  governorate: string; // e.g. "Nabeul Governorate"
+  name: string;
+  governorate: string;
   radius: number;
 }
 
@@ -33,7 +33,7 @@ export interface WorkAreasPageProps {
   setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
 }
 
-/* ─── SEED DATA ──────────────────────────────────────────────────────── */
+/* ─── SEED DATA ──────────────────────────────────────────────────────────── */
 export const INITIAL_AREAS: WorkArea[] = [
   { id: 1,  name: "Tunis",        governorate: "Tunis Governorate",        radius: 12 },
   { id: 2,  name: "Nabeul",       governorate: "Nabeul Governorate",       radius: 8  },
@@ -48,25 +48,48 @@ export const INITIAL_AREAS: WorkArea[] = [
 ];
 
 export const INITIAL_DRIVERS: Driver[] = [
-  { id: 1,  name: "John D",    vehicle: "Toyota Corolla",   status: "active",   workAreaId: 2  },
-  { id: 2,  name: "Emily R",   vehicle: "Kia Rio",          status: "active",   workAreaId: 1  },
-  { id: 3,  name: "Mike S",    vehicle: "Hyundai i10",      status: "active",   workAreaId: 4  },
-  { id: 4,  name: "Alex T",    vehicle: "Dacia Logan",      status: "active",   workAreaId: null },
-  { id: 5,  name: "Sara L",    vehicle: "Renault Symbol",   status: "inactive", workAreaId: 3  },
-  { id: 6,  name: "Omar B",    vehicle: "Peugeot 301",      status: "active",   workAreaId: null },
-  { id: 7,  name: "Nadia K",   vehicle: "Citroën C-Élysée", status: "active",   workAreaId: 5  },
-  { id: 8,  name: "Yassine M", vehicle: "Volkswagen Polo",  status: "inactive", workAreaId: null },
-  { id: 9,  name: "Fatma Z",   vehicle: "Toyota Yaris",     status: "active",   workAreaId: 7  },
-  { id: 10, name: "Hatem R",   vehicle: "Nissan Micra",     status: "active",   workAreaId: null },
+  { id: 1,  name: "John D",    vehicle: "Toyota Corolla",    status: "active",   workAreaId: 2    },
+  { id: 2,  name: "Emily R",   vehicle: "Kia Rio",           status: "active",   workAreaId: 1    },
+  { id: 3,  name: "Mike S",    vehicle: "Hyundai i10",       status: "active",   workAreaId: 4    },
+  { id: 4,  name: "Alex T",    vehicle: "Dacia Logan",       status: "active",   workAreaId: null },
+  { id: 5,  name: "Sara L",    vehicle: "Renault Symbol",    status: "inactive", workAreaId: 3    },
+  { id: 6,  name: "Omar B",    vehicle: "Peugeot 301",       status: "active",   workAreaId: null },
+  { id: 7,  name: "Nadia K",   vehicle: "Citroën C-Élysée", status: "active",   workAreaId: 5    },
+  { id: 8,  name: "Yassine M", vehicle: "Volkswagen Polo",   status: "inactive", workAreaId: null },
+  { id: 9,  name: "Fatma Z",   vehicle: "Toyota Yaris",      status: "active",   workAreaId: 7    },
+  { id: 10, name: "Hatem R",   vehicle: "Nissan Micra",      status: "active",   workAreaId: null },
 ];
 
-/* ─── CONSTANTS ──────────────────────────────────────────────────────── */
+/* ─── CONSTANTS ──────────────────────────────────────────────────────────── */
 const ROWS  = 8;
 const ROW_H = 54;
 
-const ZONE_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16", "#f97316"];
+const ZONE_COLORS = ["#6366f1","#10b981","#f59e0b","#ef4444","#3b82f6","#8b5cf6","#ec4899","#06b6d4","#84cc16","#f97316"];
 
-/* ─── STAT CARD ──────────────────────────────────────────────────────── */
+/* ─── TABLE STYLES (matches DriversTypes.ts pattern) ─────────────────────── */
+const TH: React.CSSProperties = {
+  padding: "0.65rem 1rem",
+  fontSize: ".78rem",
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: ".06em",
+  color: "var(--text-body)",
+  textAlign: "left",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap",
+  background: "var(--bg-thead)",   // ✅ added — matches Drivers/Vehicles TH
+};
+
+const TD: React.CSSProperties = {
+  padding: "0 1rem",
+  height: ROW_H,
+  fontSize: ".85rem",
+  color: "var(--text-body)",
+  borderBottom: "1px solid var(--border)",
+  verticalAlign: "middle",
+};
+
+/* ─── STAT CARD ──────────────────────────────────────────────────────────── */
 function StatCard({ label, value, icon, color }: {
   label: string; value: number | string; icon: React.ReactNode; color: string;
 }) {
@@ -90,13 +113,17 @@ function StatCard({ label, value, icon, color }: {
   );
 }
 
-/* ─── STATUS PILL ────────────────────────────────────────────────────── */
+/* ─── STATUS PILL — semi-transparent so it works in light + dark mode ────── */
+// ✅ Replaced hardcoded opaque hex colors with rgba() transparencies.
 function StatusPill({ assigned }: { assigned: boolean }) {
   return assigned ? (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: ".35rem",
       padding: ".22rem .7rem", borderRadius: "9999px",
-      background: "#d1fae5", color: "#065f46", fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
+      background: "rgba(16,185,129,0.15)",
+      border: "1px solid rgba(16,185,129,0.35)",
+      color: "#10b981",
+      fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
     }}>
       <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
       Assigned
@@ -105,7 +132,10 @@ function StatusPill({ assigned }: { assigned: boolean }) {
     <span style={{
       display: "inline-flex", alignItems: "center", gap: ".35rem",
       padding: ".22rem .7rem", borderRadius: "9999px",
-      background: "#fef3c7", color: "#92400e", fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
+      background: "rgba(245,158,11,0.15)",
+      border: "1px solid rgba(245,158,11,0.35)",
+      color: "#d97706",
+      fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
     }}>
       <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
       Not Assigned
@@ -113,7 +143,58 @@ function StatusPill({ assigned }: { assigned: boolean }) {
   );
 }
 
-/* ─── PAGINATION ─────────────────────────────────────────────────────── */
+/* ─── ACTION BUTTON — matches DriversActionButtons pattern ───────────────── */
+// ✅ Replaced raw inline button with a proper 30×30 icon button using CSS vars.
+function WorkAreaActionButton({
+  isEdit,
+  onClick,
+}: {
+  isEdit: boolean;
+  onClick: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const baseStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: ".3rem",
+    height: 30,
+    padding: "0 .6rem",
+    borderRadius: 7,
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "var(--border)",
+    background: "var(--bg-card)",
+    color: "var(--text-muted)",
+    cursor: "pointer",
+    fontSize: ".78rem",
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+    transition: "all .15s",
+  };
+
+  const hoverStyle: React.CSSProperties = isEdit
+    ? { background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }   // blue for Edit
+    : { background: "#f5f3ff", color: "#7c3aed", borderColor: "#ddd6fe" };  // purple for Assign
+
+  return (
+    <button
+      title={isEdit ? "Edit Ville" : "Assign Ville"}
+      style={{ ...baseStyle, ...(hovered ? hoverStyle : {}) }}
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {isEdit
+        ? <><EditRoundedIcon style={{ fontSize: 13 }} /> Edit</>
+        : <><AddLocationAltRoundedIcon style={{ fontSize: 13 }} /> Assign</>
+      }
+    </button>
+  );
+}
+
+/* ─── PAGINATION ─────────────────────────────────────────────────────────── */
 function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
   page: number; totalPages: number;
   onPrev: () => void; onNext: () => void; setPage: (n: number) => void;
@@ -145,7 +226,7 @@ function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
   );
 }
 
-/* ─── ASSIGN / EDIT MODAL ────────────────────────────────────────────── */
+/* ─── ASSIGN / EDIT MODAL ────────────────────────────────────────────────── */
 function AssignModal({ driver, areas, onSave, onClose }: {
   driver: Driver;
   areas: WorkArea[];
@@ -215,7 +296,6 @@ function AssignModal({ driver, areas, onSave, onClose }: {
             <div style={{ background: "var(--bg-inner,#f9fafb)", border: "1px solid var(--border)", borderRadius: ".75rem", padding: ".875rem" }}>
               <p style={{ fontSize: ".7rem", fontWeight: 700, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 .625rem" }}>Ville Preview</p>
 
-              {/* Ville badge */}
               <div style={{
                 display: "flex", alignItems: "center", gap: ".75rem",
                 padding: ".75rem 1rem", borderRadius: ".625rem",
@@ -237,10 +317,10 @@ function AssignModal({ driver, areas, onSave, onClose }: {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".625rem" }}>
                 {[
-                  { label: "Ville",        value: selectedArea.name },
-                  { label: "Governorate",  value: selectedArea.governorate },
-                  { label: "Radius",       value: `${selectedArea.radius} km` },
-                  { label: "Driver",       value: driver.name },
+                  { label: "Ville",       value: selectedArea.name },
+                  { label: "Governorate", value: selectedArea.governorate },
+                  { label: "Radius",      value: `${selectedArea.radius} km` },
+                  { label: "Driver",      value: driver.name },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: ".5rem", padding: ".625rem .75rem" }}>
                     <p style={{ fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".07em", color: "var(--text-faint)", fontWeight: 600, margin: "0 0 .2rem" }}>{label}</p>
@@ -275,19 +355,17 @@ function AssignModal({ driver, areas, onSave, onClose }: {
   );
 }
 
-/* ─── MAIN PAGE ──────────────────────────────────────────────────────── */
+/* ─── MAIN PAGE ──────────────────────────────────────────────────────────── */
 export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: WorkAreasPageProps) {
   const [filter,      setFilter]      = useState<"all" | "assigned" | "unassigned">("all");
   const [search,      setSearch]      = useState("");
   const [page,        setPage]        = useState(1);
   const [assignModal, setAssignModal] = useState<Driver | null>(null);
 
-  /* ── Derived counts ── */
   const totalDrivers    = drivers.length;
   const assignedDrivers = drivers.filter(d => d.workAreaId !== null).length;
   const noAreaDrivers   = totalDrivers - assignedDrivers;
 
-  /* ── Filtering ── */
   const filtered = drivers.filter(d => {
     const area = areas.find(a => a.id === d.workAreaId);
     const mF =
@@ -307,18 +385,6 @@ export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: 
   const safePage   = Math.min(page, totalPages);
   const paged      = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
   const ghostCount = ROWS - paged.length;
-
-  const TH: React.CSSProperties = {
-    padding: "0.65rem 1rem", fontSize: ".78rem", fontWeight: 800,
-    textTransform: "uppercase", letterSpacing: ".06em",
-    color: "var(--text-body)", textAlign: "left",
-    borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
-  };
-  const TD: React.CSSProperties = {
-    padding: "0 1rem", height: ROW_H, fontSize: ".85rem",
-    color: "var(--text-body)", borderBottom: "1px solid var(--border)",
-    verticalAlign: "middle",
-  };
 
   function handleSaveAssignment(driverId: number, workAreaId: number | null) {
     setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, workAreaId } : d));
@@ -347,38 +413,18 @@ export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: 
 
         {/* ── Stat cards ── */}
         <div style={{ display: "flex", gap: ".875rem", flexWrap: "wrap" }}>
-          <StatCard
-            label="Total Drivers"
-            value={totalDrivers}
-            color="#7c3aed"
-            icon={<DirectionsCarRoundedIcon style={{ fontSize: 22 }} />}
-          />
-          <StatCard
-            label="Assigned to Ville"
-            value={assignedDrivers}
-            color="#10b981"
-            icon={<MyLocationRoundedIcon style={{ fontSize: 22 }} />}
-          />
-          <StatCard
-            label="No Ville Assigned"
-            value={noAreaDrivers}
-            color="#f59e0b"
-            icon={<PersonOffRoundedIcon style={{ fontSize: 22 }} />}
-          />
-          <StatCard
-            label="Defined Villes"
-            value={areas.length}
-            color="#3b82f6"
-            icon={<PlaceRoundedIcon style={{ fontSize: 22 }} />}
-          />
+          <StatCard label="Total Drivers"    value={totalDrivers}    color="#7c3aed" icon={<DirectionsCarRoundedIcon style={{ fontSize: 22 }} />} />
+          <StatCard label="Assigned to Ville" value={assignedDrivers} color="#10b981" icon={<MyLocationRoundedIcon   style={{ fontSize: 22 }} />} />
+          <StatCard label="No Ville Assigned" value={noAreaDrivers}   color="#f59e0b" icon={<PersonOffRoundedIcon    style={{ fontSize: 22 }} />} />
+          <StatCard label="Defined Villes"   value={areas.length}    color="#3b82f6" icon={<PlaceRoundedIcon         style={{ fontSize: 22 }} />} />
         </div>
 
-        {/* ── Table ── */}
+        {/* ── Filter bar + search ── */}
         <div className="ts-filter-bar">
           {([
-            { key: "all",        label: "All" },
-            { key: "assigned",   label: "Assigned" },
-            { key: "unassigned", label: "No Ville" },
+            { key: "all",        label: "All"       },
+            { key: "assigned",   label: "Assigned"  },
+            { key: "unassigned", label: "No Ville"  },
           ] as const).map(({ key, label }) => (
             <button
               key={key}
@@ -403,6 +449,7 @@ export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: 
           </span>
         </div>
 
+        {/* ── Table ── */}
         <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
@@ -445,6 +492,7 @@ export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: 
 
                       return (
                         <tr key={driver.id} className="ts-tr" style={{ height: ROW_H }}>
+
                           {/* Driver */}
                           <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>
                             {driver.name}
@@ -467,31 +515,19 @@ export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: 
                             )}
                           </td>
 
-                          {/* Status */}
+                          {/* Status — ✅ now dark-mode-safe */}
                           <td style={TD}>
                             <StatusPill assigned={driver.workAreaId !== null} />
                           </td>
 
-                          {/* Action */}
+                          {/* Action — ✅ now a proper icon button matching Drivers pattern */}
                           <td style={TD}>
-                            <button
-                              title={driver.workAreaId ? "Edit Ville" : "Assign Ville"}
-                              className="ts-icon-btn"
+                            <WorkAreaActionButton
+                              isEdit={driver.workAreaId !== null}
                               onClick={() => setAssignModal(driver)}
-                              style={{
-                                display: "inline-flex", alignItems: "center", gap: ".3rem",
-                                padding: ".2rem .4rem", borderRadius: ".375rem",
-                                fontSize: ".8rem", fontWeight: 600, whiteSpace: "nowrap",
-                                color: driver.workAreaId ? "var(--text-muted)" : "#7c3aed",
-                                background: "none", border: "none", cursor: "pointer",
-                              }}
-                            >
-                              {driver.workAreaId
-                                ? <><EditRoundedIcon style={{ fontSize: 14 }} /> Edit</>
-                                : <><AddLocationAltRoundedIcon style={{ fontSize: 14 }} /> Assign</>
-                              }
-                            </button>
+                            />
                           </td>
+
                         </tr>
                       );
                     })}
