@@ -34,26 +34,10 @@ function StatCard({
       }}
     >
       <div>
-        <p
-          style={{
-            margin: 0,
-            fontSize: ".78rem",
-            color: "var(--text-muted)",
-            fontWeight: 500,
-            marginBottom: ".3rem",
-          }}
-        >
+        <p style={{ margin: 0, fontSize: ".78rem", color: "var(--text-muted)", fontWeight: 500, marginBottom: ".3rem" }}>
           {label}
         </p>
-        <p
-          style={{
-            margin: 0,
-            fontSize: "1.65rem",
-            fontWeight: 800,
-            color: "var(--text-h)",
-            lineHeight: 1,
-          }}
-        >
+        <p style={{ margin: 0, fontSize: "1.65rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>
           {value}
         </p>
       </div>
@@ -62,7 +46,7 @@ function StatCard({
           width: 42,
           height: 42,
           borderRadius: "50%",
-          background: iconBg,
+          background: iconBg,   // ✅ now uses CSS var passed in — switches with dark mode
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -80,44 +64,41 @@ export default function DriverKpiCards({ drivers }: { drivers: DriverProfile[] }
   const online  = drivers.filter((d) => d.availabilityStatus === "online").length;
   const offline = drivers.filter((d) => d.availabilityStatus === "offline").length;
 
-  // Number() handles DB returning ratingAverage as a string e.g. "4.50"
   const avgRating =
     total > 0
-      ? (
-          drivers.reduce((s, d) => s + Number(d.ratingAverage ?? 0), 0) /
-          total
-        ).toFixed(1)
+      ? (drivers.reduce((s, d) => s + Number(d.ratingAverage ?? 0), 0) / total).toFixed(1)
       : "—";
 
   return (
     <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
+      {/* ✅ All iconBg/iconColor now use CSS design-system vars — auto dark mode */}
       <StatCard
         label="Total Drivers"
         value={total}
         icon={<PersonRoundedIcon style={{ fontSize: 22 }} />}
-        iconBg="#ede9fe"
-        iconColor="#7c3aed"
+        iconBg="var(--driver-bg)"    // was: "#ede9fe"
+        iconColor="var(--driver-fg)" // was: "#7c3aed"
       />
       <StatCard
         label="Online"
         value={online}
         icon={<CheckCircleRoundedIcon style={{ fontSize: 22 }} />}
-        iconBg="#d1fae5"
-        iconColor="#059669"
+        iconBg="var(--active-bg)"    // was: "#d1fae5"
+        iconColor="var(--active-fg)" // was: "#059669"
       />
       <StatCard
         label="Offline"
         value={offline}
         icon={<HighlightOffRoundedIcon style={{ fontSize: 22 }} />}
-        iconBg="#e5e7eb"
-        iconColor="#4b5563"
+        iconBg="var(--refunded-bg)"    // was: "#e5e7eb"
+        iconColor="var(--refunded-fg)" // was: "#4b5563"
       />
       <StatCard
         label="Avg Rating"
         value={avgRating}
         icon={<StarRoundedIcon style={{ fontSize: 22 }} />}
-        iconBg="#fef3c7"
-        iconColor="#d97706"
+        iconBg="var(--pending-bg)"    // was: "#fef3c7"
+        iconColor="var(--pending-fg)" // was: "#d97706"
       />
     </div>
   );

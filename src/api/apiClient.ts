@@ -22,11 +22,20 @@ apiClient.interceptors.request.use((config) => {
 
 // ─── Response: auto-refresh on 401 ───────────────────────────────────────────
 let isRefreshing = false;
+let isRedirecting = false; // ✅ guard: only redirect once
 let queue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 
 function processQueue(err: unknown, token: string | null) {
   queue.forEach((p) => (err ? p.reject(err) : p.resolve(token!)));
   queue = [];
+}
+
+function doRedirect() {
+  // ✅ Prevents multiple simultaneous 401s from each firing window.location.href
+  if (isRedirecting) return;
+  isRedirecting = true;
+  clearToken();
+  window.location.href = "/";
 }
 
 apiClient.interceptors.response.use(
@@ -36,8 +45,7 @@ apiClient.interceptors.response.use(
 
     // Don't retry the refresh endpoint itself to avoid infinite loops
     if (original.url?.includes("/auth/refresh")) {
-      clearToken();
-      window.location.href = "/";
+      doRedirect();
       return Promise.reject(error);
     }
 
@@ -47,11 +55,11 @@ apiClient.interceptors.response.use(
 
     const refreshToken = localStorage.getItem("refreshToken");
     if (!refreshToken) {
-      clearToken();
-      window.location.href = "/";
+      doRedirect();
       return Promise.reject(error);
     }
 
+    // ✅ If a refresh is already in-flight, queue this request — don't redirect
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         queue.push({
@@ -68,16 +76,13 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      // ✅ THE FIX: refreshToken goes in Authorization header as Bearer
-      // NOT in the request body — backend reads it via
-      // ExtractJwt.fromAuthHeaderAsBearerToken() in jwt-refresh.strategy.ts
       const res = await axios.post<{ accessToken: string; refreshToken?: string }>(
         "/api/auth/refresh",
-        {},                                          // empty body
+        {},
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${refreshToken}`, // token here ✅
+            Authorization: `Bearer ${refreshToken}`,
           },
         }
       );
@@ -88,7 +93,7 @@ apiClient.interceptors.response.use(
       // Sync React state so isAuthenticated stays true
       _updateAccessToken?.(newAccess);
 
-      // Store the new rotated refresh token
+      // Store the new rotated refresh token if provided
       if (res.data.refreshToken) {
         localStorage.setItem("refreshToken", res.data.refreshToken);
       }
@@ -98,8 +103,7 @@ apiClient.interceptors.response.use(
       return apiClient(original);
     } catch (refreshErr) {
       processQueue(refreshErr, null);
-      clearToken();
-      window.location.href = "/";
+      doRedirect();
       return Promise.reject(refreshErr);
     } finally {
       isRefreshing = false;
