@@ -103,12 +103,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
               {counts.offline} offline
             </p>
           </div>
-          <button
-            className="ts-btn-primary"
-            onClick={() => onNavigate("agency-drivers", null)}
-          >
-            <PersonAddAlt1RoundedIcon style={{ fontSize: 15 }} /> Add Driver
-          </button>
+       
         </div>
 
         {/* KPI Cards */}
