@@ -27,7 +27,8 @@ import UpcomingRidesPage from "../Dashboard/Rides/UpcomingRides";
 import PastRidesPage from "../Dashboard/Rides/PastRides";
 import WorkAreasPage from "../Dashboard/WorkArea/WorkAreasPage";
 
-import type { Driver } from "../Dashboard/Drivers/types";
+// ✅ Use DriverProfile (the actual type DriversPage expects) instead of the old Driver type
+import type { DriverProfile } from "../api/drivers";
 import type { Vehicle } from "../Dashboard/Vehicles/Vehiclespage";
 import type {
   WorkArea,
@@ -90,10 +91,9 @@ function PlaceholderPage({
 export interface ShellProps {
   dark: boolean;
   onToggleDark: () => void;
-  drivers: Driver[];
-  setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
-  editDriver: Driver | null;
-  setEditDriver: React.Dispatch<React.SetStateAction<Driver | null>>;
+  // ✅ Updated: editDriver is now DriverProfile (matches DriversPage)
+  editDriver: DriverProfile | null;
+  setEditDriver: React.Dispatch<React.SetStateAction<DriverProfile | null>>;
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
   editVehicle: Vehicle | null;
@@ -108,8 +108,6 @@ export interface ShellProps {
 export default function Shell({
   dark,
   onToggleDark,
-  drivers,
-  setDrivers,
   editDriver,
   setEditDriver,
   vehicles,
@@ -132,15 +130,18 @@ export default function Shell({
     path.replace(/^\/dashboard\/?/, "") || "dashboard";
   const activePage = toKey(location.pathname);
 
-  const navigate = (page: string, prefill?: Driver | Vehicle | null) => {
+  const navigate = (page: string, prefill?: DriverProfile | Vehicle | null) => {
     const targetPath =
       page === "dashboard" ? "/dashboard" : `/dashboard/${page}`;
     if (location.pathname === targetPath && prefill === undefined) return;
 
-    if (page === "agency-drivers" && prefill !== undefined)
-      setEditDriver(prefill as Driver | null);
-    if (page === "agency-vehicles" && prefill !== undefined)
-      setEditVehicle(prefill as Vehicle | null);
+    if (page === "agency-drivers")
+      // ✅ always update: passes the driver if editing, or null if coming from sidebar
+      setEditDriver((prefill as DriverProfile | null) ?? null);
+
+    if (page === "agency-vehicles")
+      // ✅ FIX: always reset editVehicle — passes vehicle when editing, null when "Add Vehicle" from sidebar
+      setEditVehicle((prefill as Vehicle | null) ?? null);
 
     const from = PAGE_ORDER.indexOf(prevKeyRef.current);
     const to = PAGE_ORDER.indexOf(page);
@@ -280,8 +281,6 @@ export default function Shell({
                 path="drivers"
                 element={
                   <DriversPage
-                    drivers={drivers}
-                    setDrivers={setDrivers}
                     onNavigate={navigate}
                   />
                 }
