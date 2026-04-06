@@ -1,12 +1,9 @@
-// ============================================================
-// FILE: Addvehiclepage.tsx
-// ============================================================
 import { useState } from "react";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import AddRoundedIcon        from "@mui/icons-material/AddRounded";
 import SaveRoundedIcon       from "@mui/icons-material/SaveRounded";
-import apiClient                            from "../../api/apiClient";
-import { mapBackendVehicle }                from "./types";
+import apiClient             from "../../api/apiClient";
+import { mapBackendVehicle } from "./types";
 import type { Vehicle, AddVehiclePageProps } from "./types";
 
 import {
@@ -19,6 +16,7 @@ import type { FormState } from "./AddvehicleComponents/types";
 import { Field, PlainDropdown, VehicleClassGrid } from "./AddvehicleComponents/Field";
 import { MakeAutocomplete, ModelAutocomplete }    from "./AddvehicleComponents/VehicleAutocompletes";
 import { DriverPicker }                           from "./AddvehicleComponents/DriverPicker";
+import { VehiclePhotosSection }                   from "./AddvehicleComponents/VehiclePhotosSection";
 
 export type { AddVehiclePageProps };
 
@@ -33,17 +31,13 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       driver: prefill.driver ?? "",
     } : { ...EMPTY_FORM }
   );
-
-  // ✅ Track the selected driver's UUID separately from the display name
-  const [selectedDriverId, setSelectedDriverId] = useState<string | undefined>(
-    (prefill as any)?.driverId ?? undefined
-  );
-
   const [errs,       setErrs]       = useState({ ...EMPTY_ERRS });
   const [submitted,  setSub]        = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [apiError,   setApiError]   = useState<string | null>(null);
   const [makeId,     setMakeId]     = useState<number | null>(null);
+  // ✅ store the selected driver's UUID separately
+  const [driverId,   setDriverId]   = useState<string | null>(prefill?.driverId ?? null);
 
   const set = (key: keyof FormState, val: string) => {
     const next = { ...form, [key]: val }; setForm(next);
@@ -67,7 +61,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       color: form.color || undefined,
       vehicleType: form.vehicleClass || undefined,
       seats: form.seats ? Number(form.seats) : undefined,
-      driverId: selectedDriverId || undefined, // ✅ send driverId (UUID), not driverName
+      driverId: driverId || undefined,  // ✅ send UUID, not name
     };
 
     try {
@@ -107,7 +101,9 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
         </button>
         <div>
           <h1 className="ts-page-title">{isEdit ? "Edit Vehicle" : "Add New Vehicle"}</h1>
-          <p className="ts-page-subtitle">{isEdit ? `Editing ${prefill!.year} ${prefill!.make} ${prefill!.model}` : "Register a new vehicle to your fleet"}</p>
+          <p className="ts-page-subtitle">
+            {isEdit ? `Editing ${prefill!.year} ${prefill!.make} ${prefill!.model}` : "Register a new vehicle to your fleet"}
+          </p>
         </div>
       </div>
 
@@ -146,16 +142,29 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
 
         {/* Row 5 — Assigned Driver */}
         <Field label="Assigned Driver" error={errs.driver}>
+          {/* ✅ onSelect now receives { id, fullName } — store id separately, display fullName */}
           <DriverPicker
             value={form.driver}
             error={errs.driver}
             onSelect={({ id, fullName }) => {
-              // ✅ store display name in form (for UI) and UUID for the API call
+              setDriverId(id);
               set("driver", fullName);
-              setSelectedDriverId(id);
             }}
           />
         </Field>
+
+        {/* Row 6 — Vehicle Photos (edit only — inline auto-save) */}
+        {isEdit && (
+          <VehiclePhotosSection
+            vehicleId={prefill!.id}
+            currentPhotos={prefill!.photos ?? []}
+            onPhotosUpdated={newPhotos => {
+              setVehicles(prev => prev.map(v =>
+                v.id === prefill!.id ? { ...v, photos: newPhotos } : v
+              ));
+            }}
+          />
+        )}
 
         {/* API error */}
         {apiError && (
@@ -164,6 +173,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           </div>
         )}
 
+        {/* Actions */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", paddingTop: ".25rem" }}>
           <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")} disabled={submitting}>Cancel</button>
           <button className="ts-btn-primary" onClick={handleSubmit} disabled={submitting}>
