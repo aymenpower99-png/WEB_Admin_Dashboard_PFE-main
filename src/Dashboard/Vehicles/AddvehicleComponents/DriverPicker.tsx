@@ -12,7 +12,10 @@ const initials = (d: DriverOption) =>
   `${d.firstName.charAt(0)}${d.lastName.charAt(0)}`.toUpperCase();
 
 export function DriverPicker({ value, error, onSelect }: {
-  value: string; error?: string; onSelect: (fullName: string) => void;
+  value: string;
+  error?: string;
+  /** Called with the driver's UUID id AND display name when a driver is picked */
+  onSelect: (driver: { id: string; fullName: string }) => void;
 }) {
   const [inputVal, setInputVal] = useState(value);
   const [drivers,  setDrivers]  = useState<DriverOption[]>([]);
@@ -54,12 +57,11 @@ export function DriverPicker({ value, error, onSelect }: {
   const pick = (d: DriverOption) => {
     const full = `${d.firstName} ${d.lastName}`;
     setInputVal(full);
-    onSelect(full);
+    onSelect({ id: d.id, fullName: full }); // ✅ now returns id + display name
     setOpen(false);
     setActiveIdx(-1);
   };
 
-  // Filter by what user typed
   const filtered = drivers.filter(d =>
     `${d.firstName} ${d.lastName}`.toLowerCase().includes(inputVal.toLowerCase())
   );
@@ -74,14 +76,12 @@ export function DriverPicker({ value, error, onSelect }: {
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      {/* ✅ Regular typeable input — identical style to Make */}
       <input
         value={inputVal}
         placeholder="Search or select a driver…"
         autoComplete="off"
         onChange={e => {
           setInputVal(e.target.value);
-          onSelect(e.target.value);
           setOpen(true);
           setActiveIdx(-1);
           if (drivers.length === 0) fetchDrivers();
@@ -103,7 +103,6 @@ export function DriverPicker({ value, error, onSelect }: {
         }}
       />
 
-      {/* Dropdown */}
       {open && (
         <div style={{
           position: "absolute", top: "100%", left: 0, right: 0,

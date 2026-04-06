@@ -12,6 +12,7 @@ import ClassBadge        from "./components/ClassBadge";
 import Pagination        from "./components/Pagination";
 import RemoveModal       from "./components/RemoveModal";
 import ChangeStatusModal from "./components/ChangeStatusModal";
+import VehicleTableRow   from "./components/VehicleTableRow";
 
 export { INITIAL_VEHICLES, mapBackendVehicle };
 export type { Vehicle, VehiclesPageProps };
@@ -34,64 +35,6 @@ const TD: React.CSSProperties = {
   borderBottom: "1px solid var(--border)", verticalAlign: "middle",
 };
 
-// ── Inline SVG icons ──────────────────────────────────────────────────────────
-const IconEdit = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-  </svg>
-);
-
-const IconSync = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="23 4 23 10 17 10"/>
-    <polyline points="1 20 1 14 7 14"/>
-    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-  </svg>
-);
-
-const IconTrash = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-    <path d="M10 11v6M14 11v6"/>
-    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-  </svg>
-);
-
-// ── Reusable action button ────────────────────────────────────────────────────
-const BTN_BASE: React.CSSProperties = {
-  display: "inline-flex", alignItems: "center", justifyContent: "center",
-  width: 30, height: 30, borderRadius: 7,
-  borderWidth: "1px", borderStyle: "solid",
-  borderColor: "var(--border)",
-  background: "var(--bg-card)",
-  color: "var(--text-muted)",
-  cursor: "pointer", flexShrink: 0,
-  transition: "all .15s", padding: 0,
-};
-
-function ActionBtn({ title, onClick, hoverStyle, children, loading }: {
-  title: string; onClick: () => void;
-  hoverStyle: React.CSSProperties;
-  children: React.ReactNode;
-  loading?: boolean;
-}) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      title={title}
-      onClick={onClick}
-      disabled={loading}
-      style={{ ...BTN_BASE, ...(hovered ? hoverStyle : {}), opacity: loading ? 0.5 : 1 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {children}
-    </button>
-  );
-}
-
 type FilterTab = "All" | "Available" | "Pending" | "On_Trip" | "Maintenance";
 
 const TABS: { key: FilterTab; label: string }[] = [
@@ -112,29 +55,52 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
   const [removeLoading, setRemoveLoading] = useState(false);
   const [statusTarget,  setStatusTarget]  = useState<Vehicle | null>(null);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
+  // ── Fetch vehicles + resolve driver names ─────────────────────────────────
   function loadVehicles() {
     setLoading(true);
     apiClient.get("/vehicles")
-      .then(res => {
-        const list = Array.isArray(res.data)
+      .then(async res => {
+        const list: any[] = Array.isArray(res.data)
           ? res.data
           : (res.data?.data ?? res.data?.vehicles ?? []);
-        setVehicles(list.map(mapBackendVehicle));
+
+        // Collect unique driverIds that need name resolution
+        const driverIds = [...new Set(
+          list.map((v: any) => v.driverId).filter(Boolean)
+        )] as string[];
+
+        // Build a driverId → "First Last" map by fetching all drivers once
+        const driverMap = new Map<string, string>();
+        if (driverIds.length > 0) {
+          try {
+            const drRes = await apiClient.get("/drivers", { params: { limit: 200 } });
+            const drList: any[] = Array.isArray(drRes.data)
+              ? drRes.data
+              : (drRes.data?.data ?? []);
+            for (const d of drList) {
+              if (d.id && (d.firstName || d.lastName)) {
+                driverMap.set(d.id, `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim());
+              }
+            }
+          } catch { /* ignore — driver names are cosmetic */ }
+        }
+
+        setVehicles(list.map((v: any) => mapBackendVehicle(v, driverMap)));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }
+
   useEffect(() => { loadVehicles(); }, []);
 
-  // ── KPI counts ─────────────────────────────────────────────────────────────
+  // ── KPI counts ────────────────────────────────────────────────────────────
   const total       = vehicles.length;
   const available   = vehicles.filter(v => v.status === "Available").length;
   const pending     = vehicles.filter(v => v.status === "Pending").length;
   const onTrip      = vehicles.filter(v => v.status === "On_Trip").length;
   const maintenance = vehicles.filter(v => v.status === "Maintenance").length;
 
-  // ── Filter + search ────────────────────────────────────────────────────────
+  // ── Filter + search ───────────────────────────────────────────────────────
   const filtered = useMemo(() => vehicles.filter(v => {
     const matchStatus = activeFilter === "All" || v.status === activeFilter;
     const q = search.toLowerCase();
@@ -151,7 +117,7 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
   const paged      = filtered.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
   const ghostCount = ROWS_PER_PAGE - paged.length;
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
   async function handleRemove() {
     if (!removeTarget) return;
     setRemoveLoading(true);
@@ -246,7 +212,6 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
         ) : (
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-              {/* ⚠️ No whitespace/comments between <col> tags — fixes hydration warning */}
               <colgroup><col style={{ width: "22%" }} /><col style={{ width: "13%" }} /><col style={{ width: "12%" }} /><col style={{ width: "9%" }} /><col style={{ width: "9%" }} /><col style={{ width: "16%" }} /><col style={{ width: "19%" }} /></colgroup>
               <thead>
                 <tr>
@@ -276,60 +241,13 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                 ) : (
                   <>
                     {paged.map(v => (
-                      <tr key={v.id} className="ts-tr" style={{ height: ROW_H }}>
-
-                        {/* Vehicle make + model */}
-                        <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {v.make} {v.model}
-                        </td>
-
-                        {/* Class */}
-                        <td style={TD}>
-                          <ClassBadge vehicleClass={v.vehicleClass} />
-                        </td>
-
-                        {/* Status */}
-                        <td style={TD}>
-                          <StatusPill status={v.status} />
-                        </td>
-
-                        {/* Year */}
-                        <td style={{ ...TD, color: "var(--text-muted)" }}>
-                          {v.year}
-                        </td>
-
-                        {/* Seats */}
-                        <td style={{ ...TD, color: "var(--text-muted)" }}>
-                          {v.seats ?? "—"}
-                        </td>
-
-                        {/* Driver */}
-                        <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {v.driver || <span style={{ color: "var(--text-faint)" }}>Unassigned</span>}
-                        </td>
-
-                        {/* Actions */}
-                        <td style={TD} onClick={e => e.stopPropagation()}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                            <ActionBtn
-                              title="Edit vehicle"
-                              onClick={() => onNavigate("agency-vehicles", v)}
-                              hoverStyle={{ background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }}
-                            ><IconEdit /></ActionBtn>
-                            <ActionBtn
-                              title="Change status"
-                              onClick={() => setStatusTarget(v)}
-                              hoverStyle={{ background: "#f5f3ff", color: "#7c3aed", borderColor: "#ddd6fe" }}
-                            ><IconSync /></ActionBtn>
-                            <ActionBtn
-                              title="Remove vehicle"
-                              onClick={() => setRemoveTarget(v)}
-                              hoverStyle={{ background: "#fef2f2", color: "#dc2626", borderColor: "#fecaca" }}
-                            ><IconTrash /></ActionBtn>
-                          </div>
-                        </td>
-
-                      </tr>
+                      <VehicleTableRow
+                        key={v.id}
+                        v={v}
+                        onEdit={vehicle => onNavigate("agency-vehicles", vehicle)}
+                        onStatusChange={vehicle => setStatusTarget(vehicle)}
+                        onRemove={vehicle => setRemoveTarget(vehicle)}
+                      />
                     ))}
                     {Array.from({ length: ghostCount }).map((_, i) => (
                       <tr key={`g-${i}`} style={{ height: ROW_H }}>

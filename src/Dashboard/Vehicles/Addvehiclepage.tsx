@@ -33,6 +33,12 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       driver: prefill.driver ?? "",
     } : { ...EMPTY_FORM }
   );
+
+  // ✅ Track the selected driver's UUID separately from the display name
+  const [selectedDriverId, setSelectedDriverId] = useState<string | undefined>(
+    (prefill as any)?.driverId ?? undefined
+  );
+
   const [errs,       setErrs]       = useState({ ...EMPTY_ERRS });
   const [submitted,  setSub]        = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -61,7 +67,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       color: form.color || undefined,
       vehicleType: form.vehicleClass || undefined,
       seats: form.seats ? Number(form.seats) : undefined,
-      driverName: form.driver || undefined,
+      driverId: selectedDriverId || undefined, // ✅ send driverId (UUID), not driverName
     };
 
     try {
@@ -92,7 +98,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   const seatOptions  = SEAT_COUNTS.map(s => ({ value: String(s), label: `${s} seats` }));
 
   return (
-    // ✅ outer wrapper: no flex stretch, just column layout
     <div style={{ display: "flex", flexDirection: "column", gap: ".75rem", width: "100%" }}>
 
       {/* Header */}
@@ -106,7 +111,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
         </div>
       </div>
 
-      {/* ✅ Card: no flex:1, no overflow:hidden — shrinks to content */}
       <div className="ts-card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.1rem" }}>
 
         {/* Row 1 — Make / Model */}
@@ -142,7 +146,15 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
 
         {/* Row 5 — Assigned Driver */}
         <Field label="Assigned Driver" error={errs.driver}>
-          <DriverPicker value={form.driver} error={errs.driver} onSelect={v => set("driver", v)} />
+          <DriverPicker
+            value={form.driver}
+            error={errs.driver}
+            onSelect={({ id, fullName }) => {
+              // ✅ store display name in form (for UI) and UUID for the API call
+              set("driver", fullName);
+              setSelectedDriverId(id);
+            }}
+          />
         </Field>
 
         {/* API error */}
@@ -152,7 +164,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           </div>
         )}
 
-        {/* ✅ Actions — no marginTop auto, just sits right below last field */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", paddingTop: ".25rem" }}>
           <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")} disabled={submitting}>Cancel</button>
           <button className="ts-btn-primary" onClick={handleSubmit} disabled={submitting}>
