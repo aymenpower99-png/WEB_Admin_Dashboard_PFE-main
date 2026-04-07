@@ -20,7 +20,7 @@ import VehiclesPage from "../Dashboard/Vehicles/Vehiclespage";
 import AddVehiclePage from "../Dashboard/Vehicles/Addvehiclepage";
 import TripsPage from "../Dashboard/BookingsPage";
 import AgencyPaymentsData from "../Dashboard/billing/AgencyBillingPage";
-import HelpCenter from "../Dashboard/HelpCentre";
+import HelpCenter from "../Dashboard/HelpCentre/HelpCenter";
 import Settings from "../Dashboard/settings/Settings";
 import AvailableRidesPage from "../Dashboard/Rides/AvailableRides";
 import UpcomingRidesPage from "../Dashboard/Rides/UpcomingRides";
