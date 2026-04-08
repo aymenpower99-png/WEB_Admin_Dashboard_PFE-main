@@ -73,7 +73,7 @@ export default function UserContextSection({ ticket, dark }: UserContextSectionP
       </SectionBlock>
 
       {/* Trip Details — conditional on ticket type */}
-      {ticket.ticketType === "linked_trip" ? (
+      {ticket.ticketType === "report_issue" ? (
         <SectionBlock title="Trip Details" dark={dark}>
           <Row label="Trip ID" value={ticket.trip.tripId} dark={dark} />
           <Row label="Date"    value={ticket.trip.date}   dark={dark} />

@@ -82,7 +82,7 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, o
 
           {/* Right: Resolve + Link to Trip */}
           <div className="flex-shrink-0 flex items-center gap-2">
-            {ticket.ticketType === "general" && ticket.status !== "Resolved" && (
+            {ticket.ticketType === "submit_ticket" && ticket.status !== "Resolved" && (
               <button
                 onClick={() => onLinkTrip(ticket.id)}
                 className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border transition-colors ${

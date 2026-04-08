@@ -79,7 +79,7 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
         if (t.id !== id) return t;
         return {
           ...t,
-          ticketType: "linked_trip" as const,
+          ticketType: "report_issue" as const,
           linkedTripId: tripId,
           trip: {
             ...t.trip,
