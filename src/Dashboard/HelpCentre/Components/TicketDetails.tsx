@@ -14,8 +14,6 @@ interface TicketDetailsProps {
 
 type Page = 1 | 2 | 3;
 
-const GRADIENT = "linear-gradient(135deg,#8b5cf6,#6d28d9)";
-
 export default function TicketDetails({ ticket, onStatusChange, onSendMessage, dark }: TicketDetailsProps) {
   const [page, setPage] = useState<Page>(1);
 
@@ -56,7 +54,7 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, d
   return (
     <div className={`flex flex-col h-full overflow-hidden ${card}`}>
 
-      {/* ── HEADER — no avatar, no member since, no status dropdown, no escalate ── */}
+      {/* HEADER */}
       <div className={`flex-shrink-0 px-6 py-4 border-b ${divider}`}>
         <div className="flex items-start justify-between gap-4 flex-wrap">
 
@@ -78,7 +76,7 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, d
             </div>
           </div>
 
-          {/* Right: Resolve only */}
+          {/* Right: Resolve */}
           <div className="flex-shrink-0">
             {ticket.status !== "Resolved" ? (
               <button
@@ -103,7 +101,7 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, d
         </div>
       </div>
 
-      {/* ── PAGE TABS ── */}
+      {/* PAGE TABS */}
       <div className={`flex-shrink-0 flex border-b ${divider}`}>
         {PAGE_TABS.map((tab) => (
           <button
@@ -128,14 +126,14 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, d
         ))}
       </div>
 
-      {/* ── PAGE 1: Details ── */}
+      {/* PAGE 1: Details */}
       {page === 1 && (
         <div className="flex-1 overflow-y-auto px-6 py-5 min-h-0">
           <UserContextSection ticket={ticket} dark={dark} />
         </div>
       )}
 
-      {/* ── PAGE 2: Conversation ── */}
+      {/* PAGE 2: Conversation */}
       {page === 2 && (
         <div className="flex-1 flex flex-col min-h-0">
           <ConversationTab
@@ -146,7 +144,7 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, d
         </div>
       )}
 
-      {/* ── PAGE 3: Activity ── */}
+      {/* PAGE 3: Activity */}
       {page === 3 && (
         <div className="flex-1 overflow-y-auto px-6 py-5 min-h-0">
           <ActivityTab events={ticket.activity} dark={dark} />

@@ -97,10 +97,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
         <div className="ts-page-header">
           <div>
             <h1 className="ts-page-title">Drivers</h1>
-            <p className="ts-page-subtitle">
-              {drivers.length} registered · {counts.online} online ·{" "}
-              {counts.offline} offline
-            </p>
+      
           </div>
         </div>
 

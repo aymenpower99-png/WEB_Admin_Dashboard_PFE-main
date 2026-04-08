@@ -1,6 +1,6 @@
 export type TicketStatus = "Open" | "In Progress" | "Pending" | "Resolved";
 export type UserRole = "Passenger" | "Driver";
-export type TicketCategory = "Ride" | "Payment" | "Account" | "Technical";
+export type TicketCategory = "Ride" | "Payment" | "Account" | "Technical" | "App Bug";
 
 export interface InternalNote {
   id: string;

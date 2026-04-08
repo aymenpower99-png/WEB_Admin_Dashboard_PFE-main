@@ -76,7 +76,6 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
       className="flex overflow-hidden"
       style={{ height: "calc(100vh - var(--nav-h, 56px))" }}
     >
-      {/* Left: Ticket List — fixed width */}
       <div className="w-[340px] flex-shrink-0 h-full">
         <TicketList
           tickets={tickets}
@@ -85,8 +84,6 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
           dark={dark}
         />
       </div>
-
-      {/* Right: Ticket Details — fills rest */}
       <div className="flex-1 min-w-0 h-full">
         <TicketDetails
           ticket={selectedTicket}

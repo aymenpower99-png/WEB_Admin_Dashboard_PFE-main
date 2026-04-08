@@ -61,8 +61,8 @@ export const INITIAL_DRIVERS: Driver[] = [
 ];
 
 /* ─── CONSTANTS ──────────────────────────────────────────────────────────── */
-const ROWS  = 8;
-const ROW_H = 54;
+const ROWS  = 5;
+const ROW_H = 88;
 const ZONE_COLORS = ["#6366f1","#10b981","#f59e0b","#ef4444","#3b82f6","#8b5cf6","#ec4899","#06b6d4","#84cc16","#f97316"];
 
 /* ─── TABLE STYLES ──────────────────────────────────────���────────────────── */
