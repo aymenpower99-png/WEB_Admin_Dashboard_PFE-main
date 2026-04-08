@@ -12,11 +12,8 @@ const BADGE_BASE: React.CSSProperties = {
   borderStyle: "solid",
 };
 
-// ── Availability status badge styles — semi-transparent so they work in dark mode ──
-// ✅ Replaced hardcoded opaque hex backgrounds with rgba() so the pill looks
-//    correct on both light (--bg-card) and dark (--bg-card dark) surfaces.
 const AVAILABILITY_BADGE: Record<string, React.CSSProperties> = {
-  online:  {
+  online: {
     ...BADGE_BASE,
     background: "rgba(16,185,129,0.15)",
     color: "#10b981",
@@ -28,17 +25,29 @@ const AVAILABILITY_BADGE: Record<string, React.CSSProperties> = {
     color: "var(--text-muted)",
     borderColor: "rgba(107,114,128,0.35)",
   },
-  busy: {
+  pending: {
     ...BADGE_BASE,
-    background: "rgba(245,158,11,0.15)",
-    color: "#d97706",
-    borderColor: "rgba(245,158,11,0.4)",
+    background: "rgba(124,58,237,0.12)",
+    color: "#7c3aed",
+    borderColor: "rgba(124,58,237,0.35)",
+  },
+  setup_required: {
+    ...BADGE_BASE,
+    background: "rgba(234,88,12,0.12)",
+    color: "#c2410c",
+    borderColor: "rgba(234,88,12,0.35)",
   },
 };
 
-// ── DriverStatusBadge ─────────────────────────────────────────────────────────
+const STATUS_LABEL: Record<string, string> = {
+  online:         "Online",
+  offline:        "Offline",
+  pending:        "Pending",
+  setup_required: "Setup Required",
+};
+
 export function DriverStatusBadge({ status }: { status: string }) {
   const style = AVAILABILITY_BADGE[status] ?? AVAILABILITY_BADGE.offline;
-  const label = status.charAt(0).toUpperCase() + status.slice(1);
+  const label = STATUS_LABEL[status] ?? status.charAt(0).toUpperCase() + status.slice(1);
   return <span style={style}>{label}</span>;
 }

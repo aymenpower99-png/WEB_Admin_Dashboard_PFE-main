@@ -1,6 +1,11 @@
 import apiClient from "./apiClient";
 
-export type DriverAvailabilityStatus = "online" | "offline";
+export type DriverAvailabilityStatus =
+  | "pending"
+  | "setup_required"
+  | "offline"
+  | "online";
+
 export type DriverLanguage = "English" | "French" | "Arabic";
 
 export interface DriverProfile {
@@ -43,8 +48,6 @@ export interface CompleteDriverProfilePayload {
 }
 
 export const driversApi = {
-  // axios response shape: { data: { data: DriverProfile[], total, page, limit } }
-  // so .then(r => r.data) gives us { data: DriverProfile[], total, page, limit }
   getAll: (params?: {
     page?: number;
     limit?: number;

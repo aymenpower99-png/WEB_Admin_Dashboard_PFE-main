@@ -1,6 +1,6 @@
 import type React from "react";
 
-export const ROWS = 5;   // ← changed from 10 to 5
+export const ROWS = 5;
 export const ROW_H = 88;
 
 export const TH: React.CSSProperties = {
@@ -26,7 +26,10 @@ export const TD: React.CSSProperties = {
 };
 
 export const STATUS_CFG = {
-  online:  { label: "Online",  bg: "#d1fae5", fg: "#065f46" },
-  busy:    { label: "Busy",    bg: "#fef3c7", fg: "#92400e" },
-  offline: { label: "Offline", bg: "#f3f4f6", fg: "#6b7280" },
+  pending:       { label: "Pending",       bg: "#ede9fe", fg: "#7c3aed" },
+  setup_required:{ label: "Setup Required",bg: "#fff7ed", fg: "#c2410c" },
+  online:        { label: "Online",        bg: "#d1fae5", fg: "#065f46" },
+  offline:       { label: "Offline",       bg: "#f3f4f6", fg: "#6b7280" },
 } as const;
+
+export type DriverStatusKey = keyof typeof STATUS_CFG;

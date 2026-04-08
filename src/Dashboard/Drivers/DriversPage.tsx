@@ -11,7 +11,7 @@ import DeleteDriverModal from "./components/DeleteDriverModal";
 import { DriverStatusBadge } from "./Badge_action_buttons/DriversBadges";
 import { DriverInlineRowActions } from "./Badge_action_buttons/DriversActionButtons";
 
-type FilterKey = "all" | "online" | "offline";
+type FilterKey = "all" | "pending" | "setup_required" | "offline" | "online";
 
 interface DriversPageProps {
   onNavigate: (page: string, prefill?: DriverProfile | null) => void;
@@ -41,9 +41,11 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
 
   const counts = useMemo(
     () => ({
-      all: drivers.length,
-      online: drivers.filter((d) => d.availabilityStatus === "online").length,
-      offline: drivers.filter((d) => d.availabilityStatus === "offline").length,
+      all:           drivers.length,
+      pending:       drivers.filter((d) => d.availabilityStatus === "pending").length,
+      setup_required:drivers.filter((d) => d.availabilityStatus === "setup_required").length,
+      online:        drivers.filter((d) => d.availabilityStatus === "online").length,
+      offline:       drivers.filter((d) => d.availabilityStatus === "offline").length,
     }),
     [drivers],
   );
@@ -82,6 +84,15 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
     }
   }
 
+  // Filter tabs config
+  const FILTER_TABS: { key: FilterKey; label: string }[] = [
+    { key: "all",            label: `All (${counts.all})` },
+    { key: "pending",        label: `Pending (${counts.pending})` },
+    { key: "setup_required", label: `Setup Required (${counts.setup_required})` },
+    { key: "offline",        label: `Offline (${counts.offline})` },
+    { key: "online",         label: `Online (${counts.online})` },
+  ];
+
   return (
     <>
       {removeId !== null && (
@@ -97,7 +108,6 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
         <div className="ts-page-header">
           <div>
             <h1 className="ts-page-title">Drivers</h1>
-      
           </div>
         </div>
 
@@ -106,11 +116,11 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
 
         {/* Filter + Search */}
         <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", gap: ".35rem" }}>
-            {(["all", "online", "offline"] as const).map((k) => (
+          <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>
+            {FILTER_TABS.map(({ key, label }) => (
               <button
-                key={k}
-                onClick={() => { setFilter(k); setPage(1); }}
+                key={key}
+                onClick={() => { setFilter(key); setPage(1); }}
                 style={{
                   padding: ".3rem .85rem",
                   borderRadius: "9999px",
@@ -118,14 +128,12 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                   fontWeight: 600,
                   cursor: "pointer",
                   border: "none",
-                  background: filter === k ? "#7c3aed" : "var(--bg-inner)",
-                  color: filter === k ? "#fff" : "var(--text-muted)",
+                  background: filter === key ? "#7c3aed" : "var(--bg-inner)",
+                  color: filter === key ? "#fff" : "var(--text-muted)",
                   transition: "all .15s",
                 }}
               >
-                {k === "all"
-                  ? `All (${counts.all})`
-                  : `${STATUS_CFG[k]?.label ?? k} (${counts[k]})`}
+                {label}
               </button>
             ))}
           </div>
@@ -154,8 +162,8 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                 <colgroup>
                   <col style={{ width: "18%" }} />
                   <col style={{ width: "18%" }} />
-                  <col style={{ width: "12%" }} />
-                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "14%" }} />
                   <col style={{ width: "8%" }} />
                   <col style={{ width: "10%" }} />
                   <col style={{ width: "18%" }} />
@@ -207,14 +215,14 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                             <DriverStatusBadge status={d.availabilityStatus} />
                           </td>
 
-                          {/* Vehicle */}
+                          {/* Vehicle — show dash if pending/setup_required */}
                           <td style={{ ...TD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {d.vehicle
                               ? `${d.vehicle.make} ${d.vehicle.model}`
                               : <span style={{ color: "var(--text-faint)" }}>—</span>}
                           </td>
 
-                          {/* Trips — ✅ was color: "#111827", now uses CSS var */}
+                          {/* Trips */}
                           <td style={{ ...TD, fontWeight: 800, color: "var(--text-h)" }}>
                             {d.totalTrips ?? 0}
                           </td>
