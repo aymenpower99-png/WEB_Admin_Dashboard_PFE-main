@@ -72,8 +72,8 @@ export default function UserContextSection({ ticket, dark }: UserContextSectionP
         <Row label="Phone" value={ticket.user.phone} dark={dark} />
       </SectionBlock>
 
-      {/* Trip Details — conditional on ticket type */}
-      {ticket.ticketType === "linked_trip" ? (
+      {/* Trip Details — always shown, empty state when no trip linked */}
+      {ticket.trip.tripId !== "—" ? (
         <SectionBlock title="Trip Details" dark={dark}>
           <Row label="Trip ID" value={ticket.trip.tripId} dark={dark} />
           <Row label="Date"    value={ticket.trip.date}   dark={dark} />
@@ -107,16 +107,13 @@ export default function UserContextSection({ ticket, dark }: UserContextSectionP
         </SectionBlock>
       ) : (
         <SectionBlock title="Trip Details" dark={dark}>
-          <div className="py-6 flex flex-col items-center gap-2 text-center">
-            <svg className={`w-8 h-8 ${dark ? "text-gray-600" : "text-gray-300"}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+          <div className="py-5 flex flex-col items-center gap-1 text-center">
+            <svg className={`w-6 h-6 ${dark ? "text-gray-600" : "text-gray-300"}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
             </svg>
-            <p className={`text-sm font-medium ${dark ? "text-gray-300" : "text-gray-600"}`}>
-              No trip linked to this ticket
-            </p>
-            <p className={`text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>
-              This is a general support ticket. The admin can link it to a trip from the header.
+            <p className={`text-xs font-medium ${dark ? "text-gray-400" : "text-gray-500"}`}>
+              No trip linked
             </p>
           </div>
         </SectionBlock>

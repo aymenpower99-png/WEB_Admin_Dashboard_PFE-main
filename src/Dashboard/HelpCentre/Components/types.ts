@@ -1,7 +1,6 @@
 export type TicketStatus = "Open" | "In Progress" | "Pending" | "Resolved";
 export type UserRole = "Passenger" | "Driver";
 export type TicketCategory = "Ride" | "Payment" | "Account" | "Technical" | "App Bug";
-export type TicketType = "linked_trip" | "general";
 
 export interface InternalNote {
   id: string;
@@ -30,8 +29,6 @@ export interface Ticket {
   id: string;
   title: string;
   status: TicketStatus;
-  ticketType: TicketType;
-  linkedTripId?: string;
   role: UserRole;
   category: TicketCategory;
   time: string;
