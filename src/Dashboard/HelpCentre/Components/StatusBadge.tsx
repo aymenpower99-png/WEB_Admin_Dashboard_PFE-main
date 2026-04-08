@@ -25,18 +25,17 @@ const CATEGORY_CLASSES: Record<string, { light: string; dark: string }> = {
   "App Bug":   { light: "bg-orange-100 text-orange-700",         dark: "bg-orange-900/30 text-orange-400" },
 };
 
-const TICKET_TYPE_CLASSES: Record<string, { light: string; dark: string; label: string; dot: string }> = {
-  "linked_trip": { light: "bg-green-100 text-green-700", dark: "bg-green-900/30 text-green-400", label: "Linked to Trip", dot: "text-green-500" },
-  "general":     { light: "bg-blue-100 text-blue-700",  dark: "bg-blue-900/30 text-blue-400",   label: "General",        dot: "text-blue-500" },
+const TICKET_TYPE_CLASSES: Record<string, { light: string; dark: string; label: string }> = {
+  "report_issue":  { light: "bg-sky-100 text-sky-700",    dark: "bg-sky-900/30 text-sky-400",   label: "Report Issue"  },
+  "submit_ticket": { light: "bg-slate-100 text-slate-600", dark: "bg-slate-800 text-slate-400", label: "Submit Ticket" },
 };
 
 export default function StatusBadge({ type, value, dark = false }: StatusBadgeProps) {
   if (type === "ticket-type") {
-    const cfg = TICKET_TYPE_CLASSES[value] ?? { light: "bg-slate-100 text-slate-500", dark: "bg-slate-800 text-slate-400", label: value, dot: "text-slate-400" };
+    const cfg = TICKET_TYPE_CLASSES[value] ?? { light: "bg-slate-100 text-slate-500", dark: "bg-slate-800 text-slate-400", label: value };
     const cls = dark ? cfg.dark : cfg.light;
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${cls}`}>
-        <span className={cfg.dot}>●</span>
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${cls}`}>
         {cfg.label}
       </span>
     );

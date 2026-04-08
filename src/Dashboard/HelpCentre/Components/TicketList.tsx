@@ -43,10 +43,10 @@ export default function TicketList({ tickets, selectedId, onSelect, dark }: Tick
   });
 
   const ROLE_BTNS: (UserRole | "All")[] = ["All", "Passenger", "Driver"];
-  const TYPE_BTNS: { value: TicketType | "All"; label: string }[] = [
-    { value: "All", label: "All Types" },
-    { value: "linked_trip", label: "🟢 Linked to Trip" },
-    { value: "general", label: "🔵 General" },
+  const TYPE_OPTIONS: { value: TicketType | "All"; label: string }[] = [
+    { value: "All",           label: "Type: All"      },
+    { value: "report_issue",  label: "Report Issue"   },
+    { value: "submit_ticket", label: "Submit Ticket"  },
   ];
 
   return (
@@ -99,27 +99,21 @@ export default function TicketList({ tickets, selectedId, onSelect, dark }: Tick
           })}
         </div>
 
-        {/* Type filter — pill buttons */}
-        <div className="flex gap-1.5 mb-3 flex-wrap">
-          {TYPE_BTNS.map(({ value, label }) => {
-            const isActive = typeFilter === value;
-            return (
-              <button
-                key={value}
-                onClick={() => setTypeFilter(value)}
-                className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all duration-150 ${
-                  isActive
-                    ? "text-white shadow-sm"
-                    : dark
-                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-                style={isActive ? { background: "linear-gradient(135deg,#8b5cf6,#6d28d9)" } : {}}
-              >
-                {label}
-              </button>
-            );
-          })}
+        {/* Type filter — dropdown */}
+        <div className="relative mb-3">
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as TicketType | "All")}
+            className={`w-full border rounded-lg pl-3 pr-8 py-2 text-xs outline-none appearance-none cursor-pointer transition-colors font-medium ${selectCls}`}
+          >
+            {TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <svg className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none ${muted}`}
+            fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </div>
 
         {/* Status dropdown — matching app style */}
