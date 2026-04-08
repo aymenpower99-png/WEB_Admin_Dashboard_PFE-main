@@ -28,6 +28,7 @@ export interface ActivityEvent {
 export interface Ticket {
   id: string;
   title: string;
+  description: string;       // ← ticket description from backend
   status: TicketStatus;
   role: UserRole;
   category: TicketCategory;

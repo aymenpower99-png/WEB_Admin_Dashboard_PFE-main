@@ -8,6 +8,11 @@ interface TicketCardProps {
   dark: boolean;
 }
 
+/** TKT-XXXXXXXX format (first 8 chars uppercased) */
+function formatTicketId(id: string) {
+  return `TKT-${id.slice(0, 8).toUpperCase()}`;
+}
+
 export default function TicketCard({ ticket, isSelected, onSelect, dark }: TicketCardProps) {
   const base = dark
     ? "border-b border-gray-800 hover:bg-gray-800/50"
@@ -30,14 +35,19 @@ export default function TicketCard({ ticket, isSelected, onSelect, dark }: Ticke
         <StatusBadge type="status" value={ticket.status} dark={dark} />
       </div>
 
-      {/* Row 2: ID · Name */}
-      <p className={`text-xs mb-2 ${muted}`}>
-        #{ticket.id} · {ticket.user.name}
+      {/* Row 2: Ticket ID on its own line */}
+      <p className={`text-xs font-mono mb-0.5 ${muted}`}>
+        {formatTicketId(ticket.id)}
       </p>
 
-      {/* Row 3: role + category badges + time */}
+      {/* Row 3: user name on its own line */}
+      <p className={`text-xs mb-2 ${dark ? "text-gray-300" : "text-gray-600"}`}>
+        {ticket.user.name}
+      </p>
+
+      {/* Row 4: role + category badges + time */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <StatusBadge type="role" value={ticket.role} dark={dark} />
+        <StatusBadge type="role"     value={ticket.role}     dark={dark} />
         <StatusBadge type="category" value={ticket.category} dark={dark} />
         <span className={`text-xs ml-auto ${muted}`}>{ticket.time}</span>
       </div>

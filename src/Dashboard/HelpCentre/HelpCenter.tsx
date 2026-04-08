@@ -1,6 +1,6 @@
-import { useState } from "react";
-import type { Ticket, TicketStatus, Message } from "./Components/types";
-import { INITIAL_TICKETS } from "./Components/data";
+import { useState, useEffect } from "react";
+import type { TicketStatus } from "./Components/types";
+import { useTickets } from "./Components/useTickets";
 import TicketList from "./Components/TicketList";
 import TicketDetails from "./Components/TicketDetails";
 
@@ -9,65 +9,56 @@ interface HelpCenterProps {
 }
 
 export default function HelpCenter({ dark }: HelpCenterProps) {
-  const [tickets, setTickets] = useState<Ticket[]>(() =>
-    INITIAL_TICKETS.map((t) => ({
-      ...t,
-      notes: [...t.notes],
-      messages: [...t.messages],
-      activity: [...t.activity],
-    }))
-  );
-  const [selectedId, setSelectedId] = useState<string>(INITIAL_TICKETS[0].id);
+  const { tickets, loading, error, changeStatus, sendMessage, loadTicketMessages } = useTickets();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Auto-select first ticket once loaded
+  useEffect(() => {
+    if (!selectedId && tickets.length > 0) {
+      setSelectedId(tickets[0].id);
+    }
+  }, [tickets, selectedId]);
+
+  // When selected ticket changes → load its full messages from backend
+  useEffect(() => {
+    if (selectedId) {
+      loadTicketMessages(selectedId);
+    }
+  }, [selectedId, loadTicketMessages]);
+
   const selectedTicket = tickets.find((t) => t.id === selectedId) ?? tickets[0];
 
-  function handleStatusChange(id: string, status: TicketStatus) {
-    setTickets((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        return {
-          ...t,
-          status,
-          activity: [
-            ...t.activity,
-            {
-              id: `a${Date.now()}`,
-              type: status === "Resolved" ? ("resolved" as const) : ("status_change" as const),
-              description: `Status changed to ${status}`,
-              timestamp: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-              actor: "Admin",
-            },
-          ],
-        };
-      })
+  function handleSelect(id: string) {
+    setSelectedId(id);
+  }
+
+  if (loading) {
+    return (
+      <div className={`flex items-center justify-center h-full ${dark ? "text-gray-300" : "text-gray-600"}`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm">Loading tickets…</p>
+        </div>
+      </div>
     );
   }
 
-  function handleSendMessage(id: string, content: string) {
-    const newMessage: Message = {
-      id: `m${Date.now()}`,
-      sender: "Admin",
-      senderType: "admin",
-      content,
-      timestamp: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-    };
-    setTickets((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        return {
-          ...t,
-          messages: [...t.messages, newMessage],
-          activity: [
-            ...t.activity,
-            {
-              id: `a${Date.now()}`,
-              type: "admin_reply" as const,
-              description: "Admin sent a message",
-              timestamp: newMessage.timestamp,
-              actor: "Admin",
-            },
-          ],
-        };
-      })
+  if (error) {
+    return (
+      <div className={`flex items-center justify-center h-full ${dark ? "text-red-400" : "text-red-600"}`}>
+        <div className="text-center">
+          <p className="text-sm font-semibold mb-1">Failed to load tickets</p>
+          <p className="text-xs opacity-70">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedTicket) {
+    return (
+      <div className={`flex items-center justify-center h-full ${dark ? "text-gray-400" : "text-gray-500"}`}>
+        <p className="text-sm">No tickets found.</p>
+      </div>
     );
   }
 
@@ -79,16 +70,16 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
       <div className="w-[340px] flex-shrink-0 h-full">
         <TicketList
           tickets={tickets}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
+          selectedId={selectedTicket.id}
+          onSelect={handleSelect}
           dark={dark}
         />
       </div>
       <div className="flex-1 min-w-0 h-full">
         <TicketDetails
           ticket={selectedTicket}
-          onStatusChange={handleStatusChange}
-          onSendMessage={handleSendMessage}
+          onStatusChange={(id, status: TicketStatus) => changeStatus(id, status)}
+          onSendMessage={(id, content) => sendMessage(id, content)}
           dark={dark}
         />
       </div>
