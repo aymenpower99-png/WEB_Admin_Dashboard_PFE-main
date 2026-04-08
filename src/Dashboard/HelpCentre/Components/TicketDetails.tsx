@@ -9,7 +9,6 @@ interface TicketDetailsProps {
   ticket: Ticket;
   onStatusChange: (id: string, status: TicketStatus) => void;
   onSendMessage: (id: string, content: string) => void;
-  onLinkTrip: (id: string) => void;
   dark: boolean;
 }
 
@@ -17,7 +16,7 @@ type Page = 1 | 2 | 3;
 
 const GRADIENT = "linear-gradient(135deg,#8b5cf6,#6d28d9)";
 
-export default function TicketDetails({ ticket, onStatusChange, onSendMessage, onLinkTrip, dark }: TicketDetailsProps) {
+export default function TicketDetails({ ticket, onStatusChange, onSendMessage, dark }: TicketDetailsProps) {
   const [page, setPage] = useState<Page>(1);
 
   const card = dark ? "bg-gray-900" : "bg-white";
@@ -73,27 +72,14 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, o
                 {ticket.user.name}
               </span>
               <span className={`text-xs ${muted}`}>·</span>
-              <StatusBadge type="ticket-type" value={ticket.ticketType} dark={dark} />
               <StatusBadge type="role" value={ticket.role} dark={dark} />
               <StatusBadge type="category" value={ticket.category} dark={dark} />
               <StatusBadge type="status" value={ticket.status} dark={dark} />
             </div>
           </div>
 
-          {/* Right: Resolve + Link to Trip */}
+          {/* Right: Resolve */}
           <div className="flex-shrink-0 flex items-center gap-2">
-            {ticket.ticketType === "general" && ticket.status !== "Resolved" && (
-              <button
-                onClick={() => onLinkTrip(ticket.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl border transition-colors ${
-                  dark
-                    ? "border-violet-500 text-violet-300 hover:bg-violet-900/30"
-                    : "border-violet-400 text-violet-700 hover:bg-violet-50"
-                }`}
-              >
-                🔗 Link to Trip
-              </button>
-            )}
             {ticket.status !== "Resolved" ? (
               <button
                 onClick={() => onStatusChange(ticket.id, "Resolved")}
