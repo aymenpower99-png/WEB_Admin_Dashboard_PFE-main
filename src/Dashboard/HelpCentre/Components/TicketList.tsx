@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Ticket, TicketStatus, UserRole } from "./types";
+import type { Ticket, TicketStatus, UserRole, TicketType } from "./types";
 import TicketCard from "./TicketCard";
 
 interface TicketListProps {
@@ -14,6 +14,7 @@ const STATUS_OPTIONS: (TicketStatus | "All")[] = ["All", "Open", "In Progress", 
 export default function TicketList({ tickets, selectedId, onSelect, dark }: TicketListProps) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<UserRole | "All">("All");
+  const [typeFilter, setTypeFilter] = useState<TicketType | "All">("All");
   const [statusFilter, setStatusFilter] = useState<TicketStatus | "All">("All");
 
   const panel = dark ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200";
@@ -29,6 +30,7 @@ export default function TicketList({ tickets, selectedId, onSelect, dark }: Tick
 
   const filtered = tickets.filter((tk) => {
     const roleOk = roleFilter === "All" || tk.role === roleFilter;
+    const typeOk = typeFilter === "All" || tk.ticketType === typeFilter;
     const statusOk = statusFilter === "All" || tk.status === statusFilter;
     const q = search.toLowerCase();
     const searchOk =
@@ -37,10 +39,15 @@ export default function TicketList({ tickets, selectedId, onSelect, dark }: Tick
       tk.user.name.toLowerCase().includes(q) ||
       tk.user.email.toLowerCase().includes(q) ||
       tk.id.includes(q);
-    return roleOk && statusOk && searchOk;
+    return roleOk && typeOk && statusOk && searchOk;
   });
 
   const ROLE_BTNS: (UserRole | "All")[] = ["All", "Passenger", "Driver"];
+  const TYPE_BTNS: { value: TicketType | "All"; label: string }[] = [
+    { value: "All", label: "All Types" },
+    { value: "linked_trip", label: "🟢 Linked to Trip" },
+    { value: "general", label: "🔵 General" },
+  ];
 
   return (
     <div className={`flex flex-col h-full border-r overflow-hidden ${panel}`}>
@@ -87,6 +94,29 @@ export default function TicketList({ tickets, selectedId, onSelect, dark }: Tick
                 style={isActive ? { background: "linear-gradient(135deg,#8b5cf6,#6d28d9)" } : {}}
               >
                 {r}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Type filter — pill buttons */}
+        <div className="flex gap-1.5 mb-3 flex-wrap">
+          {TYPE_BTNS.map(({ value, label }) => {
+            const isActive = typeFilter === value;
+            return (
+              <button
+                key={value}
+                onClick={() => setTypeFilter(value)}
+                className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all duration-150 ${
+                  isActive
+                    ? "text-white shadow-sm"
+                    : dark
+                    ? "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+                style={isActive ? { background: "linear-gradient(135deg,#8b5cf6,#6d28d9)" } : {}}
+              >
+                {label}
               </button>
             );
           })}

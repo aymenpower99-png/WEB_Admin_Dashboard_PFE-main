@@ -72,38 +72,55 @@ export default function UserContextSection({ ticket, dark }: UserContextSectionP
         <Row label="Phone" value={ticket.user.phone} dark={dark} />
       </SectionBlock>
 
-      {/* Trip Details */}
-      <SectionBlock title="Trip Details" dark={dark}>
-        <Row label="Trip ID" value={ticket.trip.tripId} dark={dark} />
-        <Row label="Date"    value={ticket.trip.date}   dark={dark} />
-        <Row label="Route"   value={ticket.trip.route}  dark={dark} />
-        <Row label="Price"   value={ticket.trip.price}  dark={dark} />
-        <div
-          className={`flex items-center justify-between py-3 text-sm last:border-b-0 ${
-            dark ? "border-gray-800" : "border-gray-100"
-          }`}
-        >
-          <span className={muted}>Status</span>
-          <span
-            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-              ticket.trip.status.toLowerCase().includes("fail") ||
-              ticket.trip.status.toLowerCase().includes("lock")
-                ? dark
-                  ? "bg-red-900/30 text-red-400"
-                  : "bg-red-100 text-red-700"
-                : ticket.trip.status.toLowerCase().includes("complet")
-                ? dark
-                  ? "bg-emerald-900/30 text-emerald-400"
-                  : "bg-emerald-100 text-emerald-700"
-                : dark
-                ? "bg-slate-700 text-slate-300"
-                : "bg-slate-100 text-slate-600"
+      {/* Trip Details — conditional on ticket type */}
+      {ticket.ticketType === "linked_trip" ? (
+        <SectionBlock title="Trip Details" dark={dark}>
+          <Row label="Trip ID" value={ticket.trip.tripId} dark={dark} />
+          <Row label="Date"    value={ticket.trip.date}   dark={dark} />
+          <Row label="Route"   value={ticket.trip.route}  dark={dark} />
+          <Row label="Price"   value={ticket.trip.price}  dark={dark} />
+          <div
+            className={`flex items-center justify-between py-3 text-sm last:border-b-0 ${
+              dark ? "border-gray-800" : "border-gray-100"
             }`}
           >
-            {ticket.trip.status}
-          </span>
-        </div>
-      </SectionBlock>
+            <span className={muted}>Status</span>
+            <span
+              className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                ticket.trip.status.toLowerCase().includes("fail") ||
+                ticket.trip.status.toLowerCase().includes("lock")
+                  ? dark
+                    ? "bg-red-900/30 text-red-400"
+                    : "bg-red-100 text-red-700"
+                  : ticket.trip.status.toLowerCase().includes("complet")
+                  ? dark
+                    ? "bg-emerald-900/30 text-emerald-400"
+                    : "bg-emerald-100 text-emerald-700"
+                  : dark
+                  ? "bg-slate-700 text-slate-300"
+                  : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {ticket.trip.status}
+            </span>
+          </div>
+        </SectionBlock>
+      ) : (
+        <SectionBlock title="Trip Details" dark={dark}>
+          <div className="py-6 flex flex-col items-center gap-2 text-center">
+            <svg className={`w-8 h-8 ${dark ? "text-gray-600" : "text-gray-300"}`} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+            </svg>
+            <p className={`text-sm font-medium ${dark ? "text-gray-300" : "text-gray-600"}`}>
+              No trip linked to this ticket
+            </p>
+            <p className={`text-xs ${dark ? "text-gray-500" : "text-gray-400"}`}>
+              This is a general support ticket. The admin can link it to a trip from the header.
+            </p>
+          </div>
+        </SectionBlock>
+      )}
 
       {/* Payment */}
 
