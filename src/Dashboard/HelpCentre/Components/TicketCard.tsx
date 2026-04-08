@@ -35,8 +35,9 @@ export default function TicketCard({ ticket, isSelected, onSelect, dark }: Ticke
         #{ticket.id} · {ticket.user.name}
       </p>
 
-      {/* Row 3: role + category badges + time */}
+      {/* Row 3: ticket-type + role + category badges + time */}
       <div className="flex items-center gap-1.5 flex-wrap">
+        <StatusBadge type="ticket-type" value={ticket.ticketType} dark={dark} />
         <StatusBadge type="role" value={ticket.role} dark={dark} />
         <StatusBadge type="category" value={ticket.category} dark={dark} />
         <span className={`text-xs ml-auto ${muted}`}>{ticket.time}</span>

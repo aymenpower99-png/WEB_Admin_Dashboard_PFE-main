@@ -71,6 +71,35 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
     );
   }
 
+  function handleLinkTrip(id: string) {
+    const tripId = prompt("Enter the Trip ID to link:");
+    if (!tripId) return;
+    setTickets((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        return {
+          ...t,
+          ticketType: "linked_trip" as const,
+          linkedTripId: tripId,
+          trip: {
+            ...t.trip,
+            tripId,
+          },
+          activity: [
+            ...t.activity,
+            {
+              id: `a${Date.now()}`,
+              type: "status_change" as const,
+              description: `Admin linked ticket to trip ${tripId}`,
+              timestamp: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+              actor: "Admin",
+            },
+          ],
+        };
+      })
+    );
+  }
+
   return (
     <div
       className="flex overflow-hidden"
@@ -92,6 +121,7 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
           ticket={selectedTicket}
           onStatusChange={handleStatusChange}
           onSendMessage={handleSendMessage}
+          onLinkTrip={handleLinkTrip}
           dark={dark}
         />
       </div>
