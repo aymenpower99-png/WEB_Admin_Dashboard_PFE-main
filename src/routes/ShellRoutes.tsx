@@ -27,13 +27,8 @@ import UpcomingRidesPage from "../Dashboard/Rides/UpcomingRides";
 import PastRidesPage from "../Dashboard/Rides/PastRides";
 import WorkAreasPage from "../Dashboard/WorkArea/WorkAreasPage";
 
-// ✅ Use DriverProfile (the actual type DriversPage expects) instead of the old Driver type
 import type { DriverProfile } from "../api/drivers";
 import type { Vehicle } from "../Dashboard/Vehicles/Vehiclespage";
-import type {
-  WorkArea,
-  Driver as WorkAreaDriver,
-} from "../Dashboard/WorkArea/WorkAreasPage";
 
 /* ─── Page transition order ─────────────────────────────────── */
 const PAGE_ORDER = [
@@ -87,21 +82,16 @@ function PlaceholderPage({
   );
 }
 
-/* ─── Shell props ────────────────────────────────────────────── */
+/* ─── Shell props ─────────────────────────────────────��──────── */
 export interface ShellProps {
   dark: boolean;
   onToggleDark: () => void;
-  // ✅ Updated: editDriver is now DriverProfile (matches DriversPage)
   editDriver: DriverProfile | null;
   setEditDriver: React.Dispatch<React.SetStateAction<DriverProfile | null>>;
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
   editVehicle: Vehicle | null;
   setEditVehicle: React.Dispatch<React.SetStateAction<Vehicle | null>>;
-  areas: WorkArea[];
-  setAreas: React.Dispatch<React.SetStateAction<WorkArea[]>>;
-  workAreaDrivers: WorkAreaDriver[];
-  setWorkAreaDrivers: React.Dispatch<React.SetStateAction<WorkAreaDriver[]>>;
 }
 
 /* ─── Shell ──────────────────────────────────────────────────── */
@@ -114,10 +104,6 @@ export default function Shell({
   setVehicles,
   editVehicle,
   setEditVehicle,
-  areas,
-  setAreas,
-  workAreaDrivers,
-  setWorkAreaDrivers,
 }: ShellProps) {
   const nav = useNavigate();
   const location = useLocation();
@@ -136,11 +122,9 @@ export default function Shell({
     if (location.pathname === targetPath && prefill === undefined) return;
 
     if (page === "agency-drivers")
-      // ✅ always update: passes the driver if editing, or null if coming from sidebar
       setEditDriver((prefill as DriverProfile | null) ?? null);
 
     if (page === "agency-vehicles")
-      // ✅ FIX: always reset editVehicle — passes vehicle when editing, null when "Add Vehicle" from sidebar
       setEditVehicle((prefill as Vehicle | null) ?? null);
 
     const from = PAGE_ORDER.indexOf(prevKeyRef.current);
@@ -279,13 +263,8 @@ export default function Shell({
               <Route path="users" element={<UsersPage dark={dark} />} />
               <Route
                 path="drivers"
-                element={
-                  <DriversPage
-                    onNavigate={navigate}
-                  />
-                }
+                element={<DriversPage onNavigate={navigate} />}
               />
-
               <Route
                 path="vehicles"
                 element={
@@ -324,17 +303,8 @@ export default function Shell({
                   />
                 }
               />
-              <Route
-                path="work-area"
-                element={
-                  <WorkAreasPage
-                    areas={areas}
-                    setAreas={setAreas}
-                    drivers={workAreaDrivers}
-                    setDrivers={setWorkAreaDrivers}
-                  />
-                }
-              />
+              {/* WorkAreasPage manages its own state internally (API-driven) */}
+              <Route path="work-area" element={<WorkAreasPage />} />
               <Route path="help" element={<HelpCenter dark={dark} />} />
               <Route
                 path="settings"

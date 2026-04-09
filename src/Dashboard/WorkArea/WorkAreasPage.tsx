@@ -11,11 +11,19 @@ import WorkAreaPagination         from "./components/WorkAreaPagination";
 import AddWorkAreaModal           from "./components/AddWorkAreaModal";
 import AssignWorkAreaModal        from "./components/AssignWorkAreaModal";
 
+type FilterKey = "all" | "assigned" | "unassigned";
+
+const FILTER_TABS: { key: FilterKey; label: string }[] = [
+  { key: "all",        label: "All"        },
+  { key: "assigned",   label: "Assigned"   },
+  { key: "unassigned", label: "No Ville"   },
+];
+
 export default function WorkAreasPage() {
   const [areas,        setAreas]        = useState<WorkAreaItem[]>([]);
   const [drivers,      setDrivers]      = useState<WorkAreaDriver[]>([]);
   const [loading,      setLoading]      = useState(false);
-  const [filter,       setFilter]       = useState<"all" | "assigned" | "unassigned">("all");
+  const [filter,       setFilter]       = useState<FilterKey>("all");
   const [search,       setSearch]       = useState("");
   const [page,         setPage]         = useState(1);
   const [showAddArea,  setShowAddArea]  = useState(false);
@@ -69,9 +77,9 @@ export default function WorkAreasPage() {
         />
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem", overflowY: "auto", flex: 1 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
-        {/* Header */}
+        {/* Header — same pattern as DriversPage / UsersPage */}
         <div className="ts-page-header">
           <div>
             <h1 className="ts-page-title">Work Areas</h1>
@@ -86,20 +94,25 @@ export default function WorkAreasPage() {
         {/* Stat cards */}
         <WorkAreaStatCards drivers={drivers} areas={areas} />
 
-        {/* Filter + Search */}
-        <div className="ts-filter-bar">
-          {([
-            { key: "all",        label: "All"      },
-            { key: "assigned",   label: "Assigned" },
-            { key: "unassigned", label: "No Ville" },
-          ] as const).map(({ key, label }) => (
-            <button key={key}
-              className={`ts-filter-chip${filter === key ? " ts-active" : ""}`}
-              onClick={() => { setFilter(key); setPage(1); }}
-            >
-              {label}
-            </button>
-          ))}
+        {/* Filter + Search — same inline pill style as DriversPage (no ts-filter-bar card) */}
+        <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>
+            {FILTER_TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => { setFilter(key); setPage(1); }}
+                style={{
+                  padding: ".3rem .85rem", borderRadius: "9999px", fontSize: ".82rem",
+                  fontWeight: 600, cursor: "pointer", border: "none",
+                  background: filter === key ? "#7c3aed" : "var(--bg-inner)",
+                  color:      filter === key ? "#fff"    : "var(--text-muted)",
+                  transition: "all .15s",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div style={{ marginLeft: "auto" }}>
             <div className="ts-search-bar" style={{ minWidth: 220 }}>
               <SearchRoundedIcon style={{ fontSize: 15, flexShrink: 0 }} />
@@ -110,9 +123,6 @@ export default function WorkAreasPage() {
               />
             </div>
           </div>
-          <span className="ts-record-count" style={{ marginLeft: 0 }}>
-            {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-          </span>
         </div>
 
         {/* Table */}
@@ -157,12 +167,14 @@ export default function WorkAreasPage() {
                       {paged.map(driver => (
                         <tr key={driver.id} className="ts-tr" style={{ height: ROW_H }}>
                           {/* Driver */}
-                          <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>
+                          <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {driver.name || "—"}
                           </td>
                           {/* Vehicle */}
                           <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {driver.vehicle ?? <span style={{ color: "var(--text-faint)", fontStyle: "italic" }}>No vehicle</span>}
+                            {driver.vehicle
+                              ? driver.vehicle
+                              : <span style={{ color: "var(--text-faint)", fontStyle: "italic" }}>No vehicle</span>}
                           </td>
                           {/* Ville */}
                           <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -171,7 +183,7 @@ export default function WorkAreasPage() {
                               : <span style={{ color: "var(--text-faint)", fontStyle: "italic", fontWeight: 400 }}>—</span>
                             }
                           </td>
-                          {/* Assignment status text */}
+                          {/* Assignment badge */}
                           <td style={TD}>
                             {driver.workAreaId ? (
                               <span style={{ fontSize: ".78rem", color: "#059669", fontWeight: 600 }}>Assigned</span>
