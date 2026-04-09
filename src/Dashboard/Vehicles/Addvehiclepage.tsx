@@ -36,7 +36,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   const [submitting, setSubmitting] = useState(false);
   const [apiError,   setApiError]   = useState<string | null>(null);
   const [makeId,     setMakeId]     = useState<number | null>(null);
-  // ✅ store the selected driver's UUID separately
   const [driverId,   setDriverId]   = useState<string | null>(prefill?.driverId ?? null);
 
   const set = (key: keyof FormState, val: string) => {
@@ -45,7 +44,8 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   };
 
   const handleMakeSelect = (name: string, id: number | null) => {
-    const next = { ...form, make: name, model: id !== makeId ? "" : form.model };
+    // Reset model when make changes
+    const next = { ...form, make: name, model: "" };
     setForm(next); setMakeId(id);
     if (submitted) setErrs(validate(next));
   };
@@ -61,7 +61,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       color: form.color || undefined,
       vehicleType: form.vehicleClass || undefined,
       seats: form.seats ? Number(form.seats) : undefined,
-      driverId: driverId || undefined,  // ✅ send UUID, not name
+      driverId: driverId || undefined,
     };
 
     try {
@@ -115,7 +115,14 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
             <MakeAutocomplete value={form.make} error={errs.make} onSelect={handleMakeSelect} />
           </Field>
           <Field label="Model" error={errs.model}>
-            <ModelAutocomplete value={form.model} makeId={makeId} error={errs.model} onChange={v => set("model", v)} />
+            {/* ✅ Pass makeName so ModelAutocomplete can look up local models instantly */}
+            <ModelAutocomplete
+              value={form.model}
+              makeId={makeId}
+              makeName={form.make}
+              error={errs.model}
+              onChange={v => set("model", v)}
+            />
           </Field>
         </div>
 
@@ -142,7 +149,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
 
         {/* Row 5 — Assigned Driver */}
         <Field label="Assigned Driver" error={errs.driver}>
-          {/* ✅ onSelect now receives { id, fullName } — store id separately, display fullName */}
           <DriverPicker
             value={form.driver}
             error={errs.driver}
@@ -153,7 +159,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           />
         </Field>
 
-        {/* Row 6 — Vehicle Photos (edit only — inline auto-save) */}
+        {/* Row 6 — Vehicle Photos (edit only) */}
         {isEdit && (
           <VehiclePhotosSection
             vehicleId={prefill!.id}
