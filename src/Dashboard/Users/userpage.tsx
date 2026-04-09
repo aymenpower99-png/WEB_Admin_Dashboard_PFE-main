@@ -14,9 +14,8 @@ import UserKpiCards from "./components/UserKpiCards";
 import UsersPagination from "./components/UsersPagination";
 import InviteModal from "./components/InviteModal";
 import EditModal from "./components/EditModal";
-import CompleteDriverProfileModal from "./components/CompleteDriverProfileModal";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
-import { StatusBadge, ProfileCell } from "./Badge_action_buttons/UsersBadges";
+import { StatusBadge } from "./Badge_action_buttons/UsersBadges";
 import { InlineRowActions } from "./Badge_action_buttons/UsersActionButtons";
 
 interface UsersPageProps {
@@ -27,9 +26,8 @@ interface UsersPageProps {
 export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps) {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState<"invite" | "edit" | "complete-profile" | "delete" | null>(null);
+  const [modal, setModal] = useState<"invite" | "edit" | "delete" | null>(null);
   const [editTarget, setEditTarget] = useState<AdminUser | null>(null);
-  const [profileTarget, setProfileTarget] = useState<AdminUser | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterTab>("All");
   const [search, setSearch] = useState("");
@@ -89,15 +87,6 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
     } catch { /* ignore */ } finally { setActionLoading(null); }
   }
 
-  function handleProfileComplete() {
-    if (profileTarget) {
-      setUsers(p => p.map(x => x.id === profileTarget.id ? { ...x, profileComplete: true } : x));
-    }
-    setModal(null);
-    setProfileTarget(null);
-    loadUsers();
-  }
-
   return (
     <div className={dark ? "dark" : ""} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
@@ -110,14 +99,6 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
           user={editTarget}
           onClose={() => setModal(null)}
           onSave={saved => setUsers(p => p.map(x => x.id === saved.id ? saved : x))}
-        />
-      )}
-      {modal === "complete-profile" && profileTarget && (
-        <CompleteDriverProfileModal
-          userId={profileTarget.id}
-          userName={`${profileTarget.firstName} ${profileTarget.lastName}`}
-          onClose={() => { setModal(null); setProfileTarget(null); }}
-          onSuccess={handleProfileComplete}
         />
       )}
       {modal === "delete" && deleteTarget && (
@@ -167,7 +148,6 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
             </button>
           ))}
         </div>
-
         <div style={{ marginLeft: "auto" }}>
           <div className="ts-search-bar" style={{ minWidth: 240 }}>
             <SearchRoundedIcon style={{ fontSize: 15, flexShrink: 0 }} />
@@ -190,13 +170,12 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
               <colgroup>
-                <col style={{ width: "18%" }} />
                 <col style={{ width: "20%" }} />
-                <col style={{ width: "9%" }} />
+                <col style={{ width: "24%" }} />
                 <col style={{ width: "10%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "11%" }} />
-                <col style={{ width: "20%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "24%" }} />
               </colgroup>
 
               <thead>
@@ -205,7 +184,6 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                   <th style={TH}>Email</th>
                   <th style={TH}>Role</th>
                   <th style={TH}>Status</th>
-                  <th style={TH}>Profile</th>
                   <th style={TH}>Trips</th>
                   <th style={TH}>Actions</th>
                 </tr>
@@ -215,14 +193,14 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                 {filteredUsers.length === 0 ? (
                   <>
                     <tr style={{ height: ROW_H }}>
-                      <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                      <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
                         No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found
                         {search ? ` matching "${search}"` : ""}.
                       </td>
                     </tr>
                     {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
                       <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                        <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
                       </tr>
                     ))}
                   </>
@@ -259,11 +237,6 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                           <StatusBadge status={u.status} />
                         </td>
 
-                        {/* Profile */}
-                        <td style={TD} onClick={e => e.stopPropagation()}>
-                          <ProfileCell u={u} />
-                        </td>
-
                         {/* Trips */}
                         <td style={{ ...TD, fontWeight: 800, color: "var(--text-h)" }}>{u.trips ?? 0}</td>
 
@@ -276,7 +249,6 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                             onBlock={() => handleBlock(u)}
                             onUnblock={() => handleUnblock(u)}
                             onResend={() => handleResend(u)}
-                            onCompleteProfile={() => { setProfileTarget(u); setModal("complete-profile"); }}
                             onDelete={() => { setDeleteTarget(u); setModal("delete"); }}
                           />
                         </td>
@@ -284,7 +256,7 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                     ))}
                     {Array.from({ length: ghostCount }).map((_, i) => (
                       <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                        <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
                       </tr>
                     ))}
                   </>

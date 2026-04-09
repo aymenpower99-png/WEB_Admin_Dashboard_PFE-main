@@ -3,7 +3,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 import type { DriverProfile } from "../../api/drivers";
 import { driversApi } from "../../api/drivers";
-import { ROWS, ROW_H, TH, TD, STATUS_CFG } from "./components/DriversTypes";
+import { ROWS, ROW_H, TH, TD } from "./components/DriversTypes";
 
 import DriverKpiCards from "./components/DriverKpiCards";
 import DriversPagination from "./components/DriversPagination";
@@ -35,20 +35,15 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => {
-    loadDrivers();
-  }, []);
+  useEffect(() => { loadDrivers(); }, []);
 
-  const counts = useMemo(
-    () => ({
-      all:           drivers.length,
-      pending:       drivers.filter((d) => d.availabilityStatus === "pending").length,
-      setup_required:drivers.filter((d) => d.availabilityStatus === "setup_required").length,
-      online:        drivers.filter((d) => d.availabilityStatus === "online").length,
-      offline:       drivers.filter((d) => d.availabilityStatus === "offline").length,
-    }),
-    [drivers],
-  );
+  const counts = useMemo(() => ({
+    all:            drivers.length,
+    pending:        drivers.filter((d) => d.availabilityStatus === "pending").length,
+    setup_required: drivers.filter((d) => d.availabilityStatus === "setup_required").length,
+    online:         drivers.filter((d) => d.availabilityStatus === "online").length,
+    offline:        drivers.filter((d) => d.availabilityStatus === "offline").length,
+  }), [drivers]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -59,9 +54,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
         !q ||
         fullName.includes(q) ||
         (d.email ?? "").toLowerCase().includes(q) ||
-        (d.vehicle
-          ? `${d.vehicle.make} ${d.vehicle.model}`.toLowerCase().includes(q)
-          : false);
+        (d.vehicle ? `${d.vehicle.make} ${d.vehicle.model}`.toLowerCase().includes(q) : false);
       return matchStatus && matchQuery;
     });
   }, [drivers, filter, search]);
@@ -77,14 +70,10 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
       await driversApi.remove(id);
       setDrivers((prev) => prev.filter((d) => d.id !== id));
       setRemoveId(null);
-    } catch {
-      /* ignore */
-    } finally {
-      setActionLoading(null);
-    }
+    } catch { /* ignore */ }
+    finally { setActionLoading(null); }
   }
 
-  // Filter tabs config
   const FILTER_TABS: { key: FilterKey; label: string }[] = [
     { key: "all",            label: `All (${counts.all})` },
     { key: "pending",        label: `Pending (${counts.pending})` },
@@ -150,7 +139,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table — Rating column removed */}
         <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
           {loading ? (
             <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".85rem" }}>
@@ -160,13 +149,12 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                 <colgroup>
+                  <col style={{ width: "22%" }} />
+                  <col style={{ width: "22%" }} />
+                  <col style={{ width: "16%" }} />
                   <col style={{ width: "18%" }} />
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "14%" }} />
-                  <col style={{ width: "14%" }} />
                   <col style={{ width: "8%" }} />
-                  <col style={{ width: "10%" }} />
-                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "14%" }} />
                 </colgroup>
 
                 <thead>
@@ -176,7 +164,6 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                     <th style={TH}>Status</th>
                     <th style={TH}>Vehicle</th>
                     <th style={TH}>Trips</th>
-                    <th style={TH}>Rating</th>
                     <th style={TH}>Actions</th>
                   </tr>
                 </thead>
@@ -185,13 +172,13 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                   {filtered.length === 0 ? (
                     <>
                       <tr style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                        <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
                           No drivers found{search ? ` matching "${search}"` : ""}.
                         </td>
                       </tr>
                       {Array.from({ length: ROWS - 1 }).map((_, i) => (
                         <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                          <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
                         </tr>
                       ))}
                     </>
@@ -215,7 +202,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                             <DriverStatusBadge status={d.availabilityStatus} />
                           </td>
 
-                          {/* Vehicle — show dash if pending/setup_required */}
+                          {/* Vehicle */}
                           <td style={{ ...TD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {d.vehicle
                               ? `${d.vehicle.make} ${d.vehicle.model}`
@@ -225,13 +212,6 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                           {/* Trips */}
                           <td style={{ ...TD, fontWeight: 800, color: "var(--text-h)" }}>
                             {d.totalTrips ?? 0}
-                          </td>
-
-                          {/* Rating */}
-                          <td style={{ ...TD, fontWeight: 700, color: "#7c3aed" }}>
-                            {d.ratingAverage != null
-                              ? `★ ${Number(d.ratingAverage).toFixed(1)}`
-                              : "—"}
                           </td>
 
                           {/* Actions */}
@@ -249,7 +229,7 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
 
                       {Array.from({ length: ghostCount }).map((_, i) => (
                         <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                          <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
                         </tr>
                       ))}
                     </>

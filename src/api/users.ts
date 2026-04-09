@@ -8,11 +8,11 @@ export interface AdminUser {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
   role: UserRole;
   status: UserStatus;
   createdAt: string;
   trips?: number;
-  // ← NEW: only present for drivers; true = profile created by admin
   profileComplete?: boolean;
 }
 
@@ -20,6 +20,7 @@ export interface InviteUserPayload {
   firstName: string;
   lastName:  string;
   email:     string;
+  phone:     string;       // ← now required
   role: "passenger" | "driver";
 }
 
@@ -29,7 +30,6 @@ export interface UpdateUserPayload {
   email?:     string;
   role?: "passenger" | "driver";
   phone?:    string;
-  language?: string;
 }
 
 export const usersApi = {
@@ -45,7 +45,6 @@ export const usersApi = {
   update: (id: string, payload: UpdateUserPayload): Promise<AdminUser> =>
     apiClient.patch(`/admin/users/${id}`, payload).then((r) => r.data),
 
-  // alias used in userpage.tsx
   deleteUser: (id: string): Promise<{ message: string }> =>
     apiClient.delete(`/admin/users/${id}`).then((r) => r.data),
 

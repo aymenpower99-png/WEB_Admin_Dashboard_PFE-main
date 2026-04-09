@@ -1,4 +1,3 @@
-// ── Shared badge base ────────────────────────────────────────────────────────
 const BADGE_BASE: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -27,9 +26,9 @@ const AVAILABILITY_BADGE: Record<string, React.CSSProperties> = {
   },
   pending: {
     ...BADGE_BASE,
-    background: "rgba(124,58,237,0.12)",
-    color: "#7c3aed",
-    borderColor: "rgba(124,58,237,0.35)",
+    background: "#fef9c3",    // ← amber/yellow (was purple)
+    color: "#854d0e",
+    borderColor: "#fde047",
   },
   setup_required: {
     ...BADGE_BASE,

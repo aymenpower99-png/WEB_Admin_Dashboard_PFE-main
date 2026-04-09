@@ -1,30 +1,21 @@
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
-import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
 import BuildRoundedIcon from "@mui/icons-material/BuildRounded";
 
 import type { DriverProfile } from "../../../api/drivers";
 
-function StatCard({
-  label, value, icon, iconBg, iconColor,
-}: {
+function StatCard({ label, value, icon, iconBg, iconColor }: {
   label: string; value: number | string;
   icon: React.ReactNode; iconBg: string; iconColor: string;
 }) {
   return (
     <div style={{
-      background: "var(--bg-card)",
-      border: "1px solid var(--border)",
-      borderRadius: ".75rem",
-      padding: "1.1rem 1.3rem",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      flex: 1,
-      minWidth: 0,
-      boxShadow: "0 1px 3px rgba(0,0,0,.04)",
+      background: "var(--bg-card)", border: "1px solid var(--border)",
+      borderRadius: ".75rem", padding: "1.1rem 1.3rem",
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      flex: 1, minWidth: 0, boxShadow: "0 1px 3px rgba(0,0,0,.04)",
     }}>
       <div>
         <p style={{ margin: 0, fontSize: ".78rem", color: "var(--text-muted)", fontWeight: 500, marginBottom: ".3rem" }}>
@@ -35,9 +26,8 @@ function StatCard({
         </p>
       </div>
       <div style={{
-        width: 42, height: 42, borderRadius: "50%",
-        background: iconBg, display: "flex",
-        alignItems: "center", justifyContent: "center", flexShrink: 0,
+        width: 42, height: 42, borderRadius: "50%", background: iconBg,
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}>
         <span style={{ color: iconColor, display: "flex" }}>{icon}</span>
       </div>
@@ -52,11 +42,6 @@ export default function DriverKpiCards({ drivers }: { drivers: DriverProfile[] }
   const online        = drivers.filter((d) => d.availabilityStatus === "online").length;
   const offline       = drivers.filter((d) => d.availabilityStatus === "offline").length;
 
-  const avgRating =
-    total > 0
-      ? (drivers.reduce((s, d) => s + Number(d.ratingAverage ?? 0), 0) / total).toFixed(1)
-      : "—";
-
   return (
     <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
       <StatCard
@@ -67,7 +52,7 @@ export default function DriverKpiCards({ drivers }: { drivers: DriverProfile[] }
       <StatCard
         label="Pending" value={pending}
         icon={<HourglassEmptyRoundedIcon style={{ fontSize: 22 }} />}
-        iconBg="rgba(124,58,237,0.12)" iconColor="#7c3aed"
+        iconBg="#fef9c3" iconColor="#854d0e"
       />
       <StatCard
         label="Setup Required" value={setupRequired}
@@ -84,11 +69,7 @@ export default function DriverKpiCards({ drivers }: { drivers: DriverProfile[] }
         icon={<HighlightOffRoundedIcon style={{ fontSize: 22 }} />}
         iconBg="var(--refunded-bg)" iconColor="var(--refunded-fg)"
       />
-      <StatCard
-        label="Avg Rating" value={avgRating}
-        icon={<StarRoundedIcon style={{ fontSize: 22 }} />}
-        iconBg="var(--pending-bg)" iconColor="var(--pending-fg)"
-      />
+      {/* Avg Rating card removed */}
     </div>
   );
 }

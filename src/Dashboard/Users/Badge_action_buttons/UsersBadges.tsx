@@ -1,6 +1,4 @@
-import type { AdminUser } from "../../../api/users";
-
-// ── Shared badge base style ──────────────────────────────────────────────────
+// ── Shared badge base style ───────────────────────────────────────────────────
 const BADGE_BASE: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -12,48 +10,14 @@ const BADGE_BASE: React.CSSProperties = {
   lineHeight: 1,
 };
 
-// ── Status badge styles — use CSS variables for dark/light support ───────────
 const STATUS_BADGE: Record<string, React.CSSProperties> = {
   active:  { ...BADGE_BASE, background: "var(--active-bg)",  color: "var(--active-fg)",  border: "1px solid var(--border)" },
-  pending: { ...BADGE_BASE, background: "var(--pending-bg)", color: "var(--pending-fg)", border: "1px solid var(--border)" },
+  pending: { ...BADGE_BASE, background: "#fef9c3",           color: "#854d0e",            border: "1px solid #fde047" }, // ← amber/yellow for pending
   blocked: { ...BADGE_BASE, background: "var(--blocked-bg)", color: "var(--blocked-fg)", border: "1px solid var(--border)" },
 };
 
-// ── Profile badge styles — use CSS variables for dark/light support ──────────
-const PROFILE_COMPLETE_STYLE: React.CSSProperties = {
-  ...BADGE_BASE,
-  background: "var(--active-bg)",
-  color: "var(--active-fg)",
-  border: "1px solid var(--border)",
-};
-
-const PROFILE_INCOMPLETE_STYLE: React.CSSProperties = {
-  ...BADGE_BASE,
-  background: "var(--pending-bg)",
-  color: "var(--pending-fg)",
-  border: "1px solid var(--border)",
-};
-
-// ── StatusBadge ──────────────────────────────────────────────────────────────
 export function StatusBadge({ status }: { status: string }) {
   const style = STATUS_BADGE[status] ?? STATUS_BADGE.active;
   const label = status.charAt(0).toUpperCase() + status.slice(1);
   return <span style={style}>{label}</span>;
-}
-
-// ── ProfileCell ──────────────────────────────────────────────────────────────
-export function ProfileCell({ u }: { u: AdminUser }) {
-  if (u.role !== "driver") {
-    return <span style={PROFILE_COMPLETE_STYLE}>Complete</span>;
-  }
-  if (u.status === "pending") {
-    return <span style={{ color: "var(--text-faint)", fontSize: ".75rem" }}>Awaiting invite</span>;
-  }
-  if (u.profileComplete === false) {
-    return <span style={PROFILE_INCOMPLETE_STYLE}>Not set up</span>;
-  }
-  if (u.profileComplete === true) {
-    return <span style={PROFILE_COMPLETE_STYLE}>Complete</span>;
-  }
-  return <span style={{ color: "var(--text-faint)", fontSize: ".8rem" }}>—</span>;
 }

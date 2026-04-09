@@ -6,8 +6,6 @@ export type DriverAvailabilityStatus =
   | "offline"
   | "online";
 
-export type DriverLanguage = "English" | "French" | "Arabic";
-
 export interface DriverProfile {
   id: string;
   userId: string;
@@ -22,7 +20,6 @@ export interface DriverProfile {
   currentLatitude: number | null;
   currentLongitude: number | null;
   lastLocationUpdate: string | null;
-  language: DriverLanguage | null;
   createdAt: string;
   updatedAt: string;
   vehicle: {
@@ -43,8 +40,8 @@ export interface CompleteDriverProfilePayload {
   driverLicenseExpiry: string;
   driverLicenseFrontUrl: string;
   driverLicenseBackUrl: string;
-  language: DriverLanguage;
   phone: string;
+  // language removed
 }
 
 export const driversApi = {
