@@ -6,7 +6,11 @@ import {
 } from "../../../api/support";
 import type { Ticket, TicketStatus, Message, ActivityEvent } from "./types";
 
-// ─── Status mapping ───────────────────────────────────────────────────────────
+// ── Status mapping ─────────────────────────────────────────────────────────────
+// open             → Open         (ticket just created, no admin reply yet)
+// in_progress      → In Progress  (admin has replied)
+// waiting_for_user → Pending      (user replied back, waiting for admin again)
+// resolved         → Resolved     (manually closed)
 function mapStatus(s: BackendTicketStatus): TicketStatus {
   switch (s) {
     case "open":             return "Open";
@@ -27,27 +31,28 @@ export function mapStatusToBackend(s: TicketStatus): BackendTicketStatus {
   }
 }
 
-// ─── Adapt backend ticket → frontend Ticket ───────────────────────────────────
+function fmt(date: string) {
+  return new Date(date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
+
+// ── Adapt backend ticket → frontend Ticket ─────────────────────────────────────
 function adaptTicket(t: BackendTicket): Ticket {
   const authorName = t.author
-    ? `${t.author.firstName} ${t.author.lastName}`
+    ? `${t.author.firstName} ${t.author.lastName}`.trim() || "Unknown"
     : "Unknown";
 
+  // ── Messages ──────────────────────────────────────────────────────────────
   const messages: Message[] = (t.messages ?? []).map((m) => ({
     id: m.id,
     sender: m.sender
-      ? `${m.sender.firstName} ${m.sender.lastName}`
-      : m.senderId === t.authorId
-      ? authorName
-      : "Admin",
+      ? `${m.sender.firstName} ${m.sender.lastName}`.trim() || "User"
+      : m.senderId === t.authorId ? authorName : "Admin",
     senderType: m.senderId === t.authorId ? "user" : "admin",
     content: m.body,
-    timestamp: new Date(m.createdAt).toLocaleTimeString("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    timestamp: fmt(m.createdAt),
   }));
 
+  // ── Category ──────────────────────────────────────────────────────────────
   const category = ((): Ticket["category"] => {
     switch (t.category) {
       case "payment":   return "Payment";
@@ -58,57 +63,83 @@ function adaptTicket(t: BackendTicket): Ticket {
     }
   })();
 
-  const activity: ActivityEvent[] = [
-    {
-      id: `a-created-${t.id}`,
-      type: "created",
-      description: "Ticket created",
-      timestamp: new Date(t.createdAt).toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      actor: authorName,
-    },
-  ];
+  // ── Activity — built from ticket creation + every message ─────────────────
+  // This makes the activity timeline reflect reality instead of only showing "Ticket Created"
+  const activity: ActivityEvent[] = [];
+
+  // 1. Ticket created
+  activity.push({
+    id: `a-created-${t.id}`,
+    type: "created",
+    description: "Ticket created",
+    timestamp: fmt(t.createdAt),
+    actor: authorName,
+  });
+
+  // 2. One activity entry per message (sorted by createdAt, which backend already returns ASC)
+  (t.messages ?? []).forEach((m) => {
+    const isAdmin   = m.senderId !== t.authorId;
+    const senderName = m.sender
+      ? `${m.sender.firstName} ${m.sender.lastName}`.trim() || (isAdmin ? "Admin" : authorName)
+      : isAdmin ? "Admin" : authorName;
+
+    activity.push({
+      id: `a-msg-${m.id}`,
+      type: isAdmin ? "admin_reply" : "status_change",
+      description: isAdmin ? "Admin sent a message" : "User replied",
+      timestamp: fmt(m.createdAt),
+      actor: senderName,
+    });
+  });
+
+  // 3. If resolved, add a resolved event at the end
+  if (t.status === "resolved" && t.resolvedAt) {
+    activity.push({
+      id: `a-resolved-${t.id}`,
+      type: "resolved",
+      description: "Ticket resolved",
+      timestamp: fmt(t.resolvedAt),
+      actor: "Admin",
+    });
+  }
+
+  // Determine role
+  const rawRole = t.author?.role ?? "";
+  const role: "Passenger" | "Driver" = rawRole === "driver" ? "Driver" : "Passenger";
 
   return {
     id: t.id,
     title: t.subject,
     description: t.description,
     status: mapStatus(t.status),
-    role: (t.author?.role === "driver" ? "Driver" : "Passenger") as "Passenger" | "Driver",
+    role,
     category,
     time: new Date(t.createdAt).toLocaleString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
+      day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
     }),
     user: {
       name: authorName,
-      role: (t.author?.role === "driver" ? "Driver" : "Passenger") as "Passenger" | "Driver",
+      role,
       memberSince: new Date(t.createdAt).getFullYear().toString(),
       email: t.author?.email ?? "",
-      phone: "",
+      phone: t.author?.phone ?? "",
     },
-    trip: { tripId: "—", date: "—", route: "—", price: "—", status: "—" },
+    trip:    { tripId: "—", date: "—", route: "—", price: "—", status: "—" },
     payment: { method: "—", transactionStatus: "—" },
-    notes: [],
+    notes:   [],
     messages,
     activity,
   };
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ── Hook ───────────────────────────────────────────────────────────────────────
 export function useTickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
 
-  // Track which ticket IDs have had their full messages loaded
   const loadedMessages = useRef<Set<string>>(new Set());
 
-  // ── Fetch ticket list (no messages) ────────────────────────────────────────
   const fetchTickets = useCallback(async () => {
     try {
       setLoading(true);
@@ -125,25 +156,23 @@ export function useTickets() {
 
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
-  // ── Load full messages for a specific ticket (called when ticket is selected) ──
+  // Load full messages+activity when a ticket is selected
   const loadTicketMessages = useCallback(async (id: string) => {
-    // Already loaded, skip
     if (loadedMessages.current.has(id)) return;
     try {
       const full = await supportApi.getOne(id);
       loadedMessages.current.add(id);
-      setTickets((prev) =>
-        prev.map((t) => (t.id === id ? adaptTicket(full) : t))
-      );
+      setTickets((prev) => prev.map((t) => (t.id === id ? adaptTicket(full) : t)));
     } catch {
-      // silently ignore — ticket still shows, just no messages yet
+      // silently ignore
     }
   }, []);
 
-  // ── Change status ───────────────────────────────────────────────────────────
+  // Change status
   const changeStatus = useCallback(
     async (id: string, status: TicketStatus) => {
-      // Optimistic update
+      const timestamp = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
       setTickets((prev) =>
         prev.map((t) =>
           t.id === id
@@ -153,15 +182,12 @@ export function useTickets() {
                 activity: [
                   ...t.activity,
                   {
-                    id: `a${Date.now()}`,
-                    type: status === "Resolved"
-                      ? ("resolved" as const)
-                      : ("status_change" as const),
-                    description: `Status changed to ${status}`,
-                    timestamp: new Date().toLocaleTimeString("en-GB", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }),
+                    id: `a-status-${Date.now()}`,
+                    type: status === "Resolved" ? ("resolved" as const) : ("status_change" as const),
+                    description: status === "Resolved"
+                      ? "Ticket resolved"
+                      : `Status changed to ${status}`,
+                    timestamp,
                     actor: "Admin",
                   },
                 ],
@@ -171,24 +197,24 @@ export function useTickets() {
       );
       try {
         await supportApi.updateStatus(id, mapStatusToBackend(status));
+        // Re-fetch to sync real resolvedAt etc
+        const updated = await supportApi.getOne(id);
+        loadedMessages.current.add(id);
+        setTickets((prev) => prev.map((t) => (t.id === id ? adaptTicket(updated) : t)));
       } catch {
-        // revert by re-fetching
         fetchTickets();
       }
     },
     [fetchTickets]
   );
 
-  // ── Send message ────────────────────────────────────────────────────────────
+  // Send message — optimistic + then refetch real data
   const sendMessage = useCallback(
     async (id: string, content: string) => {
-      const tempId = `temp-${Date.now()}`;
-      const timestamp = new Date().toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const tempId    = `temp-${Date.now()}`;
+      const timestamp = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
-      // 1. Optimistic: add message immediately so it appears at once
+      // Optimistic add
       setTickets((prev) =>
         prev.map((t) =>
           t.id === id
@@ -196,18 +222,12 @@ export function useTickets() {
                 ...t,
                 messages: [
                   ...t.messages,
-                  {
-                    id: tempId,
-                    sender: "Admin",
-                    senderType: "admin" as const,
-                    content,
-                    timestamp,
-                  },
+                  { id: tempId, sender: "Admin", senderType: "admin" as const, content, timestamp },
                 ],
                 activity: [
                   ...t.activity,
                   {
-                    id: `a${Date.now()}`,
+                    id: `a-msg-${tempId}`,
                     type: "admin_reply" as const,
                     description: "Admin sent a message",
                     timestamp,
@@ -220,24 +240,20 @@ export function useTickets() {
       );
 
       try {
-        // 2. Send to backend
         await supportApi.reply(id, content);
-
-        // 3. Fetch the real updated ticket from backend (with real message IDs)
+        // Re-fetch real ticket with real message IDs + updated status
         const updated = await supportApi.getOne(id);
         loadedMessages.current.add(id);
-
-        setTickets((prev) =>
-          prev.map((t) => (t.id === id ? adaptTicket(updated) : t))
-        );
+        setTickets((prev) => prev.map((t) => (t.id === id ? adaptTicket(updated) : t)));
       } catch {
-        // Remove the optimistic message on failure
+        // Rollback optimistic message
         setTickets((prev) =>
           prev.map((t) =>
             t.id === id
               ? {
                   ...t,
                   messages: t.messages.filter((m) => m.id !== tempId),
+                  activity: t.activity.filter((a) => a.id !== `a-msg-${tempId}`),
                 }
               : t
           )

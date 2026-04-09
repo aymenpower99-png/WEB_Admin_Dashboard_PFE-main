@@ -5,17 +5,25 @@ interface ActivityTabProps {
   dark: boolean;
 }
 
-const EVENT_CONFIG: Record<ActivityEvent["type"], { dot: string; label: string; bg: string }> = {
-  created:       { dot: "bg-blue-500",    label: "Ticket Created",  bg: "bg-blue-50 dark:bg-blue-900/20" },
-  status_change: { dot: "bg-orange-500",  label: "Status Changed",  bg: "bg-orange-50" },
-  admin_reply:   { dot: "bg-violet-500",  label: "Admin Replied",   bg: "bg-violet-50" },
-  resolved:      { dot: "bg-emerald-500", label: "Resolved",        bg: "bg-emerald-50" },
-  escalated:     { dot: "bg-red-500",     label: "Escalated",       bg: "bg-red-50" },
+const EVENT_CONFIG: Record<ActivityEvent["type"], { dot: string; label: string }> = {
+  created:       { dot: "bg-blue-500",    label: "Ticket Created" },
+  status_change: { dot: "bg-amber-500",   label: "User Replied"   },
+  admin_reply:   { dot: "bg-violet-500",  label: "Admin Replied"  },
+  resolved:      { dot: "bg-emerald-500", label: "Resolved"       },
+  escalated:     { dot: "bg-red-500",     label: "Escalated"      },
+};
+
+const EVENT_COLOR: Record<ActivityEvent["type"], string> = {
+  created:       "text-blue-600",
+  status_change: "text-amber-600",
+  admin_reply:   "text-violet-600",
+  resolved:      "text-emerald-600",
+  escalated:     "text-red-600",
 };
 
 export default function ActivityTab({ events, dark }: ActivityTabProps) {
   const muted = dark ? "text-gray-400" : "text-gray-500";
-  const line = dark ? "bg-gray-700" : "bg-gray-200";
+  const line  = dark ? "bg-gray-700"   : "bg-gray-200";
 
   if (events.length === 0) {
     return (
@@ -45,16 +53,10 @@ export default function ActivityTab({ events, dark }: ActivityTabProps) {
             </div>
 
             {/* Content card */}
-            <div className={`flex-1 pb-5 ${i === events.length - 1 ? "pb-0" : ""}`}>
+            <div className={`flex-1 ${i === events.length - 1 ? "pb-0" : "pb-5"}`}>
               <div className={`rounded-xl p-3.5 ${dark ? "bg-gray-800" : "bg-gray-50"}`}>
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <p className={`text-xs font-bold uppercase tracking-wide ${
-                    event.type === "resolved" ? "text-emerald-600" :
-                    event.type === "escalated" ? "text-red-600" :
-                    event.type === "admin_reply" ? "text-violet-600" :
-                    event.type === "status_change" ? "text-orange-600" :
-                    "text-blue-600"
-                  }`}>
+                  <p className={`text-xs font-bold uppercase tracking-wide ${EVENT_COLOR[event.type]}`}>
                     {cfg.label}
                   </p>
                   <span className={`text-xs flex-shrink-0 ${muted}`}>{event.timestamp}</span>

@@ -1,7 +1,5 @@
 import apiClient from "./apiClient";
 
-// ─── Types aligned with backend entities ──────────────────────────────────────
-
 export type BackendTicketStatus =
   | "open"
   | "in_progress"
@@ -36,6 +34,7 @@ export interface BackendTicket {
     firstName: string;
     lastName: string;
     email: string;
+    phone: string;
     role: string;
   };
   assignedAdminId: string | null;
@@ -53,44 +52,22 @@ export interface PaginatedTickets {
   limit: number;
 }
 
-// ─── API calls ─────────────────────────────────────────────────────────────────
-
 export const supportApi = {
-  /** List all tickets (admin). Optional status filter + pagination. */
-  listAll: (
-    page = 1,
-    limit = 20,
-    status?: BackendTicketStatus
-  ): Promise<PaginatedTickets> => {
+  listAll: (page = 1, limit = 20, status?: BackendTicketStatus): Promise<PaginatedTickets> => {
     const params: Record<string, unknown> = { page, limit };
     if (status) params.status = status;
-    return apiClient
-      .get("/admin/support/tickets", { params })
-      .then((r) => r.data);
+    return apiClient.get("/admin/support/tickets", { params }).then((r) => r.data);
   },
 
-  /** Get a single ticket with full messages. */
   getOne: (id: string): Promise<BackendTicket> =>
     apiClient.get(`/admin/support/tickets/${id}`).then((r) => r.data),
 
-  /** Admin reply to a ticket. */
   reply: (id: string, body: string): Promise<BackendMessage> =>
-    apiClient
-      .post(`/admin/support/tickets/${id}/reply`, { body })
-      .then((r) => r.data),
+    apiClient.post(`/admin/support/tickets/${id}/reply`, { body }).then((r) => r.data),
 
-  /** Update ticket status. */
-  updateStatus: (
-    id: string,
-    status: BackendTicketStatus
-  ): Promise<BackendTicket> =>
-    apiClient
-      .patch(`/admin/support/tickets/${id}/status`, { status })
-      .then((r) => r.data),
+  updateStatus: (id: string, status: BackendTicketStatus): Promise<BackendTicket> =>
+    apiClient.patch(`/admin/support/tickets/${id}/status`, { status }).then((r) => r.data),
 
-  /** Assign ticket to the currently logged-in admin. */
   assign: (id: string): Promise<BackendTicket> =>
-    apiClient
-      .post(`/admin/support/tickets/${id}/assign`)
-      .then((r) => r.data),
+    apiClient.post(`/admin/support/tickets/${id}/assign`).then((r) => r.data),
 };
