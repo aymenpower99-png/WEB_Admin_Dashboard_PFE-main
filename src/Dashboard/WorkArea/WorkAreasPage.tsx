@@ -1,366 +1,99 @@
-import { useState } from "react";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import EditRoundedIcon from "@mui/icons-material/EditRounded";
-import AddLocationAltRoundedIcon from "@mui/icons-material/AddLocationAltRounded";
-import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
-import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
-import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import PersonOffRoundedIcon from "@mui/icons-material/PersonOffRounded";
-import MyLocationRoundedIcon from "@mui/icons-material/MyLocationRounded";
+import { useState, useEffect, useMemo } from "react";
+import SearchRoundedIcon          from "@mui/icons-material/SearchRounded";
+import AddLocationAltRoundedIcon  from "@mui/icons-material/AddLocationAltRounded";
+import EditRoundedIcon            from "@mui/icons-material/EditRounded";
+import "../travelsync-design-system.css";
 
-/* ─── TYPES ──────────────────────────────────────────────────────────────── */
-export interface WorkArea {
-  id: number;
-  name: string;
-  governorate: string;
-  radius: number;
-}
+import { workAreasApi, type WorkAreaItem, type WorkAreaDriver } from "../../api/workAreas";
+import { ROWS, ROW_H, TH, TD }   from "./components/WorkAreaTypes";
+import WorkAreaStatCards          from "./components/WorkAreaStatCards";
+import WorkAreaPagination         from "./components/WorkAreaPagination";
+import AddWorkAreaModal           from "./components/AddWorkAreaModal";
+import AssignWorkAreaModal        from "./components/AssignWorkAreaModal";
 
-export interface Driver {
-  id: number;
-  name: string;
-  vehicle: string;
-  status: "active" | "inactive";
-  workAreaId: number | null;
-}
+export default function WorkAreasPage() {
+  const [areas,        setAreas]        = useState<WorkAreaItem[]>([]);
+  const [drivers,      setDrivers]      = useState<WorkAreaDriver[]>([]);
+  const [loading,      setLoading]      = useState(false);
+  const [filter,       setFilter]       = useState<"all" | "assigned" | "unassigned">("all");
+  const [search,       setSearch]       = useState("");
+  const [page,         setPage]         = useState(1);
+  const [showAddArea,  setShowAddArea]  = useState(false);
+  const [assignTarget, setAssignTarget] = useState<WorkAreaDriver | null>(null);
 
-export interface WorkAreasPageProps {
-  areas: WorkArea[];
-  setAreas: React.Dispatch<React.SetStateAction<WorkArea[]>>;
-  drivers: Driver[];
-  setDrivers: React.Dispatch<React.SetStateAction<Driver[]>>;
-}
+  function loadAll() {
+    setLoading(true);
+    Promise.all([workAreasApi.getAll(), workAreasApi.getDrivers()])
+      .then(([a, d]) => { setAreas(a); setDrivers(d); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }
 
-/* ─── SEED DATA ──────────────────────────────────────────────────────────── */
-export const INITIAL_AREAS: WorkArea[] = [
-  { id: 1,  name: "Tunis",    governorate: "Tunis Governorate",    radius: 12 },
-  { id: 2,  name: "Nabeul",   governorate: "Nabeul Governorate",   radius: 8  },
-  { id: 3,  name: "Sfax",     governorate: "Sfax Governorate",     radius: 10 },
-  { id: 4,  name: "Sousse",   governorate: "Sousse Governorate",   radius: 9  },
-  { id: 5,  name: "Hammamet", governorate: "Nabeul Governorate",   radius: 6  },
-  { id: 6,  name: "Bizerte",  governorate: "Bizerte Governorate",  radius: 7  },
-  { id: 7,  name: "Monastir", governorate: "Monastir Governorate", radius: 7  },
-  { id: 8,  name: "Gabès",    governorate: "Gabès Governorate",    radius: 8  },
-  { id: 9,  name: "Kairouan", governorate: "Kairouan Governorate", radius: 9  },
-  { id: 10, name: "La Marsa", governorate: "Tunis Governorate",    radius: 5  },
-];
+  useEffect(() => { loadAll(); }, []);
 
-export const INITIAL_DRIVERS: Driver[] = [
-  { id: 1,  name: "John D",    vehicle: "Toyota Corolla",    status: "active",   workAreaId: 2    },
-  { id: 2,  name: "Emily R",   vehicle: "Kia Rio",           status: "active",   workAreaId: 1    },
-  { id: 3,  name: "Mike S",    vehicle: "Hyundai i10",       status: "active",   workAreaId: 4    },
-  { id: 4,  name: "Alex T",    vehicle: "Dacia Logan",       status: "active",   workAreaId: null },
-  { id: 5,  name: "Sara L",    vehicle: "Renault Symbol",    status: "inactive", workAreaId: 3    },
-  { id: 6,  name: "Omar B",    vehicle: "Peugeot 301",       status: "active",   workAreaId: null },
-  { id: 7,  name: "Nadia K",   vehicle: "Citroën C-Élysée", status: "active",   workAreaId: 5    },
-  { id: 8,  name: "Yassine M", vehicle: "Volkswagen Polo",   status: "inactive", workAreaId: null },
-  { id: 9,  name: "Fatma Z",   vehicle: "Toyota Yaris",      status: "active",   workAreaId: 7    },
-  { id: 10, name: "Hatem R",   vehicle: "Nissan Micra",      status: "active",   workAreaId: null },
-];
-
-/* ─── CONSTANTS ──────────────────────────────────────────────────────────── */
-const ROWS  = 5;
-const ROW_H = 88;
-const ZONE_COLORS = ["#6366f1","#10b981","#f59e0b","#ef4444","#3b82f6","#8b5cf6","#ec4899","#06b6d4","#84cc16","#f97316"];
-
-/* ─── TABLE STYLES ──────────────────────────────────────���────────────────── */
-const TH: React.CSSProperties = {
-  padding: "0.65rem 1rem", fontSize: ".78rem", fontWeight: 800,
-  textTransform: "uppercase", letterSpacing: ".06em",
-  color: "var(--text-body)", textAlign: "left",
-  borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
-  background: "var(--bg-thead)",
-};
-const TD: React.CSSProperties = {
-  padding: "0 1rem", height: ROW_H, fontSize: ".85rem",
-  color: "var(--text-body)", borderBottom: "1px solid var(--border)",
-  verticalAlign: "middle",
-};
-
-/* ─── STAT CARD — uses CSS vars for icon bg/fg so dark mode works ────────── */
-function StatCard({ label, value, icon, iconBg, iconFg }: {
-  label: string; value: number | string;
-  icon: React.ReactNode; iconBg: string; iconFg: string;
-}) {
-  return (
-    <div style={{
-      background: "var(--bg-card)", border: "1px solid var(--border)",
-      borderRadius: "1rem", padding: "1.1rem 1.25rem",
-      display: "flex", alignItems: "center", gap: "1rem", flex: 1, minWidth: 0,
-      boxShadow: "0 1px 3px rgba(0,0,0,.04)",
-    }}>
-      <div style={{
-        width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
-        background: iconBg,   // ✅ CSS var — switches in dark mode
-        display: "flex", alignItems: "center", justifyContent: "center",
-        color: iconFg,        // ✅ CSS var
-      }}>
-        {icon}
-      </div>
-      <div>
-        <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1.1 }}>{value}</div>
-        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 500, marginTop: 2 }}>{label}</div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── STATUS PILL — semi-transparent rgba, works in light + dark ─────────── */
-function StatusPill({ assigned }: { assigned: boolean }) {
-  return assigned ? (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: ".35rem",
-      padding: ".22rem .7rem", borderRadius: "9999px",
-      background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.35)",
-      color: "#10b981", fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
-    }}>
-      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
-      Assigned
-    </span>
-  ) : (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: ".35rem",
-      padding: ".22rem .7rem", borderRadius: "9999px",
-      background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.35)",
-      color: "#d97706", fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
-    }}>
-      <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#f59e0b", flexShrink: 0 }} />
-      Not Assigned
-    </span>
-  );
-}
-
-/* ─── ACTION BUTTON — same style as DriversActionButtons ────────────────── */
-function WorkAreaActionButton({ isEdit, onClick }: { isEdit: boolean; onClick: () => void }) {
-  const [hovered, setHovered] = useState(false);
-  const base: React.CSSProperties = {
-    display: "inline-flex", alignItems: "center", justifyContent: "center",
-    gap: ".3rem", height: 30, padding: "0 .6rem", borderRadius: 7,
-    borderWidth: "1px", borderStyle: "solid",
-    borderColor: "var(--border)", background: "var(--bg-card)", color: "var(--text-muted)",
-    cursor: "pointer", fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
-    transition: "all .15s",
-  };
-  const hover: React.CSSProperties = isEdit
-    ? { background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }
-    : { background: "#f5f3ff", color: "#7c3aed", borderColor: "#ddd6fe" };
-  return (
-    <button
-      title={isEdit ? "Edit Ville" : "Assign Ville"}
-      style={{ ...base, ...(hovered ? hover : {}) }}
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {isEdit
-        ? <><EditRoundedIcon style={{ fontSize: 13 }} /> Edit</>
-        : <><AddLocationAltRoundedIcon style={{ fontSize: 13 }} /> Assign</>}
-    </button>
-  );
-}
-
-/* ─── PAGINATION ─────────────────────────────────────────────────────────── */
-function Pagination({ page, totalPages, onPrev, onNext, setPage }: {
-  page: number; totalPages: number;
-  onPrev: () => void; onNext: () => void; setPage: (n: number) => void;
-}) {
-  const btn = (active: boolean, disabled: boolean): React.CSSProperties => ({
-    display: "flex", alignItems: "center", justifyContent: "center",
-    width: 26, height: 26, borderRadius: "0.375rem",
-    border: "1px solid var(--border)",
-    background: active ? "#7c3aed" : disabled ? "transparent" : "var(--bg-card)",
-    color: active ? "#fff" : disabled ? "var(--text-faint)" : "var(--text-muted)",
-    fontWeight: active ? 700 : 500, fontSize: "0.75rem",
-    cursor: disabled ? "not-allowed" : "pointer", transition: "all .15s",
-  });
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 1rem", borderTop: "1px solid var(--border)", flexShrink: 0 }}>
-      <span style={{ fontSize: "0.75rem", color: "var(--text-faint)", fontWeight: 500 }}>Page {page} of {totalPages}</span>
-      <div style={{ display: "flex", gap: "0.3rem" }}>
-        <button onClick={onPrev} disabled={page === 1} style={btn(false, page === 1)}>
-          <ChevronLeftRoundedIcon style={{ fontSize: 14 }} />
-        </button>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-          <button key={n} onClick={() => setPage(n)} style={btn(n === page, false)}>{n}</button>
-        ))}
-        <button onClick={onNext} disabled={page === totalPages} style={btn(false, page === totalPages)}>
-          <ChevronRightRoundedIcon style={{ fontSize: 14 }} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ─── ASSIGN / EDIT MODAL ────────────────────────────────────────────────── */
-function AssignModal({ driver, areas, onSave, onClose }: {
-  driver: Driver; areas: WorkArea[];
-  onSave: (driverId: number, workAreaId: number | null) => void;
-  onClose: () => void;
-}) {
-  const [selectedAreaId, setSelectedAreaId] = useState<number | "">(driver.workAreaId ?? "");
-  const selectedArea     = areas.find(a => a.id === Number(selectedAreaId));
-  const selectedAreaIdx  = selectedArea ? areas.indexOf(selectedArea) : -1;
-  const selectedAreaColor = selectedAreaIdx >= 0 ? ZONE_COLORS[selectedAreaIdx % ZONE_COLORS.length] : "#7c3aed";
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%", padding: ".5rem .875rem", fontSize: ".875rem",
-    fontFamily: "var(--font)", color: "var(--text-body)",
-    background: "var(--bg-card)", border: "1px solid var(--border)",
-    borderRadius: ".5rem", outline: "none", boxSizing: "border-box", cursor: "pointer",
-  };
-  const labelStyle: React.CSSProperties = {
-    display: "block", fontSize: ".75rem", fontWeight: 500,
-    color: "var(--text-muted)", marginBottom: ".375rem",
-  };
-
-  return (
-    <div className="ts-overlay" style={{ display: "flex" }}>
-      <div className="ts-modal ts-modal-scroll">
-        <div className="ts-modal-header">
-          <div>
-            <p style={{ fontWeight: 700, fontSize: ".9375rem", color: "var(--text-h)", margin: 0 }}>
-              {driver.workAreaId ? "Edit Work Area" : "Assign Work Area"}
-            </p>
-            <p style={{ fontSize: ".7rem", color: "var(--text-muted)", margin: ".1rem 0 0" }}>
-              {driver.workAreaId ? `Update ville for ${driver.name}` : `Assign a ville to ${driver.name}`}
-            </p>
-          </div>
-          <button className="ts-modal-close" onClick={onClose}><CloseRoundedIcon style={{ fontSize: 16 }} /></button>
-        </div>
-
-        <div className="ts-modal-body">
-          <div style={{ background: "var(--bg-inner,#f9fafb)", border: "1px solid var(--border)", borderRadius: ".75rem", padding: ".875rem", display: "flex", alignItems: "center", gap: ".75rem" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--driver-bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--driver-fg)", flexShrink: 0 }}>
-              <DirectionsCarRoundedIcon style={{ fontSize: 20 }} />
-            </div>
-            <div>
-              <p style={{ fontWeight: 700, fontSize: ".875rem", color: "var(--text-h)", margin: 0 }}>{driver.name}</p>
-              <p style={{ fontSize: ".75rem", color: "var(--text-muted)", margin: ".1rem 0 0" }}>{driver.vehicle}</p>
-            </div>
-          </div>
-
-          <div>
-            <label style={labelStyle}>Ville (Work Area)</label>
-            <select style={inputStyle} value={selectedAreaId}
-              onChange={e => setSelectedAreaId(e.target.value === "" ? "" : Number(e.target.value))}>
-              <option value="">— No ville assigned —</option>
-              {areas.map(a => <option key={a.id} value={a.id}>{a.name} — {a.governorate}</option>)}
-            </select>
-          </div>
-
-          {selectedArea ? (
-            <div style={{ background: "var(--bg-inner,#f9fafb)", border: "1px solid var(--border)", borderRadius: ".75rem", padding: ".875rem" }}>
-              <p style={{ fontSize: ".7rem", fontWeight: 700, color: "var(--text-faint)", textTransform: "uppercase", letterSpacing: ".08em", margin: "0 0 .625rem" }}>Ville Preview</p>
-              <div style={{ display: "flex", alignItems: "center", gap: ".75rem", padding: ".75rem 1rem", borderRadius: ".625rem", background: `${selectedAreaColor}12`, border: `1px solid ${selectedAreaColor}30`, marginBottom: ".625rem" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${selectedAreaColor}20`, display: "flex", alignItems: "center", justifyContent: "center", color: selectedAreaColor, flexShrink: 0 }}>
-                  <PlaceRoundedIcon style={{ fontSize: 20 }} />
-                </div>
-                <div>
-                  <p style={{ fontWeight: 800, fontSize: "1rem", color: "var(--text-h)", margin: 0 }}>{selectedArea.name}</p>
-                  <p style={{ fontSize: ".73rem", color: "var(--text-muted)", margin: ".1rem 0 0" }}>{selectedArea.governorate}</p>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".625rem" }}>
-                {[
-                  { label: "Ville",       value: selectedArea.name },
-                  { label: "Governorate", value: selectedArea.governorate },
-                  { label: "Radius",      value: `${selectedArea.radius} km` },
-                  { label: "Driver",      value: driver.name },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: ".5rem", padding: ".625rem .75rem" }}>
-                    <p style={{ fontSize: ".65rem", textTransform: "uppercase", letterSpacing: ".07em", color: "var(--text-faint)", fontWeight: 600, margin: "0 0 .2rem" }}>{label}</p>
-                    <p style={{ fontSize: ".875rem", fontWeight: 600, color: "var(--text-h)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div style={{ background: "var(--bg-inner,#f9fafb)", border: "1px dashed var(--border)", borderRadius: ".75rem", padding: "1.5rem", textAlign: "center", color: "var(--text-faint)" }}>
-              <PlaceRoundedIcon style={{ fontSize: 28, marginBottom: ".35rem", opacity: .4 }} />
-              <p style={{ fontSize: ".8rem", margin: 0 }}>Select a ville to preview details</p>
-            </div>
-          )}
-        </div>
-
-        <div className="ts-modal-footer">
-          <button className="ts-btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="ts-btn-primary" onClick={() => { onSave(driver.id, selectedAreaId === "" ? null : Number(selectedAreaId)); onClose(); }}>
-            <span style={{ fontSize: 14 }}>✓</span>
-            {driver.workAreaId ? "Update Ville" : "Assign Ville"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── MAIN PAGE ──────────────────────────────────────────────────────────── */
-export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: WorkAreasPageProps) {
-  const [filter,      setFilter]      = useState<"all" | "assigned" | "unassigned">("all");
-  const [search,      setSearch]      = useState("");
-  const [page,        setPage]        = useState(1);
-  const [assignModal, setAssignModal] = useState<Driver | null>(null);
-
-  const totalDrivers    = drivers.length;
-  const assignedDrivers = drivers.filter(d => d.workAreaId !== null).length;
-  const noAreaDrivers   = totalDrivers - assignedDrivers;
-
-  const filtered = drivers.filter(d => {
-    const area = areas.find(a => a.id === d.workAreaId);
-    const mF = filter === "all" ? true : filter === "assigned" ? d.workAreaId !== null : d.workAreaId === null;
-    const q  = search.toLowerCase();
-    const mQ = !q
-      || d.name.toLowerCase().includes(q)
-      || d.vehicle.toLowerCase().includes(q)
-      || (area?.name.toLowerCase().includes(q) ?? false)
-      || (area?.governorate.toLowerCase().includes(q) ?? false);
-    return mF && mQ;
-  });
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    return drivers.filter(d => {
+      const mF = filter === "all" ? true : filter === "assigned" ? !!d.workAreaId : !d.workAreaId;
+      const mQ = !q
+        || d.name.toLowerCase().includes(q)
+        || (d.vehicle ?? "").toLowerCase().includes(q)
+        || (d.workArea?.ville ?? "").toLowerCase().includes(q)
+        || (d.workArea?.country ?? "").toLowerCase().includes(q);
+      return mF && mQ;
+    });
+  }, [drivers, filter, search]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS));
   const safePage   = Math.min(page, totalPages);
   const paged      = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
   const ghostCount = ROWS - paged.length;
 
-  function handleSaveAssignment(driverId: number, workAreaId: number | null) {
-    setDrivers(prev => prev.map(d => d.id === driverId ? { ...d, workAreaId } : d));
-  }
-
   return (
     <>
-      {assignModal && (
-        <AssignModal driver={assignModal} areas={areas} onSave={handleSaveAssignment} onClose={() => setAssignModal(null)} />
+      {showAddArea && (
+        <AddWorkAreaModal
+          onClose={() => setShowAddArea(false)}
+          onCreated={area => setAreas(prev => [...prev, area])}
+        />
+      )}
+      {assignTarget && (
+        <AssignWorkAreaModal
+          driver={assignTarget}
+          areas={areas}
+          onClose={() => setAssignTarget(null)}
+          onSaved={updated => {
+            setDrivers(prev => prev.map(d => d.id === updated.id ? updated : d));
+            setAssignTarget(null);
+          }}
+        />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "1rem", overflowY: "auto", flex: 1 }}>
 
-        {/* ── Page header ── */}
+        {/* Header */}
         <div className="ts-page-header">
           <div>
             <h1 className="ts-page-title">Work Areas</h1>
-            <p className="ts-page-subtitle">Assign each driver to their ville / service coverage zone</p>
+            <p className="ts-page-subtitle">Assign each driver to their service zone</p>
           </div>
+          <button className="ts-btn-primary" onClick={() => setShowAddArea(true)}>
+            <AddLocationAltRoundedIcon style={{ fontSize: 15 }} />
+            Add Work Area
+          </button>
         </div>
 
-        {/* ── Stat cards — ✅ CSS vars for icon bg/fg ── */}
-        <div style={{ display: "flex", gap: ".875rem", flexWrap: "wrap" }}>
-          <StatCard label="Total Drivers"     value={totalDrivers}    iconBg="var(--driver-bg)"   iconFg="var(--driver-fg)"   icon={<DirectionsCarRoundedIcon style={{ fontSize: 22 }} />} />
-          <StatCard label="Assigned to Ville" value={assignedDrivers} iconBg="var(--active-bg)"   iconFg="var(--active-fg)"   icon={<MyLocationRoundedIcon    style={{ fontSize: 22 }} />} />
-          <StatCard label="No Ville Assigned" value={noAreaDrivers}   iconBg="var(--pending-bg)"  iconFg="var(--pending-fg)"  icon={<PersonOffRoundedIcon     style={{ fontSize: 22 }} />} />
-          <StatCard label="Defined Villes"    value={areas.length}    iconBg="var(--rider-bg)"    iconFg="var(--rider-fg)"    icon={<PlaceRoundedIcon         style={{ fontSize: 22 }} />} />
-        </div>
+        {/* Stat cards */}
+        <WorkAreaStatCards drivers={drivers} areas={areas} />
 
-        {/* ── Filter bar + search — ✅ uses ts-filter-chip & ts-search-bar classes ── */}
+        {/* Filter + Search */}
         <div className="ts-filter-bar">
           {([
             { key: "all",        label: "All"      },
             { key: "assigned",   label: "Assigned" },
             { key: "unassigned", label: "No Ville" },
           ] as const).map(({ key, label }) => (
-            <button
-              key={key}
+            <button key={key}
               className={`ts-filter-chip${filter === key ? " ts-active" : ""}`}
               onClick={() => { setFilter(key); setPage(1); }}
             >
@@ -382,74 +115,112 @@ export default function WorkAreasPage({ areas, setAreas, drivers, setDrivers }: 
           </span>
         </div>
 
-        {/* ── Table ── */}
+        {/* Table */}
         <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-              <colgroup>
-                <col style={{ width: "20%" }} /><col style={{ width: "20%" }} />
-                <col style={{ width: "20%" }} /><col style={{ width: "20%" }} />
-                <col style={{ width: "20%" }} />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th style={TH}>Driver</th><th style={TH}>Vehicle</th>
-                  <th style={TH}>Ville</th><th style={TH}>Status</th>
-                  <th style={TH}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paged.length === 0 ? (
-                  <>
-                    <tr style={{ height: ROW_H }}>
-                      <td colSpan={5} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
-                        No drivers match your search.
-                      </td>
-                    </tr>
-                    {Array.from({ length: ROWS - 1 }).map((_, i) => (
-                      <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={5} style={{ borderBottom: "1px solid var(--border)" }} />
+          {loading ? (
+            <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".85rem" }}>
+              Loading…
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                <colgroup>
+                  <col style={{ width: "22%" }} /><col style={{ width: "22%" }} />
+                  <col style={{ width: "22%" }} /><col style={{ width: "18%" }} />
+                  <col style={{ width: "16%" }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th style={TH}>Driver</th>
+                    <th style={TH}>Vehicle</th>
+                    <th style={TH}>Ville</th>
+                    <th style={TH}>Assignment</th>
+                    <th style={TH}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paged.length === 0 ? (
+                    <>
+                      <tr style={{ height: ROW_H }}>
+                        <td colSpan={5} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                          No drivers found{search ? ` matching "${search}"` : ""}.
+                        </td>
                       </tr>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {paged.map(driver => {
-                      const area      = areas.find(a => a.id === driver.workAreaId);
-                      const areaIdx   = area ? areas.indexOf(area) : -1;
-                      const areaColor = areaIdx >= 0 ? ZONE_COLORS[areaIdx % ZONE_COLORS.length] : undefined;
-                      return (
+                      {Array.from({ length: ROWS - 1 }).map((_, i) => (
+                        <tr key={`ge-${i}`} style={{ height: ROW_H }}>
+                          <td colSpan={5} style={{ borderBottom: "1px solid var(--border)" }} />
+                        </tr>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {paged.map(driver => (
                         <tr key={driver.id} className="ts-tr" style={{ height: ROW_H }}>
-                          <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>{driver.name}</td>
-                          <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{driver.vehicle}</td>
-                          <td style={{ ...TD, fontWeight: 600 }}>
-                            {area ? (
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: ".4rem" }}>
-                                <span style={{ width: 9, height: 9, borderRadius: "50%", background: areaColor, flexShrink: 0, display: "inline-block" }} />
-                                <span style={{ color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{area.name}</span>
-                              </span>
+                          {/* Driver */}
+                          <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)" }}>
+                            {driver.name || "—"}
+                          </td>
+                          {/* Vehicle */}
+                          <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {driver.vehicle ?? <span style={{ color: "var(--text-faint)", fontStyle: "italic" }}>No vehicle</span>}
+                          </td>
+                          {/* Ville */}
+                          <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {driver.workArea
+                              ? driver.workArea.ville
+                              : <span style={{ color: "var(--text-faint)", fontStyle: "italic", fontWeight: 400 }}>—</span>
+                            }
+                          </td>
+                          {/* Assignment status text */}
+                          <td style={TD}>
+                            {driver.workAreaId ? (
+                              <span style={{ fontSize: ".78rem", color: "#059669", fontWeight: 600 }}>Assigned</span>
                             ) : (
-                              <span style={{ color: "var(--text-faint)", fontStyle: "italic", fontWeight: 400 }}>—</span>
+                              <span style={{ fontSize: ".78rem", color: "#d97706", fontWeight: 600 }}>Not Assigned</span>
                             )}
                           </td>
-                          <td style={TD}><StatusPill assigned={driver.workAreaId !== null} /></td>
+                          {/* Action */}
                           <td style={TD}>
-                            <WorkAreaActionButton isEdit={driver.workAreaId !== null} onClick={() => setAssignModal(driver)} />
+                            <button
+                              onClick={() => setAssignTarget(driver)}
+                              style={{
+                                display: "inline-flex", alignItems: "center", gap: ".3rem",
+                                height: 30, padding: "0 .6rem", borderRadius: 7,
+                                border: "1px solid var(--border)", background: "var(--bg-card)",
+                                color: "var(--text-muted)", cursor: "pointer",
+                                fontSize: ".78rem", fontWeight: 600, whiteSpace: "nowrap",
+                                transition: "all .15s",
+                              }}
+                              onMouseEnter={e => {
+                                (e.currentTarget as HTMLButtonElement).style.background = driver.workAreaId ? "#eff6ff" : "#f5f3ff";
+                                (e.currentTarget as HTMLButtonElement).style.color = driver.workAreaId ? "#2563eb" : "#7c3aed";
+                                (e.currentTarget as HTMLButtonElement).style.borderColor = driver.workAreaId ? "#bfdbfe" : "#ddd6fe";
+                              }}
+                              onMouseLeave={e => {
+                                (e.currentTarget as HTMLButtonElement).style.background = "var(--bg-card)";
+                                (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)";
+                                (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border)";
+                              }}
+                            >
+                              {driver.workAreaId
+                                ? <><EditRoundedIcon style={{ fontSize: 13 }} /> Edit</>
+                                : <><AddLocationAltRoundedIcon style={{ fontSize: 13 }} /> Assign</>}
+                            </button>
                           </td>
                         </tr>
-                      );
-                    })}
-                    {Array.from({ length: ghostCount }).map((_, i) => (
-                      <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={5} style={{ borderBottom: "1px solid var(--border)" }} />
-                      </tr>
-                    ))}
-                  </>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <Pagination
+                      ))}
+                      {Array.from({ length: ghostCount }).map((_, i) => (
+                        <tr key={`g-${i}`} style={{ height: ROW_H }}>
+                          <td colSpan={5} style={{ borderBottom: "1px solid var(--border)" }} />
+                        </tr>
+                      ))}
+                    </>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <WorkAreaPagination
             page={safePage} totalPages={totalPages}
             onPrev={() => setPage(p => Math.max(1, p - 1))}
             onNext={() => setPage(p => Math.min(totalPages, p + 1))}

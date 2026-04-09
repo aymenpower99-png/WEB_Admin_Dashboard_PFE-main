@@ -7,51 +7,66 @@ interface Props {
 }
 
 export default function DriverSetupInfoModal({ driver, onClose, onGoEdit }: Props) {
-  const hasVehicle   = !!driver.vehicle;
-  const hasWorkArea  = !!(driver as any).workAreaId; // will be true once assigned
-  const missingItems: string[] = [];
-  if (!hasVehicle)  missingItems.push("Vehicle — assign a vehicle to this driver");
-  if (!hasWorkArea) missingItems.push("Work Area — admin must assign a work area");
+  const hasVehicle  = !!driver.vehicle;
+  const hasWorkArea = !!(driver as any).workAreaId;
+
+  const missing: { label: string; done: boolean }[] = [
+    { label: "Vehicle — a vehicle needs to be assigned to this driver", done: hasVehicle },
+    { label: "Work Area — a service zone needs to be assigned to this driver", done: hasWorkArea },
+  ];
 
   return (
     <div className="ts-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="ts-modal" style={{ maxWidth: 420 }}>
+      <div className="ts-modal" style={{ maxWidth: 430 }}>
         <div className="ts-modal-header">
           <div>
             <h2 className="ts-page-title" style={{ fontSize: "1rem" }}>
               Setup Required — {driver.firstName} {driver.lastName}
             </h2>
-            <p className="ts-page-subtitle">The following items are missing before this driver can go online.</p>
+            <p className="ts-page-subtitle">
+              Some items still need to be configured before this driver can go online.
+            </p>
           </div>
           <button className="ts-modal-close" onClick={onClose}>✕</button>
         </div>
-        <div className="ts-modal-body">
-          {missingItems.length === 0 ? (
-            <div style={{ color: "#16a34a", fontWeight: 600 }}>
-              ✅ All setup items are complete. Status should update shortly.
-            </div>
-          ) : (
-            <ul style={{ margin: 0, padding: "0 0 0 1.25rem", display: "flex", flexDirection: "column", gap: ".5rem" }}>
-              {missingItems.map((item, i) => (
-                <li key={i} style={{ fontSize: ".875rem", color: "#c2410c" }}>
-                  <span style={{ fontWeight: 600 }}>❌ {item}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+
+        <div className="ts-modal-body" style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>
+            {missing.map((item, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "flex-start", gap: ".6rem",
+                padding: ".65rem .9rem", borderRadius: 8,
+                background: item.done ? "rgba(16,185,129,0.06)" : "rgba(239,68,68,0.06)",
+                border: `1px solid ${item.done ? "rgba(16,185,129,0.25)" : "rgba(239,68,68,0.25)"}`,
+              }}>
+                <span style={{ fontSize: "1rem", flexShrink: 0, marginTop: 1 }}>
+                  {item.done ? "✅" : "❌"}
+                </span>
+                <span style={{
+                  fontSize: ".855rem",
+                  color: item.done ? "#059669" : "var(--text-body)",
+                  fontWeight: item.done ? 600 : 400,
+                }}>
+                  {item.label}
+                </span>
+              </div>
+            ))}
+          </div>
+
           <div style={{
-            marginTop: "1rem", padding: ".75rem", borderRadius: 8,
+            padding: ".65rem .9rem", borderRadius: 8,
             background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.18)",
-            fontSize: ".82rem", color: "var(--text-body)",
+            fontSize: ".8rem", color: "var(--text-muted)", lineHeight: 1.7,
           }}>
-            <strong>How setup works:</strong>
-            <ol style={{ margin: ".4rem 0 0 1.1rem", padding: 0, lineHeight: 1.7 }}>
-              <li>Assign a vehicle to the driver (via Edit Driver or from the Vehicles page).</li>
-              <li>Assign a work area to the driver (from the Work Areas page).</li>
-              <li>Once both are done, the driver status changes to <strong>Offline</strong> and they can go online.</li>
+            <strong>Setup flow:</strong>
+            <ol style={{ margin: ".3rem 0 0 1.1rem", padding: 0 }}>
+              <li>Assign a vehicle via <em>Edit Driver</em> or from the Vehicles page.</li>
+              <li>Assign a work area from the <em>Work Areas</em> page.</li>
+              <li>Once both are set, status changes to <strong>Offline</strong> — driver can then go online.</li>
             </ol>
           </div>
         </div>
+
         <div className="ts-modal-footer">
           <button className="ts-btn-ghost" onClick={onClose}>Close</button>
           <button className="ts-btn-primary" onClick={() => { onClose(); onGoEdit(); }}>
