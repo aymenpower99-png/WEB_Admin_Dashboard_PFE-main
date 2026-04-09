@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import AddRoundedIcon        from "@mui/icons-material/AddRounded";
 import SaveRoundedIcon       from "@mui/icons-material/SaveRounded";
 import apiClient             from "../../api/apiClient";
+import { classesApi }        from "../../api/classes";
 import { mapBackendVehicle } from "./types";
 import type { Vehicle, AddVehiclePageProps } from "./types";
 
@@ -22,6 +23,7 @@ export type { AddVehiclePageProps };
 
 export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: AddVehiclePageProps) {
   const isEdit = !!prefill;
+
   const [form, setForm] = useState<FormState>(
     prefill ? {
       make: prefill.make, model: prefill.model, year: String(prefill.year),
@@ -38,13 +40,36 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   const [makeId,     setMakeId]     = useState<number | null>(null);
   const [driverId,   setDriverId]   = useState<string | null>(prefill?.driverId ?? null);
 
+  // ── Load classes from API ──────────────────────────────────────────────────
+  const [classOptions, setClassOptions] = useState<{ value: string; label: string }[]>([]);
+  const [classesLoading, setClassesLoading] = useState(true);
+
+  useEffect(() => {
+    setClassesLoading(true);
+    classesApi.getAll()
+      .then(classes => {
+        setClassOptions(classes.map(c => ({ value: c.id, label: c.name })));
+      })
+      .catch(() => {
+        // fallback to static list if API fails
+        setClassOptions([
+          { value: "Economy",     label: "Economy"     },
+          { value: "Standard",    label: "Standard"    },
+          { value: "Comfort",     label: "Comfort"     },
+          { value: "First Class", label: "First Class" },
+          { value: "Van",         label: "Van"         },
+          { value: "Mini Bus",    label: "Mini Bus"    },
+        ]);
+      })
+      .finally(() => setClassesLoading(false));
+  }, []);
+
   const set = (key: keyof FormState, val: string) => {
     const next = { ...form, [key]: val }; setForm(next);
     if (submitted) setErrs(validate(next));
   };
 
   const handleMakeSelect = (name: string, id: number | null) => {
-    // Reset model when make changes
     const next = { ...form, make: name, model: "" };
     setForm(next); setMakeId(id);
     if (submitted) setErrs(validate(next));
@@ -57,11 +82,13 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
     setSubmitting(true); setApiError(null);
 
     const payload: Record<string, unknown> = {
-      make: form.make, model: form.model, year: Number(form.year),
-      color: form.color || undefined,
-      vehicleType: form.vehicleClass || undefined,
-      seats: form.seats ? Number(form.seats) : undefined,
-      driverId: driverId || undefined,
+      make:      form.make,
+      model:     form.model,
+      year:      Number(form.year),
+      color:     form.color || undefined,
+      classId:   form.vehicleClass || undefined,   // ← send classId (UUID from API)
+      seats:     form.seats ? Number(form.seats) : undefined,
+      driverId:  driverId || undefined,
     };
 
     try {
@@ -80,14 +107,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   };
 
   const yearOptions  = YEARS.map(y => ({ value: String(y), label: String(y) }));
-  const classOptions = [
-    { key: "Economy",     label: "Economy"     },
-    { key: "Standard",    label: "Standard"    },
-    { key: "Comfort",     label: "Comfort"     },
-    { key: "First Class", label: "First Class" },
-    { key: "Van",         label: "Van"         },
-    { key: "Mini Bus",    label: "Mini Bus"    },
-  ].map(c => ({ value: c.key, label: c.label }));
   const colorOptions = COLORS.map(c => ({ value: c, label: c }));
   const seatOptions  = SEAT_COUNTS.map(s => ({ value: String(s), label: `${s} seats` }));
 
@@ -102,7 +121,9 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
         <div>
           <h1 className="ts-page-title">{isEdit ? "Edit Vehicle" : "Add New Vehicle"}</h1>
           <p className="ts-page-subtitle">
-            {isEdit ? `Editing ${prefill!.year} ${prefill!.make} ${prefill!.model}` : "Register a new vehicle to your fleet"}
+            {isEdit
+              ? `Editing ${prefill!.year} ${prefill!.make} ${prefill!.model}`
+              : "Register a new vehicle to your fleet"}
           </p>
         </div>
       </div>
@@ -115,20 +136,30 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
             <MakeAutocomplete value={form.make} error={errs.make} onSelect={handleMakeSelect} />
           </Field>
           <Field label="Model" error={errs.model}>
-            {/* ✅ Pass makeName so ModelAutocomplete can look up local models instantly */}
             <ModelAutocomplete
-              value={form.model}
-              makeId={makeId}
-              makeName={form.make}
-              error={errs.model}
-              onChange={v => set("model", v)}
+              value={form.model} makeId={makeId} makeName={form.make}
+              error={errs.model} onChange={v => set("model", v)}
             />
           </Field>
         </div>
 
-        {/* Row 2 — Vehicle Class */}
+        {/* Row 2 — Vehicle Class (loaded from API) */}
         <Field label="Vehicle Class" error={errs.vehicleClass}>
-          <PlainDropdown value={form.vehicleClass} onChange={v => set("vehicleClass", v)} options={classOptions} error={errs.vehicleClass} />
+          {classesLoading ? (
+            <div style={{ padding: ".55rem .75rem", border: "1px solid var(--border)",
+              borderRadius: ".4rem", fontSize: ".82rem", color: "var(--text-faint)" }}>
+              Loading classes…
+            </div>
+          ) : (
+            <PlainDropdown
+              value={form.vehicleClass}
+              onChange={v => set("vehicleClass", v)}
+              options={classOptions}
+              error={errs.vehicleClass}
+              placeholder="SELECT CLASS"
+            />
+          )}
+          {/* Visual reference grid — static, for context */}
           <VehicleClassGrid />
         </Field>
 
@@ -159,7 +190,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           />
         </Field>
 
-        {/* Row 6 — Vehicle Photos (edit only) */}
+        {/* Row 6 — Photos (edit only) */}
         {isEdit && (
           <VehiclePhotosSection
             vehicleId={prefill!.id}
@@ -174,21 +205,26 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
 
         {/* API error */}
         {apiError && (
-          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: "8px", padding: "8px 14px", color: "#ef4444", fontSize: ".875rem" }}>
+          <div style={{
+            background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)",
+            borderRadius: "8px", padding: "8px 14px",
+            color: "#ef4444", fontSize: ".875rem",
+          }}>
             {apiError}
           </div>
         )}
 
         {/* Actions */}
         <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", paddingTop: ".25rem" }}>
-          <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")} disabled={submitting}>Cancel</button>
+          <button className="ts-btn-ghost" onClick={() => onNavigate("vehicles")} disabled={submitting}>
+            Cancel
+          </button>
           <button className="ts-btn-primary" onClick={handleSubmit} disabled={submitting}>
             {submitting ? "Saving…" : isEdit
               ? <><SaveRoundedIcon style={{ fontSize: 14 }} /> Save Changes</>
               : <><AddRoundedIcon  style={{ fontSize: 14 }} /> Add Vehicle</>}
           </button>
         </div>
-
       </div>
     </div>
   );

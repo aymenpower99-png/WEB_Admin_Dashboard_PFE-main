@@ -5,21 +5,22 @@ import type { DriverProfile } from "../../api/drivers";
 import { driversApi } from "../../api/drivers";
 import { ROWS, ROW_H, TH, TD } from "./components/DriversTypes";
 
-import DriverKpiCards          from "./components/DriverKpiCards";
-import DriversPagination       from "./components/DriversPagination";
-import DeleteDriverModal       from "./components/DeleteDriverModal";
-import EditDriverModal         from "./components/EditDriverModal";
-import DriverSetupInfoModal    from "./components/DriverSetupInfoModal";
-import { DriverStatusBadge }   from "./Badge_action_buttons/DriversBadges";
+import DriverKpiCards             from "./components/DriverKpiCards";
+import DriversPagination          from "./components/DriversPagination";
+import DeleteDriverModal          from "./components/DeleteDriverModal";
+import EditDriverModal            from "./components/EditDriverModal";
+import DriverSetupInfoModal       from "./components/DriverSetupInfoModal";
+import { DriverStatusBadge }      from "./Badge_action_buttons/DriversBadges";
 import { DriverInlineRowActions } from "./Badge_action_buttons/DriversActionButtons";
 
 type FilterKey = "all" | "pending" | "setup_required" | "offline" | "online";
 
 interface DriversPageProps {
-  onNavigate: (page: string, prefill?: DriverProfile | null) => void;
+  // ✅ optional — ShellRoutes no longer needs to pass it
+  onNavigate?: (page: string, prefill?: DriverProfile | null) => void;
 }
 
-export default function DriversPage({ onNavigate }: DriversPageProps) {
+export default function DriversPage({ onNavigate: _onNavigate }: DriversPageProps) {
   const [drivers,       setDrivers]       = useState<DriverProfile[]>([]);
   const [loading,       setLoading]       = useState(false);
   const [filter,        setFilter]        = useState<FilterKey>("all");
@@ -86,7 +87,6 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
 
   return (
     <>
-      {/* Delete confirm */}
       {removeId !== null && (
         <DeleteDriverModal
           onConfirm={() => handleDelete(removeId)}
@@ -94,7 +94,6 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
         />
       )}
 
-      {/* Edit driver modal */}
       {editDriver && (
         <EditDriverModal
           driver={editDriver}
@@ -106,7 +105,6 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
         />
       )}
 
-      {/* Setup info (eye) modal */}
       {infoDriver && (
         <DriverSetupInfoModal
           driver={infoDriver}
@@ -117,15 +115,12 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
-        {/* Header */}
         <div className="ts-page-header">
           <div><h1 className="ts-page-title">Drivers</h1></div>
         </div>
 
-        {/* KPI Cards */}
         <DriverKpiCards drivers={drivers} />
 
-        {/* Filter + Search */}
         <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
           <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>
             {FILTER_TABS.map(({ key, label }) => (
@@ -143,13 +138,15 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
           <div style={{ marginLeft: "auto" }}>
             <div className="ts-search-bar" style={{ minWidth: 240 }}>
               <SearchRoundedIcon style={{ fontSize: 15, flexShrink: 0 }} />
-              <input placeholder="Search name, email or vehicle…" value={search}
-                onChange={e => { setSearch(e.target.value); setPage(1); }} />
+              <input
+                placeholder="Search name, email or vehicle…"
+                value={search}
+                onChange={e => { setSearch(e.target.value); setPage(1); }}
+              />
             </div>
           </div>
         </div>
 
-        {/* Table */}
         <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
           {loading ? (
             <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".85rem" }}>
@@ -161,13 +158,16 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
                 <colgroup>
                   <col style={{ width: "22%" }} /><col style={{ width: "22%" }} />
                   <col style={{ width: "16%" }} /><col style={{ width: "18%" }} />
-                  <col style={{ width: "8%" }}  /><col style={{ width: "14%" }} />
+                  <col style={{ width: "8%"  }} /><col style={{ width: "14%" }} />
                 </colgroup>
                 <thead>
                   <tr>
-                    <th style={TH}>Driver</th><th style={TH}>Email</th>
-                    <th style={TH}>Status</th><th style={TH}>Vehicle</th>
-                    <th style={TH}>Trips</th><th style={TH}>Actions</th>
+                    <th style={TH}>Driver</th>
+                    <th style={TH}>Email</th>
+                    <th style={TH}>Status</th>
+                    <th style={TH}>Vehicle</th>
+                    <th style={TH}>Trips</th>
+                    <th style={TH}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -227,10 +227,12 @@ export default function DriversPage({ onNavigate }: DriversPageProps) {
               </table>
             </div>
           )}
-          <DriversPagination page={safePage} totalPages={totalPages}
+          <DriversPagination
+            page={safePage} totalPages={totalPages}
             onPrev={() => setPage(p => Math.max(1, p - 1))}
             onNext={() => setPage(p => Math.min(totalPages, p + 1))}
-            setPage={setPage} />
+            setPage={setPage}
+          />
         </div>
       </div>
     </>

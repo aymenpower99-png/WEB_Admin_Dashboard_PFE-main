@@ -6,7 +6,6 @@ import LoginWithIntro from "./auth/LoginWithIntro";
 import VerifyEmailChange from "./auth/VerifyEmailChange";
 import Shell from "./routes/ShellRoutes";
 
-import type { DriverProfile } from "./api/drivers";
 import { INITIAL_VEHICLES } from "./Dashboard/Vehicles/Vehiclespage";
 import type { Vehicle } from "./Dashboard/Vehicles/Vehiclespage";
 
@@ -16,15 +15,9 @@ import "./Dashboard/travelsync-design-system.css";
 export default function App() {
   const [dark, setDark] = useState(() => localStorage.getItem("dark") === "true");
 
-  // ── Drivers (editDriver only — DriversPage fetches its own list from API)
-  const [editDriver, setEditDriver] = useState<DriverProfile | null>(null);
-
   // ── Vehicles
-  const [vehicles, setVehicles] = useState<Vehicle[]>(INITIAL_VEHICLES);
+  const [vehicles,    setVehicles]    = useState<Vehicle[]>(INITIAL_VEHICLES);
   const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null);
-
-  // NOTE: WorkAreasPage now manages its own state (fetches from API internally).
-  // No areas / workAreaDrivers state needed here anymore.
 
   function toggleDark() {
     const next = !dark;
@@ -48,8 +41,6 @@ export default function App() {
                 <Shell
                   dark={dark}
                   onToggleDark={toggleDark}
-                  editDriver={editDriver}
-                  setEditDriver={setEditDriver}
                   vehicles={vehicles}
                   setVehicles={setVehicles}
                   editVehicle={editVehicle}
