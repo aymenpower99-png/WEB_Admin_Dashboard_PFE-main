@@ -12,27 +12,32 @@ export default function ClassPreview({ form }: { form: ClassFormData }) {
       borderRadius: ".5rem", overflow: "hidden",
       boxShadow: "0 2px 8px rgba(0,0,0,.06)",
     }}>
-      {/* Image */}
+      {/* Image area — ✅ empty when no image, no car icon */}
       <div style={{
-        height: 140, background: "var(--bg-inner)",
-        display: "flex", alignItems: "center", justifyContent: "center",
+        height: 140,
+        background: form.imageUrl ? "transparent" : "var(--bg-inner)",
         overflow: "hidden", position: "relative",
       }}>
         {form.imageUrl ? (
           <img
             src={form.imageUrl} alt="Class"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
-        ) : (
-          <span style={{ fontSize: "3.5rem", opacity: .25 }}>🚗</span>
-        )}
+        ) : null /* ✅ intentionally empty — no icon */}
+
+        {/* Name overlay always shown */}
         <div style={{
           position: "absolute", bottom: 0, left: 0, right: 0,
-          background: "linear-gradient(transparent, rgba(0,0,0,.6))",
+          background: form.imageUrl
+            ? "linear-gradient(transparent, rgba(0,0,0,.6))"
+            : "transparent",
           padding: ".6rem .85rem",
         }}>
-          <span style={{ color: "#fff", fontWeight: 800, fontSize: ".95rem" }}>
+          <span style={{
+            color: form.imageUrl ? "#fff" : "var(--text-h)",
+            fontWeight: 800, fontSize: ".95rem",
+          }}>
             {form.name || "Class Name"}
           </span>
         </div>
@@ -42,15 +47,19 @@ export default function ClassPreview({ form }: { form: ClassFormData }) {
       <div style={{ padding: ".85rem" }}>
         {/* Capacity row */}
         <div style={{ display: "flex", gap: ".85rem", marginBottom: ".65rem" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: ".25rem",
-            fontSize: ".78rem", color: "var(--text-body)", fontWeight: 600 }}>
+          <span style={{
+            display: "flex", alignItems: "center", gap: ".25rem",
+            fontSize: ".78rem", color: "var(--text-body)", fontWeight: 600,
+          }}>
             <EventSeatRoundedIcon style={{ fontSize: 15, color: "#7c3aed" }} />
-            {form.seats} seats
+            {form.seats}
           </span>
-          <span style={{ display: "flex", alignItems: "center", gap: ".25rem",
-            fontSize: ".78rem", color: "var(--text-body)", fontWeight: 600 }}>
+          <span style={{
+            display: "flex", alignItems: "center", gap: ".25rem",
+            fontSize: ".78rem", color: "var(--text-body)", fontWeight: 600,
+          }}>
             <LuggageRoundedIcon style={{ fontSize: 15, color: "#7c3aed" }} />
-            {form.bags} bags
+            {form.bags}
           </span>
         </div>
 
@@ -86,10 +95,14 @@ export default function ClassPreview({ form }: { form: ClassFormData }) {
         </div>
 
         {/* Service */}
-        <div style={{ borderTop: "1px solid var(--border)", paddingTop: ".65rem",
-          display: "flex", flexDirection: "column", gap: ".3rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between",
-            fontSize: ".75rem", color: "var(--text-muted)" }}>
+        <div style={{
+          borderTop: "1px solid var(--border)", paddingTop: ".65rem",
+          display: "flex", flexDirection: "column", gap: ".3rem",
+        }}>
+          <div style={{
+            display: "flex", justifyContent: "space-between",
+            fontSize: ".75rem", color: "var(--text-muted)",
+          }}>
             <span>Free waiting time</span>
             <span style={{ fontWeight: 700, color: "var(--text-h)" }}>
               {form.freeWaitingTime === 0 ? "None" : `${form.freeWaitingTime} min`}

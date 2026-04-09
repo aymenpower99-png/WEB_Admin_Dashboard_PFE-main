@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import WifiRoundedIcon        from "@mui/icons-material/WifiRounded";
 import AcUnitRoundedIcon      from "@mui/icons-material/AcUnitRounded";
 import WaterDropRoundedIcon   from "@mui/icons-material/WaterDropRounded";
-import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
 import { Field, PlainDropdown } from "../../Vehicles/AddvehicleComponents/Field";
 
 export interface ClassFormData {
@@ -34,11 +33,11 @@ export const DEFAULT_FORM: ClassFormData = {
 };
 
 const SEAT_OPTIONS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(n => ({
-  value: String(n), label: `${n} seat${n > 1 ? "s" : ""}`,
+  value: String(n), label: String(n),
 }));
 
 const BAG_OPTIONS = [0,1,2,3,4,5,6,7,8,9,10].map(n => ({
-  value: String(n), label: `${n} bag${n !== 1 ? "s" : ""}`,
+  value: String(n), label: String(n),
 }));
 
 const WAIT_OPTIONS = [0,2,3,5,7,10,15,20,30,45,60].map(n => ({
@@ -107,21 +106,17 @@ export default function ClassFormFields({
   nameError?: string;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string | null>(form.imageUrl || null);
-  const [dragging, setDragging] = useState(false);
+  const [preview, setPreview] = useState<string | null>(
+    form.imageUrl && !form.imageUrl.startsWith("blob:") ? form.imageUrl : null
+  );
+  const [fileName, setFileName] = useState<string>("No file chosen");
 
   function handleFile(file: File) {
     onChange("imageFile", file);
+    setFileName(file.name);
     const url = URL.createObjectURL(file);
     setPreview(url);
-    onChange("imageUrl", url); // used by preview panel
-  }
-
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    setDragging(false);
-    const f = e.dataTransfer.files[0];
-    if (f && f.type.startsWith("image/")) handleFile(f);
+    onChange("imageUrl", url);
   }
 
   return (
@@ -143,53 +138,67 @@ export default function ClassFormFields({
         />
       </Field>
 
-      {/* ── Class Image (file upload) ── */}
+      {/* ── Class Image — native file input style ── */}
       <div>
         <SectionTitle>Class Image</SectionTitle>
-        <div
-          onClick={() => fileRef.current?.click()}
-          onDragOver={e => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          style={{
-            border: `2px dashed ${dragging ? "#7c3aed" : "var(--border)"}`,
-            borderRadius: ".4rem", padding: "1.25rem",
-            background: dragging ? "#ede9fe22" : "var(--bg-inner)",
-            cursor: "pointer", textAlign: "center", transition: "all .15s",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: ".5rem",
-          }}
-        >
-          {preview ? (
-            <>
-              <img
-                src={preview} alt="preview"
-                style={{
-                  maxHeight: 120, maxWidth: "100%", borderRadius: ".4rem",
-                  objectFit: "cover", border: "1px solid var(--border)",
-                }}
-                onError={() => setPreview(null)}
-              />
-              <span style={{ fontSize: ".75rem", color: "var(--text-muted)" }}>
-                Click or drag to replace
-              </span>
-            </>
-          ) : (
-            <>
-              <CloudUploadRoundedIcon style={{ fontSize: 32, color: "var(--text-faint)" }} />
-              <span style={{ fontSize: ".82rem", color: "var(--text-muted)", fontWeight: 500 }}>
-                Click or drag &amp; drop an image
-              </span>
-              <span style={{ fontSize: ".72rem", color: "var(--text-faint)" }}>
-                PNG, JPG, WEBP — max 5 MB
-              </span>
-            </>
-          )}
-        </div>
+
+        {/* Hidden real input */}
         <input
-          ref={fileRef} type="file" accept="image/*"
+          ref={fileRef}
+          type="file"
+          accept="image/*"
           style={{ display: "none" }}
           onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
         />
+
+        {/* ✅ Styled to look exactly like native "Choose File | No file chosen" */}
+        <div
+          onClick={() => fileRef.current?.click()}
+          style={{
+            display: "flex", alignItems: "stretch",
+            border: "1px solid var(--border)", borderRadius: ".4rem",
+            overflow: "hidden", cursor: "pointer",
+            background: "var(--bg-card)",
+            fontSize: ".82rem",
+          }}
+        >
+          {/* "Choose File" button part */}
+          <span style={{
+            padding: ".45rem .85rem",
+            background: "var(--bg-inner)",
+            borderRight: "1px solid var(--border)",
+            color: "var(--text-h)",
+            fontWeight: 500,
+            whiteSpace: "nowrap",
+            userSelect: "none",
+            display: "flex", alignItems: "center",
+          }}>
+            Choose File
+          </span>
+          {/* File name part */}
+          <span style={{
+            padding: ".45rem .75rem",
+            color: fileName === "No file chosen" ? "var(--text-faint)" : "var(--text-body)",
+            display: "flex", alignItems: "center",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {fileName}
+          </span>
+        </div>
+
+        {/* Preview thumbnail */}
+        {preview && (
+          <div style={{ marginTop: ".5rem" }}>
+            <img
+              src={preview} alt="preview"
+              style={{
+                height: 80, borderRadius: ".4rem", objectFit: "cover",
+                border: "1px solid var(--border)", display: "block",
+              }}
+              onError={() => setPreview(null)}
+            />
+          </div>
+        )}
       </div>
 
       {/* ── Capacity ── */}

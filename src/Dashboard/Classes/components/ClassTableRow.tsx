@@ -1,17 +1,72 @@
 import { useState } from "react";
-import EditRoundedIcon   from "@mui/icons-material/EditRounded";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import WifiRoundedIcon   from "@mui/icons-material/WifiRounded";
 import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
 import type { VehicleClass } from "../../../api/classes";
 
-const ROW_H = 80;
+const ROW_H = 64;
 
 const TD: React.CSSProperties = {
   padding: "0 1rem", height: ROW_H, fontSize: ".875rem",
   color: "var(--text-body)", borderBottom: "1px solid var(--border)",
   verticalAlign: "middle",
 };
+
+/* ── Same icon-button style as UsersActionButtons ── */
+const ACTION_BTN_BASE: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 30,
+  height: 30,
+  borderRadius: 7,
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--border)",
+  background: "var(--bg-card)",
+  cursor: "pointer",
+  color: "var(--text-muted)",
+  flexShrink: 0,
+  transition: "all .15s",
+  padding: 0,
+};
+
+const IconEdit = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+
+const IconDelete = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+  </svg>
+);
+
+function ActionBtn({
+  title, onClick, hoverStyle, children,
+}: {
+  title: string; onClick: () => void;
+  hoverStyle: React.CSSProperties; children: React.ReactNode;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      title={title}
+      onClick={onClick}
+      style={{ ...ACTION_BTN_BASE, ...(hovered ? hoverStyle : {}) }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function ClassTableRow({
   cls, onEdit, onDelete,
@@ -26,47 +81,31 @@ export default function ClassTableRow({
     <tr
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ background: hovered ? "var(--bg-inner)" : "transparent", transition: "background .12s" }}
+      style={{
+        background: hovered ? "var(--bg-inner)" : "transparent",
+        transition: "background .12s",
+      }}
     >
-      {/* Name + image — NO description */}
+      {/* Class name */}
       <td style={TD}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          {cls.imageUrl ? (
-            <img
-              src={cls.imageUrl} alt={cls.name}
-              style={{ width: 44, height: 44, borderRadius: ".5rem",
-                objectFit: "cover", flexShrink: 0, border: "1px solid var(--border)" }}
-            />
-          ) : (
-            <div style={{
-              width: 44, height: 44, borderRadius: ".5rem", background: "var(--bg-inner)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "1.4rem", flexShrink: 0,
-            }}>
-              🚗
-            </div>
-          )}
-          <span style={{ fontWeight: 700, color: "var(--text-h)", fontSize: ".88rem" }}>
-            {cls.name}
-          </span>
-        </div>
+        <span style={{ fontWeight: 700, color: "var(--text-h)", fontSize: ".88rem" }}>
+          {cls.name}
+        </span>
       </td>
 
-      {/* Seats */}
-      <td style={TD}>
-        <span style={{ fontWeight: 600 }}>{cls.seats}</span>
-        <span style={{ color: "var(--text-faint)", fontSize: ".78rem" }}> seats</span>
+      {/* ✅ Seats — number only */}
+      <td style={{ ...TD, textAlign: "center" }}>
+        <span style={{ fontWeight: 600, color: "var(--text-h)" }}>{cls.seats}</span>
       </td>
 
-      {/* Bags */}
-      <td style={TD}>
-        <span style={{ fontWeight: 600 }}>{cls.bags}</span>
-        <span style={{ color: "var(--text-faint)", fontSize: ".78rem" }}> bags</span>
+      {/* ✅ Bags — number only */}
+      <td style={{ ...TD, textAlign: "center" }}>
+        <span style={{ fontWeight: 600, color: "var(--text-h)" }}>{cls.bags}</span>
       </td>
 
       {/* Features */}
       <td style={TD}>
-        <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: ".3rem", flexWrap: "wrap" }}>
           {cls.wifi && (
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 3,
@@ -107,10 +146,10 @@ export default function ClassTableRow({
         </div>
       </td>
 
-      {/* Waiting time */}
-      <td style={TD}>
-        <span style={{ fontWeight: 600 }}>{cls.freeWaitingTime}</span>
-        <span style={{ color: "var(--text-faint)", fontSize: ".78rem" }}> min</span>
+      {/* Wait — number only */}
+      <td style={{ ...TD, textAlign: "center" }}>
+        <span style={{ fontWeight: 600, color: "var(--text-h)" }}>{cls.freeWaitingTime}</span>
+        <span style={{ fontSize: ".72rem", color: "var(--text-faint)" }}> min</span>
       </td>
 
       {/* Status */}
@@ -124,32 +163,23 @@ export default function ClassTableRow({
         </span>
       </td>
 
-      {/* Actions */}
-      <td style={TD}>
-        <div style={{ display: "flex", gap: ".4rem" }}>
-          <button
+      {/* ✅ Actions — same icon-button style as UsersActionButtons */}
+      <td style={TD} onClick={e => e.stopPropagation()}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <ActionBtn
+            title="Edit class"
             onClick={() => onEdit(cls)}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: ".3rem",
-              padding: "5px 12px", borderRadius: ".4rem", fontSize: ".78rem",
-              fontWeight: 600, cursor: "pointer", border: "1px solid var(--border)",
-              background: "var(--bg-card)", color: "var(--text-body)", transition: "all .12s",
-            }}
+            hoverStyle={{ background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }}
           >
-            <EditRoundedIcon style={{ fontSize: 14 }} /> Edit
-          </button>
-          <button
+            <IconEdit />
+          </ActionBtn>
+          <ActionBtn
+            title="Delete class"
             onClick={() => onDelete(cls)}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: ".3rem",
-              padding: "5px 12px", borderRadius: ".4rem", fontSize: ".78rem",
-              fontWeight: 600, cursor: "pointer",
-              border: "1px solid #ef4444",
-              background: "transparent", color: "#ef4444", transition: "all .12s",
-            }}
+            hoverStyle={{ background: "#fef2f2", color: "#dc2626", borderColor: "#fecaca" }}
           >
-            <DeleteRoundedIcon style={{ fontSize: 14 }} /> Delete
-          </button>
+            <IconDelete />
+          </ActionBtn>
         </div>
       </td>
     </tr>

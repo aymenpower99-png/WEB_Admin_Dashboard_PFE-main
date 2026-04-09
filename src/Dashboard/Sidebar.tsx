@@ -37,18 +37,11 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
     ],
   },
   {
-    // Users + Drivers together at the top
     section: "USERS",
     items: [
-      { label: "Users", icon: "people", page: "users" },
-      {
-        label: "Drivers",
-        icon: "person",
-        page: "drivers-parent",
-        children: [
-          { label: "Drivers Management", page: "drivers" },
-        ],
-      },
+      { label: "Users",   icon: "people", page: "users"   },
+      // ✅ Drivers: direct link, no children dropdown
+      { label: "Drivers", icon: "person", page: "drivers" },
     ],
   },
   {
@@ -59,7 +52,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         icon: "category",
         page: "classes-parent",
         children: [
-          { label: "All Classes", page: "classes" },
+          { label: "All Classes", page: "classes"     },
           { label: "Add Class",   page: "classes-add" },
         ],
       },
@@ -68,7 +61,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         icon: "directions_car",
         page: "vehicles-parent",
         children: [
-          { label: "All Vehicles", page: "vehicles" },
+          { label: "All Vehicles", page: "vehicles"        },
           { label: "Add Vehicle",  page: "agency-vehicles" },
         ],
       },
@@ -83,8 +76,8 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         page: "rides-parent",
         children: [
           { label: "Available Rides", page: "available-rides" },
-          { label: "Upcoming Rides",  page: "upcoming-rides" },
-          { label: "Past Rides",      page: "past-rides" },
+          { label: "Upcoming Rides",  page: "upcoming-rides"  },
+          { label: "Past Rides",      page: "past-rides"      },
         ],
       },
     ],
@@ -107,7 +100,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         icon: "manage_accounts",
         page: "settings-parent",
         children: [
-          { label: "Help Center", page: "help" },
+          { label: "Help Center", page: "help"     },
           { label: "Settings",    page: "settings" },
         ],
       },
@@ -182,82 +175,83 @@ export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const toggle = (label: string) => setExpanded(p => ({ [label]: !p[label] }));
 
   return (
-    /* ↓ overflow-y:auto so the sidebar itself scrolls when content is taller than viewport */
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflowY: "auto" }}>
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, paddingBottom: "1rem" }}>
-        {NAV_GROUPS.map(group => (
-          <div key={group.section} style={{ marginBottom: "1.25rem" }}>
-            <div
-              className="ts-section-label"
-              style={{ marginBottom: 6, fontSize: "0.65rem", letterSpacing: "0.07em" }}
-            >
-              {group.section}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {group.items.map(item => {
-                const hasChildren    = !!item.children?.length;
-                const isExp          = !!expanded[item.label];
-                const isChildActive  = item.children?.some(c => c.page === activePage) ?? false;
-                const isParentActive = activePage === item.page && !isChildActive;
-
-                return (
-                  <div key={item.label}>
-                    <button
-                      onClick={() => hasChildren ? toggle(item.label) : onNavigate(item.page)}
-                      className={`ts-nav-item${isParentActive ? " ts-nav-active" : ""}`}
-                      style={{
-                        justifyContent: "space-between",
-                        fontSize: "0.9375rem",
-                        paddingTop: 9, paddingBottom: 9,
-                        ...(isChildActive && !isParentActive ? { color: "var(--brand-to)" } : {}),
-                      }}
-                    >
-                      <span style={{ display: "flex", alignItems: "center", gap: "0.875rem" }}>
-                        <span style={{ display: "flex", alignItems: "center", width: 22, height: 22 }}>
-                          {ICON_MAP[item.icon]}
-                        </span>
-                        {item.label}
-                      </span>
-                      {hasChildren && (
-                        <ExpandMoreRoundedIcon style={{
-                          fontSize: 18,
-                          color: isChildActive ? "var(--brand-to)" : isParentActive ? "rgba(255,255,255,0.7)" : "var(--text-faint)",
-                          transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
-                          transform: isExp ? "rotate(180deg)" : "rotate(0deg)",
-                        }} />
-                      )}
-                    </button>
-
-                    {hasChildren && (
-                      <AnimatedDropdown isOpen={isExp}>
-                        <div style={{
-                          paddingTop: 4, paddingBottom: 4,
-                          paddingLeft: "3.5rem", paddingRight: "0.5rem",
-                          display: "flex", flexDirection: "column", gap: 2,
-                          position: "relative",
-                        }}>
-                          <span style={{
-                            position: "absolute", left: "2.625rem", top: 8, bottom: 8,
-                            width: 1, background: "var(--border)", borderRadius: 1,
-                            pointerEvents: "none",
-                          }} />
-                          {item.children!.map(child => (
-                            <ChildNavButton
-                              key={child.page} label={child.label}
-                              isActive={activePage === child.page}
-                              onClick={() => onNavigate(child.page)}
-                            />
-                          ))}
-                        </div>
-                      </AnimatedDropdown>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+    // ✅ No overflow here — the <aside> in ShellRoutes handles the scroll
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      {NAV_GROUPS.map(group => (
+        <div key={group.section} style={{ marginBottom: "1.25rem" }}>
+          <div
+            className="ts-section-label"
+            style={{ marginBottom: 6, fontSize: "0.65rem", letterSpacing: "0.07em" }}
+          >
+            {group.section}
           </div>
-        ))}
-      </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {group.items.map(item => {
+              const hasChildren    = !!item.children?.length;
+              const isExp          = !!expanded[item.label];
+              const isChildActive  = item.children?.some(c => c.page === activePage) ?? false;
+              const isParentActive = activePage === item.page && !isChildActive;
+
+              return (
+                <div key={item.label}>
+                  <button
+                    onClick={() => hasChildren ? toggle(item.label) : onNavigate(item.page)}
+                    className={`ts-nav-item${isParentActive ? " ts-nav-active" : ""}`}
+                    style={{
+                      justifyContent: "space-between",
+                      fontSize: "0.9375rem",
+                      paddingTop: 9, paddingBottom: 9,
+                      ...(isChildActive && !isParentActive ? { color: "var(--brand-to)" } : {}),
+                    }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", gap: "0.875rem" }}>
+                      <span style={{ display: "flex", alignItems: "center", width: 22, height: 22 }}>
+                        {ICON_MAP[item.icon]}
+                      </span>
+                      {item.label}
+                    </span>
+                    {hasChildren && (
+                      <ExpandMoreRoundedIcon style={{
+                        fontSize: 18,
+                        color: isChildActive
+                          ? "var(--brand-to)"
+                          : isParentActive ? "rgba(255,255,255,0.7)" : "var(--text-faint)",
+                        transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
+                        transform: isExp ? "rotate(180deg)" : "rotate(0deg)",
+                      }} />
+                    )}
+                  </button>
+
+                  {hasChildren && (
+                    <AnimatedDropdown isOpen={isExp}>
+                      <div style={{
+                        paddingTop: 4, paddingBottom: 4,
+                        paddingLeft: "3.5rem", paddingRight: "0.5rem",
+                        display: "flex", flexDirection: "column", gap: 2,
+                        position: "relative",
+                      }}>
+                        <span style={{
+                          position: "absolute", left: "2.625rem", top: 8, bottom: 8,
+                          width: 1, background: "var(--border)", borderRadius: 1,
+                          pointerEvents: "none",
+                        }} />
+                        {item.children!.map(child => (
+                          <ChildNavButton
+                            key={child.page} label={child.label}
+                            isActive={activePage === child.page}
+                            onClick={() => onNavigate(child.page)}
+                          />
+                        ))}
+                      </div>
+                    </AnimatedDropdown>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

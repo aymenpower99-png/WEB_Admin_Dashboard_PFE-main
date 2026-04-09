@@ -41,8 +41,10 @@ function PlaceholderPage({ title, icon, description }: {
   title: string; icon: string; description: string;
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
-      justifyContent: "center", flex: 1, gap: "0.75rem", padding: "6rem 0" }}>
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", flex: 1, gap: "0.75rem", padding: "6rem 0",
+    }}>
       <div style={{ fontSize: "3rem" }}>{icon}</div>
       <h2 className="ts-page-title">{title}</h2>
       <p className="ts-muted" style={{ fontSize: "0.875rem" }}>{description}</p>
@@ -71,7 +73,6 @@ export default function Shell({
   const [slideClass,  setSlideClass]  = useState("");
   const prevKeyRef = useRef("dashboard");
 
-  // ── Class edit state ──────────────────────────────────────────────────────
   const [editClass, setEditClass] = useState<VehicleClass | null>(null);
 
   const toKey      = (path: string) => path.replace(/^\/dashboard\/?/, "") || "dashboard";
@@ -104,15 +105,25 @@ export default function Shell({
     }}>
       {sidebarOpen && (
         <aside style={{
-          width: "var(--sidebar-w)", flexShrink: 0, display: "flex", flexDirection: "column",
-          background: "var(--bg-sidebar)", borderRight: "1px solid var(--border)", overflowY: "auto",
+          width: "var(--sidebar-w)",
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          background: "var(--bg-sidebar)",
+          borderRight: "1px solid var(--border)",
+          // ✅ No overflow here — handled by inner scroll div below
+          overflow: "hidden",
         }}>
+          {/* ── Logo — fixed, never scrolls ── */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: "4px",
-            padding: "50px 20px", height: "80px", minHeight: "64px", flexShrink: 0,
+            padding: "50px 20px", height: "80px", minHeight: "64px",
+            flexShrink: 0,   // ← never shrinks
           }}>
-            <img src={dark ? logoDark : logoLight} alt="Moviroo"
-              style={{ height: "80px", width: "80px", objectFit: "contain", flexShrink: 0 }} />
+            <img
+              src={dark ? logoDark : logoLight} alt="Moviroo"
+              style={{ height: "80px", width: "80px", objectFit: "contain", flexShrink: 0 }}
+            />
             <span style={{
               fontSize: "22px", fontWeight: 900, letterSpacing: "-0.5px",
               color: dark ? "#f9fafb" : "#111827", lineHeight: "1", whiteSpace: "nowrap",
@@ -120,13 +131,29 @@ export default function Shell({
               Moviroo
             </span>
           </div>
-          <div style={{ flex: 1, padding: "0.75rem" }}>
-            <Sidebar dark={dark} onToggleDark={onToggleDark} activePage={activePage} onNavigate={navigate} />
+
+          {/* ✅ Only the nav items scroll, not the logo */}
+          <div style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "0.75rem",
+            // hide scrollbar visually but still scrollable
+            scrollbarWidth: "none",
+          }}>
+            <Sidebar
+              dark={dark}
+              onToggleDark={onToggleDark}
+              activePage={activePage}
+              onNavigate={navigate}
+            />
           </div>
         </aside>
       )}
 
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <div style={{
+        flex: 1, minWidth: 0, display: "flex",
+        flexDirection: "column", overflow: "hidden",
+      }}>
         <header style={{
           flexShrink: 0, height: "var(--nav-h)",
           background: "var(--bg-nav)", borderBottom: "1px solid var(--border)",
@@ -141,33 +168,33 @@ export default function Shell({
           flex: 1, minHeight: 0, overflow: "auto",
           padding: "1rem 1.5rem", display: "flex", flexDirection: "column",
         }}>
-          <div className={slideClass} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <div className={slideClass} style={{
+            flex: 1, minHeight: 0, display: "flex", flexDirection: "column",
+          }}>
             <Routes>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard"        element={<AdminDashboard />} />
+              <Route index                element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard"     element={<AdminDashboard />} />
               <Route path="agency-dashboard" element={<AgencyDashboard dark={dark} />} />
-              <Route path="users"            element={<UsersPage dark={dark} />} />
-              <Route path="drivers"          element={<DriversPage />} />
+              <Route path="users"         element={<UsersPage dark={dark} />} />
+              <Route path="drivers"       element={<DriversPage />} />
 
-              {/* ── Classes ── */}
-              <Route path="classes"          element={<ClassesPage onNavigate={navigate} />} />
-              <Route path="classes-add"      element={<AddClassPage prefill={editClass} onNavigate={navigate} />} />
+              <Route path="classes"       element={<ClassesPage onNavigate={navigate} />} />
+              <Route path="classes-add"   element={<AddClassPage prefill={editClass} onNavigate={navigate} />} />
 
-              {/* ── Vehicles ── */}
-              <Route path="vehicles"         element={<VehiclesPage vehicles={vehicles} setVehicles={setVehicles} onNavigate={navigate} />} />
-              <Route path="agency-vehicles"  element={<AddVehiclePage prefill={editVehicle as Vehicle | null} setVehicles={setVehicles} onNavigate={navigate} />} />
+              <Route path="vehicles"      element={<VehiclesPage vehicles={vehicles} setVehicles={setVehicles} onNavigate={navigate} />} />
+              <Route path="agency-vehicles" element={<AddVehiclePage prefill={editVehicle as Vehicle | null} setVehicles={setVehicles} onNavigate={navigate} />} />
 
-              <Route path="trips"            element={<TripsPage dark={dark} />} />
-              <Route path="available-rides"  element={<AvailableRidesPage />} />
-              <Route path="upcoming-rides"   element={<UpcomingRidesPage dark={false} />} />
-              <Route path="past-rides"       element={<PastRidesPage />} />
-              <Route path="payments"         element={<AgencyPaymentsData />} />
-              <Route path="agency-billing"   element={<PlaceholderPage title="Agency Billing" icon="💳" description="View and manage agency billing records." />} />
-              <Route path="work-area"        element={<WorkAreasPage />} />
-              <Route path="help"             element={<HelpCenter dark={dark} />} />
-              <Route path="settings"         element={<Settings dark={dark} onToggleDark={onToggleDark} />} />
-              <Route path="security"         element={<PlaceholderPage title="Security" icon="🛡️" description="Manage permissions, 2FA and audit logs." />} />
-              <Route path="*"               element={<Navigate to="dashboard" replace />} />
+              <Route path="trips"         element={<TripsPage dark={dark} />} />
+              <Route path="available-rides" element={<AvailableRidesPage />} />
+              <Route path="upcoming-rides"  element={<UpcomingRidesPage dark={false} />} />
+              <Route path="past-rides"    element={<PastRidesPage />} />
+              <Route path="payments"      element={<AgencyPaymentsData />} />
+              <Route path="agency-billing" element={<PlaceholderPage title="Agency Billing" icon="💳" description="View and manage agency billing records." />} />
+              <Route path="work-area"     element={<WorkAreasPage />} />
+              <Route path="help"          element={<HelpCenter dark={dark} />} />
+              <Route path="settings"      element={<Settings dark={dark} onToggleDark={onToggleDark} />} />
+              <Route path="security"      element={<PlaceholderPage title="Security" icon="🛡️" description="Manage permissions, 2FA and audit logs." />} />
+              <Route path="*"            element={<Navigate to="dashboard" replace />} />
             </Routes>
           </div>
         </main>

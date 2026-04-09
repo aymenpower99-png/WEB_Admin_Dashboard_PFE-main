@@ -9,7 +9,7 @@ import DeleteClassModal from "./components/DeleteClassModal";
 import Pagination       from "../Vehicles/components/Pagination";
 
 const ROWS_PER_PAGE = 6;
-const ROW_H = 80;
+const ROW_H = 64;
 
 const TH: React.CSSProperties = {
   padding: "0.65rem 1rem", fontSize: ".78rem", fontWeight: 800,
@@ -18,6 +18,8 @@ const TH: React.CSSProperties = {
   borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
   background: "var(--bg-thead)",
 };
+
+const TH_CENTER: React.CSSProperties = { ...TH, textAlign: "center" };
 
 interface ClassesPageProps {
   onNavigate: (page: string, prefill?: VehicleClass | null) => void;
@@ -51,7 +53,6 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
   const filtered = useMemo(() =>
     classes.filter(c => {
       const q = search.toLowerCase();
-      // ✅ Only search by name — no description field
       return !q || c.name.toLowerCase().includes(q);
     }),
     [classes, search]
@@ -127,33 +128,31 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
         ) : error ? (
           <div style={{ padding: "3rem", textAlign: "center", color: "#ef4444", fontSize: ".85rem" }}>
             {error}{" "}
-            <button
-              onClick={loadClasses}
-              style={{ marginLeft: 8, textDecoration: "underline", cursor: "pointer",
-                background: "none", border: "none", color: "inherit" }}
-            >
-              Retry
-            </button>
+            <button onClick={loadClasses} style={{
+              marginLeft: 8, textDecoration: "underline", cursor: "pointer",
+              background: "none", border: "none", color: "inherit",
+            }}>Retry</button>
           </div>
         ) : (
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+              {/* ✅ Balanced equal-ish column widths */}
               <colgroup>
-                <col style={{ width: "26%" }} />
-                <col style={{ width: "9%"  }} />
-                <col style={{ width: "9%"  }} />
-                <col style={{ width: "24%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "12%" }} />
+                <col style={{ width: "20%" }} /> {/* Class     */}
+                <col style={{ width: "10%" }} /> {/* Seats     */}
+                <col style={{ width: "10%" }} /> {/* Bags      */}
+                <col style={{ width: "26%" }} /> {/* Features  */}
+                <col style={{ width: "10%" }} /> {/* Wait      */}
+                <col style={{ width: "12%" }} /> {/* Status    */}
+                <col style={{ width: "12%" }} /> {/* Actions   */}
               </colgroup>
               <thead>
                 <tr>
                   <th style={TH}>Class</th>
-                  <th style={TH}>Seats</th>
-                  <th style={TH}>Bags</th>
+                  <th style={TH_CENTER}>Seats</th>
+                  <th style={TH_CENTER}>Bags</th>
                   <th style={TH}>Features</th>
-                  <th style={TH}>Wait</th>
+                  <th style={TH_CENTER}>Wait</th>
                   <th style={TH}>Status</th>
                   <th style={TH}>Actions</th>
                 </tr>
