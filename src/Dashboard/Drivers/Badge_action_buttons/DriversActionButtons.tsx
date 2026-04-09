@@ -2,21 +2,10 @@ import { useState } from "react";
 import type { DriverProfile } from "../../../api/drivers";
 
 const ACTION_BTN_BASE: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 30,
-  height: 30,
-  borderRadius: 7,
-  borderWidth: "1px",
-  borderStyle: "solid",
-  borderColor: "var(--border)",
-  background: "var(--bg-card)",
-  cursor: "pointer",
-  color: "var(--text-muted)",
-  flexShrink: 0,
-  transition: "all .15s",
-  padding: 0,
+  display: "inline-flex", alignItems: "center", justifyContent: "center",
+  width: 30, height: 30, borderRadius: 7, borderWidth: "1px", borderStyle: "solid",
+  borderColor: "var(--border)", background: "var(--bg-card)", cursor: "pointer",
+  color: "var(--text-muted)", flexShrink: 0, transition: "all .15s", padding: 0,
 };
 
 export const IconEdit = () => (
@@ -35,10 +24,10 @@ export const IconDelete = () => (
   </svg>
 );
 
-/** Wrench icon — shown when driver status is setup_required */
-export const IconSetupRequired = () => (
+export const IconEye = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
   </svg>
 );
 
@@ -50,44 +39,44 @@ export function ActionButton({
 }) {
   const [hovered, setHovered] = useState(false);
   return (
-    <button
-      title={title}
-      onClick={onClick}
-      disabled={loading}
+    <button title={title} onClick={onClick} disabled={loading}
       style={{ ...ACTION_BTN_BASE, ...(hovered ? hoverStyle : {}), opacity: loading ? 0.5 : 1 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
       {children}
     </button>
   );
 }
 
 export function DriverInlineRowActions({
-  driver: d,
-  actionLoading,
-  onEdit,
-  onDelete,
+  driver: d, actionLoading, onEdit, onDelete, onInfo,
 }: {
   driver: DriverProfile;
   actionLoading: string | null;
   onEdit: () => void;
   onDelete: () => void;
+  onInfo?: () => void;   // 👁 eye button — only shown when setup_required
 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
 
-      {/* Edit — shows wrench icon when setup_required, pencil otherwise */}
+      {/* 👁 Eye info button — only for setup_required */}
+      {d.availabilityStatus === "setup_required" && onInfo && (
+        <ActionButton
+          title="See what's missing for setup"
+          onClick={onInfo}
+          hoverStyle={{ background: "#fff7ed", color: "#c2410c", borderColor: "rgba(234,88,12,0.4)" }}
+        >
+          <IconEye />
+        </ActionButton>
+      )}
+
+      {/* Edit */}
       <ActionButton
-        title={d.availabilityStatus === "setup_required" ? "Setup Required — Edit Driver" : "Edit Driver"}
+        title="Edit Driver"
         onClick={onEdit}
-        hoverStyle={
-          d.availabilityStatus === "setup_required"
-            ? { background: "#fff7ed", color: "#c2410c", borderColor: "rgba(234,88,12,0.4)" }
-            : { background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }
-        }
+        hoverStyle={{ background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }}
       >
-        {d.availabilityStatus === "setup_required" ? <IconSetupRequired /> : <IconEdit />}
+        <IconEdit />
       </ActionButton>
 
       {/* Delete */}

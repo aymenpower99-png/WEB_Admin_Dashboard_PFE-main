@@ -22,6 +22,7 @@ export interface DriverProfile {
   lastLocationUpdate: string | null;
   createdAt: string;
   updatedAt: string;
+  workAreaId?: string | null;   // ← added for setup check
   vehicle: {
     id: string;
     make: string;
@@ -35,13 +36,13 @@ export interface DriverProfile {
   phone?: string;
 }
 
-export interface CompleteDriverProfilePayload {
-  driverLicenseNumber: string;
-  driverLicenseExpiry: string;
-  driverLicenseFrontUrl: string;
-  driverLicenseBackUrl: string;
-  phone: string;
-  // language removed
+export interface UpdateDriverPayload {
+  driverLicenseNumber?: string;
+  driverLicenseExpiry?: string;
+  driverLicenseFrontUrl?: string;
+  driverLicenseBackUrl?: string;
+  availabilityStatus?: DriverAvailabilityStatus;
+  vehicleId?: string;   // ← assign vehicle from driver edit
 }
 
 export const driversApi = {
@@ -50,17 +51,14 @@ export const driversApi = {
     limit?: number;
     availabilityStatus?: DriverAvailabilityStatus;
   }): Promise<{ data: DriverProfile[]; total: number; page: number; limit: number }> =>
-    apiClient.get("/drivers", { params }).then((r) => r.data),
+    apiClient.get("/drivers", { params }).then(r => r.data),
 
   getOne: (id: string): Promise<DriverProfile> =>
-    apiClient.get(`/drivers/${id}`).then((r) => r.data),
+    apiClient.get(`/drivers/${id}`).then(r => r.data),
 
-  update: (
-    id: string,
-    payload: Partial<CompleteDriverProfilePayload & { availabilityStatus: DriverAvailabilityStatus }>,
-  ): Promise<DriverProfile> =>
-    apiClient.patch(`/drivers/${id}`, payload).then((r) => r.data),
+  update: (id: string, payload: UpdateDriverPayload): Promise<DriverProfile> =>
+    apiClient.patch(`/drivers/${id}`, payload).then(r => r.data),
 
   remove: (id: string): Promise<{ message: string }> =>
-    apiClient.delete(`/drivers/${id}`).then((r) => r.data),
+    apiClient.delete(`/drivers/${id}`).then(r => r.data),
 };
