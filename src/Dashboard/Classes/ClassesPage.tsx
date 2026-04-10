@@ -9,13 +9,19 @@ import DeleteClassModal from "./components/DeleteClassModal";
 import Pagination       from "../Vehicles/components/Pagination";
 
 const ROWS_PER_PAGE = 6;
-const ROW_H = 64;
+const ROW_H = 88; // ✅ same as Drivers (was 64)
 
+// ✅ Exact copy of Drivers TH style
 const TH: React.CSSProperties = {
-  padding: "0.65rem 1rem", fontSize: ".78rem", fontWeight: 800,
-  textTransform: "uppercase", letterSpacing: ".06em",
-  color: "var(--text-body)", textAlign: "left",
-  borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
+  padding: "0.75rem 1.25rem",
+  fontSize: ".78rem",
+  fontWeight: 800,
+  textTransform: "uppercase",
+  letterSpacing: ".06em",
+  color: "var(--text-body)",
+  textAlign: "left",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap",
   background: "var(--bg-thead)",
 };
 
@@ -136,15 +142,15 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
         ) : (
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-              {/* ✅ Balanced equal-ish column widths */}
+              {/* ✅ Mirror Drivers page column distribution exactly */}
               <colgroup>
-                <col style={{ width: "20%" }} /> {/* Class     */}
-                <col style={{ width: "10%" }} /> {/* Seats     */}
-                <col style={{ width: "10%" }} /> {/* Bags      */}
-                <col style={{ width: "26%" }} /> {/* Features  */}
-                <col style={{ width: "10%" }} /> {/* Wait      */}
-                <col style={{ width: "12%" }} /> {/* Status    */}
-                <col style={{ width: "12%" }} /> {/* Actions   */}
+                <col style={{ width: "20%" }} /> {/* CLASS    — like DRIVER   */}
+                <col style={{ width: "8%"  }} /> {/* SEATS    — like TRIPS    */}
+                <col style={{ width: "8%"  }} /> {/* BAGS     — compact num   */}
+                <col style={{ width: "27%" }} /> {/* FEATURES — like EMAIL    */}
+                <col style={{ width: "10%" }} /> {/* WAIT     — compact       */}
+                <col style={{ width: "13%" }} /> {/* STATUS   — like STATUS   */}
+                <col style={{ width: "14%" }} /> {/* ACTIONS  — like ACTIONS  */}
               </colgroup>
               <thead>
                 <tr>
@@ -162,7 +168,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
                   <>
                     <tr style={{ height: ROW_H }}>
                       <td colSpan={7} style={{
-                        padding: "0 1rem", height: ROW_H, textAlign: "center",
+                        padding: "0 1.25rem", height: ROW_H, textAlign: "center",
                         color: "var(--text-faint)", borderBottom: "1px solid var(--border)",
                       }}>
                         No classes found{search ? ` matching "${search}"` : ""}.

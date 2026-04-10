@@ -3,15 +3,18 @@ import WifiRoundedIcon   from "@mui/icons-material/WifiRounded";
 import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
 import type { VehicleClass } from "../../../api/classes";
 
-const ROW_H = 64;
+const ROW_H = 88; // ✅ same as Drivers
 
+// ✅ Exact copy of Drivers TD style
 const TD: React.CSSProperties = {
-  padding: "0 1rem", height: ROW_H, fontSize: ".875rem",
-  color: "var(--text-body)", borderBottom: "1px solid var(--border)",
+  padding: "0 1.25rem",
+  height: ROW_H,
+  fontSize: ".85rem",
+  color: "var(--text-body)",
+  borderBottom: "1px solid var(--border)",
   verticalAlign: "middle",
 };
 
-/* ── Same icon-button style as UsersActionButtons ── */
 const ACTION_BTN_BASE: React.CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
@@ -79,33 +82,39 @@ export default function ClassTableRow({
 
   return (
     <tr
+      className="ts-tr"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
+        height: ROW_H,
         background: hovered ? "var(--bg-inner)" : "transparent",
         transition: "background .12s",
       }}
     >
-      {/* Class name */}
+      {/* CLASS — bold like Driver name */}
       <td style={TD}>
-        <span style={{ fontWeight: 700, color: "var(--text-h)", fontSize: ".88rem" }}>
+        <span style={{ fontWeight: 600, color: "var(--text-h)", fontSize: ".85rem" }}>
           {cls.name}
         </span>
       </td>
 
-      {/* ✅ Seats — number only */}
+      {/* SEATS — bold number centered, like Trips */}
       <td style={{ ...TD, textAlign: "center" }}>
-        <span style={{ fontWeight: 600, color: "var(--text-h)" }}>{cls.seats}</span>
+        <span style={{ fontWeight: 800, fontSize: ".85rem", color: "var(--text-h)" }}>
+          {cls.seats}
+        </span>
       </td>
 
-      {/* ✅ Bags — number only */}
+      {/* BAGS — bold number centered */}
       <td style={{ ...TD, textAlign: "center" }}>
-        <span style={{ fontWeight: 600, color: "var(--text-h)" }}>{cls.bags}</span>
+        <span style={{ fontWeight: 800, fontSize: ".85rem", color: "var(--text-h)" }}>
+          {cls.bags}
+        </span>
       </td>
 
-      {/* Features */}
+      {/* FEATURES — chips like Driver email area */}
       <td style={TD}>
-        <div style={{ display: "flex", gap: ".3rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: ".3rem", flexWrap: "wrap", alignItems: "center" }}>
           {cls.wifi && (
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 3,
@@ -146,13 +155,15 @@ export default function ClassTableRow({
         </div>
       </td>
 
-      {/* Wait — number only */}
+      {/* WAIT — like Trips: bold number + small unit */}
       <td style={{ ...TD, textAlign: "center" }}>
-        <span style={{ fontWeight: 600, color: "var(--text-h)" }}>{cls.freeWaitingTime}</span>
-        <span style={{ fontSize: ".72rem", color: "var(--text-faint)" }}> min</span>
+        <span style={{ fontWeight: 800, fontSize: ".85rem", color: "var(--text-h)" }}>
+          {cls.freeWaitingTime}
+        </span>
+        <span style={{ fontSize: ".72rem", color: "var(--text-faint)", marginLeft: 2 }}>min</span>
       </td>
 
-      {/* Status */}
+      {/* STATUS — badge like Driver status */}
       <td style={TD}>
         <span style={{
           padding: "3px 10px", borderRadius: "9999px", fontSize: ".75rem", fontWeight: 700,
@@ -163,7 +174,7 @@ export default function ClassTableRow({
         </span>
       </td>
 
-      {/* ✅ Actions — same icon-button style as UsersActionButtons */}
+      {/* ACTIONS — icon buttons like Driver actions */}
       <td style={TD} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <ActionBtn
