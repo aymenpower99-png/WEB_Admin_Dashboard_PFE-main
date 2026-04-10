@@ -53,30 +53,27 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
     setError(null);
     apiClient.get("/vehicles")
       .then(async res => {
-        // ✅ Handle both array and paginated { data: [] } response shapes
         const raw = res.data;
         const list: any[] = Array.isArray(raw)
           ? raw
-          : Array.isArray(raw?.data)
-          ? raw.data
-          : Array.isArray(raw?.vehicles)
-          ? raw.vehicles
+          : Array.isArray(raw?.data) ? raw.data
+          : Array.isArray(raw?.vehicles) ? raw.vehicles
           : [];
 
-        // ✅ Build driverId → "First Last" map from the driver names
+        // ✅ FIX: correct endpoint /drivers not /admin/drivers
         const driverMap = new Map<string, string>();
         const driverIds = [...new Set(list.map((v: any) => v.driverId).filter(Boolean))] as string[];
 
         if (driverIds.length > 0) {
           try {
-            const drRes  = await apiClient.get("/admin/drivers", { params: { limit: 200 } });
+            const drRes  = await apiClient.get("/drivers", { params: { limit: 200 } });
             const drRaw  = drRes.data;
             const drList: any[] = Array.isArray(drRaw) ? drRaw : (drRaw?.data ?? []);
             for (const d of drList) {
               const name = `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim();
               if (d.id && name) driverMap.set(d.id, name);
             }
-          } catch { /* driver names are cosmetic */ }
+          } catch { /* cosmetic — fail silently */ }
         }
 
         setVehicles(list.map((v: any) => mapBackendVehicle(v, driverMap)));
@@ -190,13 +187,13 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
               <colgroup>
-                <col style={{ width: "22%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "11%" }} />
-                <col style={{ width: "8%"  }} />
-                <col style={{ width: "8%"  }} />
+                <col style={{ width: "24%" }} />
                 <col style={{ width: "15%" }} />
-                <col style={{ width: "22%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "9%"  }} />
+                <col style={{ width: "9%"  }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "16%" }} />
               </colgroup>
               <thead>
                 <tr>

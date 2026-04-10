@@ -3,12 +3,13 @@ import "../travelsync-design-system.css";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { classesApi } from "../../api/classes";
 import type { VehicleClass } from "../../api/classes";
-import ClassStatCards   from "./components/ClassStatCards";
-import ClassTableRow    from "./components/ClassTableRow";
-import DeleteClassModal from "./components/DeleteClassModal";
-import Pagination       from "../Vehicles/components/Pagination";
+import ClassStatCards      from "./components/ClassStatCards";
+import ClassTableRow       from "./components/ClassTableRow";
+import DeleteClassModal    from "./components/DeleteClassModal";
+import ClassVehiclesModal  from "./components/ClassVehiclesModal";
+import Pagination          from "../Vehicles/components/Pagination";
 
-const ROWS_PER_PAGE = 6;
+const ROWS_PER_PAGE = 5;
 const ROW_H = 88;
 
 const TH: React.CSSProperties = {
@@ -19,19 +20,20 @@ const TH: React.CSSProperties = {
 };
 const TH_CENTER: React.CSSProperties = { ...TH, textAlign: "center" };
 
-// ── onNavigate accepts: page + optional prefill of any shape ───────────────
 interface ClassesPageProps {
   onNavigate: (page: string, prefill?: VehicleClass | null | string) => void;
 }
 
 export default function ClassesPage({ onNavigate }: ClassesPageProps) {
-  const [classes,       setClasses]       = useState<VehicleClass[]>([]);
-  const [loading,       setLoading]       = useState(false);
-  const [search,        setSearch]        = useState("");
-  const [page,          setPage]          = useState(1);
-  const [deleteTarget,  setDeleteTarget]  = useState<VehicleClass | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [error,         setError]         = useState<string | null>(null);
+  const [classes,        setClasses]        = useState<VehicleClass[]>([]);
+  const [loading,        setLoading]        = useState(false);
+  const [search,         setSearch]         = useState("");
+  const [page,           setPage]           = useState(1);
+  const [deleteTarget,   setDeleteTarget]   = useState<VehicleClass | null>(null);
+  const [deleteLoading,  setDeleteLoading]  = useState(false);
+  const [error,          setError]          = useState<string | null>(null);
+  // ── New: vehicles modal ──────────────────────────────────────────────────────
+  const [vehicleModalCls, setVehicleModalCls] = useState<VehicleClass | null>(null);
 
   function loadClasses() {
     setLoading(true); setError(null);
@@ -76,6 +78,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
+      {/* Delete modal */}
       {deleteTarget && (
         <DeleteClassModal
           cls={deleteTarget} loading={deleteLoading}
@@ -83,11 +86,22 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
         />
       )}
 
+      {/* Vehicles modal — opens when "Action" eye button is clicked */}
+      {vehicleModalCls && (
+        <ClassVehiclesModal
+          cls={vehicleModalCls}
+          onClose={() => setVehicleModalCls(null)}
+          onViewDetail={cls => {
+            setVehicleModalCls(null);
+            onNavigate("class-detail", cls.id);
+          }}
+        />
+      )}
+
       {/* Header */}
       <div className="ts-page-header">
         <div>
           <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800 }}>Classes</h1>
-      
         </div>
         <button className="ts-btn-primary" onClick={() => onNavigate("classes-add", null)}>
           <span style={{ fontSize: "1rem", lineHeight: 1 }}>＋</span> Add Class
@@ -168,9 +182,10 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
                         key={c.id}
                         cls={c}
                         vehicleCount={c.vehicleCount}
-                        onEdit={cls   => onNavigate("classes-add",   cls)}
+                        onEdit={cls   => onNavigate("classes-add", cls)}
                         onDelete={cls => setDeleteTarget(cls)}
-                        onView={cls   => onNavigate("class-detail",  cls.id)}
+                        // ↓ Opens vehicles modal instead of navigating away
+                        onView={cls   => setVehicleModalCls(cls)}
                       />
                     ))}
                     {Array.from({ length: ghostCount }).map((_, i) => (

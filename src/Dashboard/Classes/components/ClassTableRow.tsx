@@ -71,13 +71,12 @@ function ActionBtn({
   );
 }
 
-// ── Props — all three handlers typed correctly ─────────────────────────────
 interface ClassTableRowProps {
-  cls:      VehicleClass;
-  onEdit:   (c: VehicleClass) => void;
-  onDelete: (c: VehicleClass) => void;
-  onView:   (c: VehicleClass) => void;   // ← NEW
-  /** optional vehicle count badge */
+  cls:          VehicleClass;
+  onEdit:       (c: VehicleClass) => void;
+  onDelete:     (c: VehicleClass) => void;
+  /** Navigates to class-detail page — NO modal */
+  onView:       (c: VehicleClass) => void;
   vehicleCount?: number;
 }
 
@@ -85,6 +84,8 @@ export default function ClassTableRow({
   cls, onEdit, onDelete, onView, vehicleCount,
 }: ClassTableRowProps) {
   const [hovered, setHovered] = useState(false);
+
+  // ✅ NO modal state here — onView navigates to the detail page directly
 
   return (
     <tr
@@ -169,18 +170,15 @@ export default function ClassTableRow({
         <span style={{ fontSize: ".72rem", color: "var(--text-faint)", marginLeft: 2 }}>min</span>
       </td>
 
-      {/* VEHICLES COUNT — NEW column */}
+      {/* VEHICLES COUNT */}
       <td style={{ ...TD, textAlign: "center" }}>
         <span style={{
           display: "inline-flex", alignItems: "center", justifyContent: "center",
-          minWidth: 28, height: 22, borderRadius: 9999,
-          padding: "0 8px",
+          minWidth: 28, height: 22, borderRadius: 9999, padding: "0 8px",
           background: (vehicleCount ?? cls.vehicleCount ?? 0) > 0
-            ? "rgba(124,58,237,.12)"
-            : "var(--bg-inner)",
+            ? "rgba(124,58,237,.12)" : "var(--bg-inner)",
           color: (vehicleCount ?? cls.vehicleCount ?? 0) > 0
-            ? "#7c3aed"
-            : "var(--text-faint)",
+            ? "#7c3aed" : "var(--text-faint)",
           fontSize: ".78rem", fontWeight: 800,
         }}>
           {vehicleCount ?? cls.vehicleCount ?? 0}
@@ -199,17 +197,19 @@ export default function ClassTableRow({
         </span>
       </td>
 
-      {/* ACTIONS — Edit + View + Delete */}
+      {/* ACTIONS — View navigates to page, NO local modal */}
       <td style={TD} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          {/* View detail */}
+
+          {/* View — navigates directly to ClassDetailPage, no modal */}
           <ActionBtn
-            title="View vehicles in class"
+            title="View class details"
             onClick={() => onView(cls)}
             hoverStyle={{ background: "rgba(124,58,237,.1)", color: "#7c3aed", borderColor: "rgba(124,58,237,.35)" }}
           >
             <VisibilityRoundedIcon style={{ fontSize: 15 }} />
           </ActionBtn>
+
           {/* Edit */}
           <ActionBtn
             title="Edit class"
@@ -218,6 +218,7 @@ export default function ClassTableRow({
           >
             <IconEdit />
           </ActionBtn>
+
           {/* Delete */}
           <ActionBtn
             title="Delete class"

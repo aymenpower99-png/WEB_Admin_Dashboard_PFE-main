@@ -4,7 +4,8 @@ export type DriverAvailabilityStatus =
   | "pending"
   | "setup_required"
   | "offline"
-  | "online";
+  | "online"
+  | "on_trip";
 
 export interface DriverProfile {
   id: string;
@@ -22,13 +23,14 @@ export interface DriverProfile {
   lastLocationUpdate: string | null;
   createdAt: string;
   updatedAt: string;
-  workAreaId?: string | null;   // ← added for setup check
+  workAreaId?: string | null;
   vehicle: {
     id: string;
     make: string;
     model: string;
     year: number;
     licensePlate: string | null;
+    status: "Pending" | "Available" | "On_Trip" | "Maintenance";
   } | null;
   firstName?: string;
   lastName?: string;
@@ -42,7 +44,7 @@ export interface UpdateDriverPayload {
   driverLicenseFrontUrl?: string;
   driverLicenseBackUrl?: string;
   availabilityStatus?: DriverAvailabilityStatus;
-  vehicleId?: string;   // ← assign vehicle from driver edit
+  vehicleId?: string;
 }
 
 export const driversApi = {

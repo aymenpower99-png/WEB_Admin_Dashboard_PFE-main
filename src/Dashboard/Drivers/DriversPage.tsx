@@ -78,11 +78,11 @@ export default function DriversPage({ onNavigate: _onNavigate }: DriversPageProp
   }
 
   const FILTER_TABS: { key: FilterKey; label: string }[] = [
-    { key: "all",            label: `All (${counts.all})` },
-    { key: "pending",        label: `Pending (${counts.pending})` },
-    { key: "setup_required", label: `Setup Required (${counts.setup_required})` },
-    { key: "offline",        label: `Offline (${counts.offline})` },
-    { key: "online",         label: `Online (${counts.online})` },
+    { key: "all",            label: `All ` },
+    { key: "pending",        label: `Pending ` },
+    { key: "setup_required", label: `Setup Required ` },
+    { key: "offline",        label: `Offline ` },
+    { key: "online",         label: `Online ` },
   ];
 
   return (

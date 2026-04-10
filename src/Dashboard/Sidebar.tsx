@@ -51,9 +51,9 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         icon: "category",
         page: "classes-parent",
         children: [
-          { label: "All Classes",   page: "classes"        },
-          { label: "Add Class",     page: "classes-add"    },
-          { label: "Class Detail",  page: "class-detail"   }, // ← NEW
+          { label: "All Classes", page: "classes"     },
+          { label: "Add Class",   page: "classes-add" },
+          // "Class Detail" removed — accessed via row action button only
         ],
       },
       {
@@ -159,7 +159,6 @@ interface SidebarProps {
   onToggleDark: () => void;
   activePage: string;
   onNavigate: (page: string) => void;
-  /** vehicle count per class id — shown as badge next to "Class Detail" */
   classCounts?: Record<string, number>;
 }
 

@@ -26,7 +26,7 @@ const AVAILABILITY_BADGE: Record<string, React.CSSProperties> = {
   },
   pending: {
     ...BADGE_BASE,
-    background: "#fef9c3",    // ← amber/yellow (was purple)
+    background: "#fef9c3",
     color: "#854d0e",
     borderColor: "#fde047",
   },
@@ -36,6 +36,12 @@ const AVAILABILITY_BADGE: Record<string, React.CSSProperties> = {
     color: "#c2410c",
     borderColor: "rgba(234,88,12,0.35)",
   },
+  on_trip: {
+    ...BADGE_BASE,
+    background: "rgba(99,102,241,0.12)",
+    color: "#6366f1",
+    borderColor: "rgba(99,102,241,0.35)",
+  },
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -43,6 +49,7 @@ const STATUS_LABEL: Record<string, string> = {
   offline:        "Offline",
   pending:        "Pending",
   setup_required: "Setup Required",
+  on_trip:        "On Trip",
 };
 
 export function DriverStatusBadge({ status }: { status: string }) {

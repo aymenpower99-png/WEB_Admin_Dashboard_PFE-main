@@ -9,12 +9,6 @@ const IconEdit = () => (
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
   </svg>
 );
-const IconPhoto = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-    <circle cx="12" cy="13" r="4"/>
-  </svg>
-);
 const IconSync = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="23 4 23 10 17 10"/>
@@ -66,45 +60,46 @@ interface VehicleTableRowProps {
   onUpdatePhotos: (v: Vehicle) => void;
 }
 
-export default function VehicleTableRow({ v, onEdit, onStatusChange, onRemove, onUpdatePhotos }: VehicleTableRowProps) {
-  const needsPhotos = !Array.isArray(v.photos) || v.photos.length === 0;
-
-  // Seats come from the CLASS, not the vehicle itself
+export default function VehicleTableRow({ v, onEdit, onStatusChange, onRemove }: VehicleTableRowProps) {
   const seats = v.vehicleClass?.seats ?? "—";
 
   return (
     <tr className="ts-tr" style={{ height: ROW_H }}>
+
+      {/* Vehicle name — no photo thumbnail */}
       <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {v.make} {v.model}
       </td>
+
+      {/* Class */}
       <td style={TD}><ClassBadge vehicleClass={v.vehicleClass} /></td>
+
+      {/* Status */}
       <td style={TD}><StatusPill status={v.status} /></td>
+
+      {/* Year */}
       <td style={{ ...TD, color: "var(--text-muted)" }}>{v.year}</td>
+
+      {/* Seats */}
       <td style={{ ...TD, color: "var(--text-muted)" }}>{seats}</td>
-      <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+
+      {/* Driver — no "Loading…" if name not resolved */}
+      <td style={{ ...TD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {v.driver
-          ? v.driver
+          ? <span style={{ color: "var(--text-body)" }}>{v.driver}</span>
           : v.driverId
-            ? <span style={{ fontStyle: "italic" }}>Loading…</span>
-            : <span style={{ color: "var(--text-faint)" }}>Unassigned</span>
+            ? <span style={{ color: "var(--text-muted)", fontSize: ".8rem" }}>Assigned</span>
+            : <span style={{ color: "var(--text-faint)", fontSize: ".8rem" }}>Unassigned</span>
         }
       </td>
+
+      {/* Actions — edit, change status, delete only (no eye, no photo) */}
       <td style={TD} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <ActionBtn title="Edit vehicle" onClick={() => onEdit(v)}
             hoverStyle={{ background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }}>
             <IconEdit />
           </ActionBtn>
-
-          {needsPhotos && (
-            <ActionBtn
-              title="Add photos (required to activate)"
-              onClick={() => onUpdatePhotos(v)}
-              hoverStyle={{ background: "#f0fdf4", color: "#16a34a", borderColor: "#bbf7d0" }}>
-              <IconPhoto />
-            </ActionBtn>
-          )}
-
           <ActionBtn title="Change status" onClick={() => onStatusChange(v)}
             hoverStyle={{ background: "#f5f3ff", color: "#7c3aed", borderColor: "#ddd6fe" }}>
             <IconSync />
