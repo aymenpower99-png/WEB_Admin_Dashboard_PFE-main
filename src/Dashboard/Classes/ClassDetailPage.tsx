@@ -1,68 +1,51 @@
 import { useState, useEffect } from "react";
 import "../travelsync-design-system.css";
-import ArrowBackRoundedIcon      from "@mui/icons-material/ArrowBackRounded";
-import DirectionsCarRoundedIcon  from "@mui/icons-material/DirectionsCarRounded";
-import WifiRoundedIcon           from "@mui/icons-material/WifiRounded";
-import AcUnitRoundedIcon         from "@mui/icons-material/AcUnitRounded";
-import WaterDropRoundedIcon      from "@mui/icons-material/WaterDropRounded";
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import WifiRoundedIcon from "@mui/icons-material/WifiRounded";
+import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
+import WaterDropRoundedIcon from "@mui/icons-material/WaterDropRounded";
 import AirlineSeatReclineExtraRoundedIcon from "@mui/icons-material/AirlineSeatReclineExtraRounded";
-import LuggageRoundedIcon        from "@mui/icons-material/LuggageRounded";
-import AccessTimeRoundedIcon     from "@mui/icons-material/AccessTimeRounded";
-import DoorFrontRoundedIcon      from "@mui/icons-material/DoorFrontRounded";
-import EmojiPeopleRoundedIcon    from "@mui/icons-material/EmojiPeopleRounded";
-import { classesApi }            from "../../api/classes";
+import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
+import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
+import DoorFrontRoundedIcon from "@mui/icons-material/DoorFrontRounded";
+import EmojiPeopleRoundedIcon from "@mui/icons-material/EmojiPeopleRounded";
+import { classesApi } from "../../api/classes";
 import type { VehicleClassDetail, ClassVehicle } from "../../api/classes";
 
-// ── status palette ────────────────────────────────────────────────────────────
-const STATUS_META: Record<string, { bg: string; color: string }> = {
-  Available:   { bg: "rgba(16,185,129,.12)",  color: "#10b981" },
-  Pending:     { bg: "rgba(245,158,11,.12)",  color: "#f59e0b" },
-  On_Trip:     { bg: "rgba(99,102,241,.12)",  color: "#6366f1" },
-  Maintenance: { bg: "rgba(239,68,68,.12)",   color: "#ef4444" },
+// ── Status badge config ───────────────────────────────────────────────────────
+const STATUS_META: Record<string, { pill: string }> = {
+  Available:   { pill: "bg-emerald-50 text-emerald-600 border border-emerald-200" },
+  Pending:     { pill: "bg-amber-50 text-amber-600 border border-amber-200" },
+  On_Trip:     { pill: "bg-indigo-50 text-indigo-500 border border-indigo-200" },
+  Maintenance: { pill: "bg-red-50 text-red-500 border border-red-200" },
 };
 
-function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_META[status] ?? { bg: "var(--bg-inner)", color: "var(--text-muted)" };
+// ── Feature chip ──────────────────────────────────────────────────────────────
+function FeatureChip({
+  icon,
+  label,
+  on,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  on: boolean;
+}) {
   return (
-    <span style={{
-      borderRadius: 9999, padding: "3px 12px",
-      fontSize: ".75rem", fontWeight: 700, whiteSpace: "nowrap",
-      background: s.bg, color: s.color,
-    }}>
-      {status === "On_Trip" ? "On Trip" : status}
+    <span
+      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all
+        ${on
+          ? "bg-violet-50 text-violet-700 border-violet-200"
+          : "bg-transparent text-gray-300 border-gray-100 line-through opacity-60"
+        }`}
+    >
+      <span className={`flex items-center ${on ? "text-violet-500" : "text-gray-300"}`}>
+        {icon}
+      </span>
+      {label}
     </span>
   );
 }
-
-function FeatureChip({ icon, label, on }: { icon: React.ReactNode; label: string; on: boolean }) {
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 5,
-      padding: "5px 11px", borderRadius: 9999, fontSize: ".78rem", fontWeight: 600,
-      background: on ? "rgba(124,58,237,.10)" : "var(--bg-inner)",
-      color:      on ? "#7c3aed"              : "var(--text-faint)",
-      border: `1px solid ${on ? "rgba(124,58,237,.22)" : "var(--border)"}`,
-      opacity: on ? 1 : 0.55,
-    }}>
-      {icon} {label}
-    </span>
-  );
-}
-
-const TH: React.CSSProperties = {
-  padding: "0.6rem 1rem", fontSize: ".75rem", fontWeight: 700,
-  textTransform: "uppercase", letterSpacing: ".06em",
-  color: "var(--text-muted)", textAlign: "left",
-  borderBottom: "1px solid var(--border)", whiteSpace: "nowrap",
-  background: "transparent",
-};
-
-const ROW_H = 64;
-const TD_STYLE: React.CSSProperties = {
-  padding: "0 1rem", height: ROW_H, fontSize: ".875rem",
-  color: "var(--text-body)", borderBottom: "1px solid var(--border)",
-  verticalAlign: "middle",
-};
 
 interface ClassDetailPageProps {
   classId: string;
@@ -71,130 +54,116 @@ interface ClassDetailPageProps {
 
 // ═════════════════════════════════════════════════════════════════════════════
 export default function ClassDetailPage({ classId, onNavigate }: ClassDetailPageProps) {
-  const [detail,  setDetail]  = useState<VehicleClassDetail | null>(null);
+  const [detail, setDetail] = useState<VehicleClassDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState<string | null>(null);
-
-  // ✅ This drives whether we show the vehicle detail VIEW (not a modal)
+  const [error, setError] = useState<string | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<ClassVehicle | null>(null);
 
   useEffect(() => {
     if (!classId) return;
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     setSelectedVehicle(null);
-    classesApi.getDetail(classId)
+    classesApi
+      .getDetail(classId)
       .then(setDetail)
       .catch(() => setError("Failed to load class details."))
       .finally(() => setLoading(false));
   }, [classId]);
 
-  // ── Loading / Error ──────────────────────────────────────────────────────
-  if (loading) return (
-    <div style={{ padding: "4rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".9rem" }}>
-      Loading class details…
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex items-center justify-center py-20 text-sm text-gray-400">
+        Loading class details…
+      </div>
+    );
 
-  if (error || !detail) return (
-    <div style={{ padding: "4rem", textAlign: "center", color: "#ef4444", fontSize: ".9rem" }}>
-      {error ?? "Class not found."}
-      <br />
-      <button className="ts-btn-ghost" style={{ marginTop: 12 }} onClick={() => onNavigate("classes")}>
-        ← Back to Classes
-      </button>
-    </div>
-  );
+  if (error || !detail)
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-sm text-red-500 gap-3">
+        {error ?? "Class not found."}
+        <button
+          className="text-gray-500 text-xs border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors"
+          onClick={() => onNavigate("classes")}
+        >
+          ← Back to Classes
+        </button>
+      </div>
+    );
 
   // ══════════════════════════════════════════════════════════════════════════
-  // ✅ VEHICLE DETAIL VIEW — full page replacement, zero modal/overlay markup
+  // VEHICLE DETAIL VIEW
   // ══════════════════════════════════════════════════════════════════════════
   if (selectedVehicle) {
     const v = selectedVehicle;
     const thumb = v.photos?.[0];
-    const sm = STATUS_META[v.status] ?? { bg: "var(--bg-inner)", color: "var(--text-muted)" };
+    const sm = STATUS_META[v.status] ?? { pill: "bg-gray-100 text-gray-500 border border-gray-200" };
 
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: ".9rem" }}>
+      <div className="flex flex-col gap-4 p-6 bg-[#f2f2f7] min-h-screen">
+        <button
+          className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors w-fit font-medium"
+          onClick={() => setSelectedVehicle(null)}
+        >
+          <ArrowBackRoundedIcon style={{ fontSize: 15 }} />
+          Back to Class
+        </button>
 
-        {/* Back button — goes back to class detail, not classes list */}
-        <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
-          <button className="ts-icon-btn" onClick={() => setSelectedVehicle(null)} title="Back to class">
-            <ArrowBackRoundedIcon style={{ fontSize: 18 }} />
-          </button>
-          <span style={{ fontSize: ".88rem", fontWeight: 700, color: "var(--text-h)" }}>
-            {v.make} {v.model}
-          </span>
-          <span style={{ fontSize: ".8rem", color: "var(--text-muted)" }}>— Vehicle Details</span>
-        </div>
-
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-start" }}>
-
-          {/* Left: photo + status */}
-          <div className="ts-card" style={{
-            flex: "0 0 280px", minWidth: 220, padding: "1.25rem",
-            display: "flex", flexDirection: "column", gap: ".85rem",
-          }}>
-            <div style={{
-              width: "100%", height: 165, borderRadius: 10, overflow: "hidden",
-              background: "var(--bg-inner)", border: "1px solid var(--border)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              {thumb
-                ? <img src={thumb} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : <DirectionsCarRoundedIcon style={{ fontSize: 52, color: "var(--text-faint)" }} />
-              }
+        <div className="flex gap-5 flex-wrap items-start">
+          {/* Photo card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4 w-72 shrink-0">
+            <div className="w-full h-44 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center">
+              {thumb ? (
+                <img src={thumb} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <DirectionsCarRoundedIcon className="text-gray-300 !text-5xl" />
+              )}
             </div>
-            <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-h)" }}>
-              {v.make} {v.model}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: ".78rem", color: "var(--text-muted)", fontWeight: 600 }}>Status</span>
-              <span style={{
-                borderRadius: 9999, padding: "3px 12px",
-                fontSize: ".75rem", fontWeight: 700,
-                background: sm.bg, color: sm.color,
-              }}>
+            <div className="text-base font-bold text-gray-900">{v.make} {v.model}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400 font-medium">Status</span>
+              <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${sm.pill}`}>
                 {v.status === "On_Trip" ? "On Trip" : v.status}
               </span>
             </div>
           </div>
 
-          {/* Right: attributes */}
-          <div className="ts-card" style={{
-            flex: 1, minWidth: 260, padding: "1.25rem 1.5rem",
-            display: "flex", flexDirection: "column", gap: ".45rem",
-          }}>
-            <div style={{ fontSize: ".88rem", fontWeight: 800, color: "var(--text-h)", marginBottom: ".35rem" }}>
-              Attributes
-            </div>
-            {([
-              { label: "Make",   value: v.make },
-              { label: "Model",  value: v.model },
-              { label: "Year",   value: String(v.year) },
-              { label: "Color",  value: v.color ?? "—" },
-              {
-                label: "Plate",
-                value: v.licensePlate
-                  ? <span style={{ fontFamily: "monospace", background: "var(--bg-inner)", border: "1px solid var(--border)", borderRadius: 5, padding: "1px 8px", fontSize: ".84rem" }}>{v.licensePlate}</span>
-                  : <span style={{ color: "var(--text-faint)" }}>—</span>,
-              },
-              { label: "Active", value: v.isActive ? "Yes" : "No" },
-              {
-                label: "Driver",
-                value: v.driverId
-                  ? <span style={{ color: "var(--text-body)", fontWeight: 600 }}>Assigned</span>
-                  : <span style={{ color: "var(--text-faint)" }}>Unassigned</span>,
-              },
-            ] as { label: string; value: React.ReactNode }[]).map(row => (
-              <div key={row.label} style={{
-                display: "flex", alignItems: "center", gap: ".75rem",
-                padding: ".45rem .85rem", borderRadius: 8,
-                background: "var(--bg-inner)", border: "1px solid var(--border)",
-              }}>
-                <span style={{ minWidth: 80, fontSize: ".78rem", fontWeight: 600, color: "var(--text-muted)", flexShrink: 0 }}>
-                  {row.label}
-                </span>
-                <span style={{ fontSize: ".86rem", color: "var(--text-body)" }}>{row.value}</span>
+          {/* Attributes card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-2 flex-1 min-w-64">
+            <div className="text-sm font-bold text-gray-900 mb-2">Attributes</div>
+            {(
+              [
+                { label: "Make", value: v.make },
+                { label: "Model", value: v.model },
+                { label: "Year", value: String(v.year) },
+                { label: "Color", value: v.color ?? "—" },
+                {
+                  label: "Plate",
+                  value: v.licensePlate ? (
+                    <span className="font-mono bg-gray-50 border border-gray-200 rounded px-2 py-0.5 text-xs">
+                      {v.licensePlate}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300">—</span>
+                  ),
+                },
+                { label: "Active", value: v.isActive ? "Yes" : "No" },
+                {
+                  label: "Driver",
+                  value: v.driverId ? (
+                    <span className="font-semibold text-gray-700">Assigned</span>
+                  ) : (
+                    <span className="text-gray-300">Unassigned</span>
+                  ),
+                },
+              ] as { label: string; value: React.ReactNode }[]
+            ).map((row) => (
+              <div
+                key={row.label}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100"
+              >
+                <span className="w-20 text-xs font-semibold text-gray-400 shrink-0">{row.label}</span>
+                <span className="text-sm text-gray-700">{row.value}</span>
               </div>
             ))}
           </div>
@@ -207,205 +176,203 @@ export default function ClassDetailPage({ classId, onNavigate }: ClassDetailPage
   // MAIN CLASS DETAIL VIEW
   // ══════════════════════════════════════════════════════════════════════════
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: ".9rem" }}>
+    <div className="flex flex-col gap-4 p-6 bg-[#f2f2f7] min-h-screen">
 
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
-        <button className="ts-icon-btn" onClick={() => onNavigate("classes")} title="Back to Classes">
-          <ArrowBackRoundedIcon style={{ fontSize: 18 }} />
-        </button>
-        <div style={{ flex: 1 }}>
-          <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0 }}>
-            {detail.name}
-            <span style={{
-              marginLeft: 10, fontSize: ".7rem", fontWeight: 700,
-              padding: "3px 9px", borderRadius: 9999,
-              background: detail.isActive ? "rgba(16,185,129,.12)" : "rgba(239,68,68,.12)",
-              color:      detail.isActive ? "#10b981"              : "#ef4444",
-            }}>
-              {detail.isActive ? "Active" : "Inactive"}
-            </span>
-          </h1>
-          <p style={{ margin: 0, fontSize: ".82rem", color: "var(--text-muted)" }}>
-            Class detail — features &amp; linked vehicles
-          </p>
-        </div>
-        <button className="ts-btn-ghost" onClick={() => onNavigate("classes-add", detail)}>
-          Edit Class
-        </button>
-      </div>
+      {/* ← Back to Classes */}
+      <button
+        className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors w-fit font-medium"
+        onClick={() => onNavigate("classes")}
+      >
+        <ArrowBackRoundedIcon style={{ fontSize: 15 }} />
+        Back to Classes
+      </button>
 
-      {/* Two-column layout matching screenshot */}
-      <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+      {/* Two-column layout */}
+      <div className="flex gap-4 items-start flex-wrap">
 
-        {/* LEFT: Class Overview */}
-        <div className="ts-card" style={{
-          flex: "0 0 300px", minWidth: 240, padding: "1.5rem",
-          display: "flex", flexDirection: "column", gap: "1rem",
-        }}>
-          <div style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-h)" }}>
-            Class Overview
-          </div>
+        {/* ── LEFT: Class Overview — fixed 310px width, auto height ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 w-[310px] shrink-0 self-start">
 
-          {detail.imageUrl && (
-            <div style={{ width: "100%", height: 150, borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)" }}>
-              <img src={detail.imageUrl} alt={detail.name}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div className="text-base font-bold text-gray-900">Class Overview</div>
+
+          {/* Vehicle image — 155px tall matching screenshot */}
+          {detail.imageUrl ? (
+            <div className="w-full h-[155px] rounded-xl overflow-hidden border border-gray-100">
+              <img
+                src={detail.imageUrl}
+                alt={detail.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="w-full h-[155px] rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center">
+              <DirectionsCarRoundedIcon className="text-gray-300 !text-5xl" />
             </div>
           )}
 
-          <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-h)" }}>
-            {detail.name}
-          </div>
+          {/* Class name */}
+          <div className="text-[15px] font-bold text-gray-900">{detail.name}</div>
 
-          <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap" }}>
-            <FeatureChip icon={<AirlineSeatReclineExtraRoundedIcon style={{ fontSize: 14 }} />}
-              label={`${detail.features.seats} Seats`} on={true} />
-            <FeatureChip icon={<LuggageRoundedIcon style={{ fontSize: 14 }} />}
-              label={`${detail.features.bags} Bags`} on={true} />
-            <FeatureChip icon={<WifiRoundedIcon style={{ fontSize: 14 }} />}
-              label="WiFi" on={detail.features.wifi} />
-            <FeatureChip icon={<AcUnitRoundedIcon style={{ fontSize: 14 }} />}
-              label="A/C" on={detail.features.ac} />
-            <FeatureChip icon={<WaterDropRoundedIcon style={{ fontSize: 14 }} />}
-              label="Water" on={detail.features.water} />
-            <FeatureChip icon={<AccessTimeRoundedIcon style={{ fontSize: 14 }} />}
-              label={`${detail.features.freeWaitingTime}min Wait`} on={true} />
-            <FeatureChip icon={<DoorFrontRoundedIcon style={{ fontSize: 14 }} />}
-              label="Door-to-Door" on={detail.features.doorToDoor} />
-            <FeatureChip icon={<EmojiPeopleRoundedIcon style={{ fontSize: 14 }} />}
-              label="Meet & Greet" on={detail.features.meetAndGreet} />
+          {/* Feature chips */}
+          <div className="flex flex-wrap gap-1.5">
+            <FeatureChip
+              icon={<AirlineSeatReclineExtraRoundedIcon style={{ fontSize: 12 }} />}
+              label={`${detail.features.seats} Seats`}
+              on={true}
+            />
+            <FeatureChip
+              icon={<LuggageRoundedIcon style={{ fontSize: 12 }} />}
+              label={`${detail.features.bags} Bags`}
+              on={true}
+            />
+            <FeatureChip
+              icon={<WifiRoundedIcon style={{ fontSize: 12 }} />}
+              label="Wifi"
+              on={detail.features.wifi}
+            />
+            <FeatureChip
+              icon={<AcUnitRoundedIcon style={{ fontSize: 12 }} />}
+              label="A/C"
+              on={detail.features.ac}
+            />
+            <FeatureChip
+              icon={<WaterDropRoundedIcon style={{ fontSize: 12 }} />}
+              label="Water"
+              on={detail.features.water}
+            />
+            <FeatureChip
+              icon={<AccessTimeRoundedIcon style={{ fontSize: 12 }} />}
+              label={`${detail.features.freeWaitingTime}min Wait`}
+              on={true}
+            />
+            <FeatureChip
+              icon={<DoorFrontRoundedIcon style={{ fontSize: 12 }} />}
+              label="Door-to-Door"
+              on={detail.features.doorToDoor}
+            />
+            <FeatureChip
+              icon={<EmojiPeopleRoundedIcon style={{ fontSize: 12 }} />}
+              label="Meet & Greet"
+              on={detail.features.meetAndGreet}
+            />
           </div>
         </div>
 
-        {/* RIGHT: Assigned Vehicles */}
-        <div className="ts-card" style={{ flex: 1, minWidth: 320, padding: 0, overflow: "hidden" }}>
+        {/* ── RIGHT: Assigned Vehicles — compact/minimized ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex-1 min-w-[300px] overflow-hidden self-start">
 
-          <div style={{
-            padding: "1rem 1.25rem",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            borderBottom: "1px solid var(--border)",
-          }}>
-            <div style={{ fontSize: ".95rem", fontWeight: 800, color: "var(--text-h)" }}>
+          {/* Card header */}
+          <div className="px-5 py-3 flex items-center justify-between border-b border-gray-100">
+            <span className="text-sm font-bold text-gray-900">
               Assigned Vehicles ({detail.vehicleCount})
-            </div>
-            <button className="ts-btn-primary"
-              style={{ fontSize: ".82rem", padding: ".35rem .9rem" }}
-              onClick={() => onNavigate("agency-vehicles")}>
+            </span>
+            <button
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-violet-600 text-white hover:bg-violet-700 transition-colors"
+              onClick={() => onNavigate("agency-vehicles")}
+            >
               + Add Vehicle
             </button>
           </div>
 
+          {/* Empty state */}
           {detail.vehicles.length === 0 ? (
-            <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".875rem" }}>
+            <div className="py-10 text-center text-sm text-gray-400 flex flex-col items-center gap-3">
               No vehicles assigned to this class yet.
-              <br />
-              <button className="ts-btn-ghost" style={{ marginTop: 10, fontSize: ".82rem" }}
-                onClick={() => onNavigate("agency-vehicles")}>
+              <button
+                className="text-xs text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors"
+                onClick={() => onNavigate("agency-vehicles")}
+              >
                 + Add first vehicle
               </button>
             </div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                <colgroup>
-                  <col style={{ width: "30%" }} />
-                  <col style={{ width: "20%" }} />
-                  <col style={{ width: "25%" }} />
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "7%"  }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th style={TH}>Vehicle</th>
-                    <th style={TH}>Plate</th>
-                    <th style={TH}>Driver</th>
-                    <th style={TH}>Status</th>
-                    <th style={TH}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {detail.vehicles.map((v: ClassVehicle) => (
-                    <VehicleRow
-                      key={v.id}
-                      v={v}
-                      onView={() => setSelectedVehicle(v)}
-                    />
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  {["Vehicle", "Year", "Color", "Driver", "Status", ""].map((col) => (
+                    <th
+                      key={col}
+                      className="px-5 py-2.5 text-left text-xs font-medium text-gray-400 border-b border-gray-100 whitespace-nowrap bg-transparent"
+                    >
+                      {col}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </tr>
+              </thead>
+              <tbody>
+                {detail.vehicles.map((v: ClassVehicle) => (
+                  <VehicleRow key={v.id} v={v} onView={() => setSelectedVehicle(v)} />
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
+
       </div>
     </div>
   );
 }
 
-// ── Vehicle row — eye sets selectedVehicle, which triggers the early return ──
+// ── Vehicle row — compact, minimized ─────────────────────────────────────────
 function VehicleRow({ v, onView }: { v: ClassVehicle; onView: () => void }) {
   const [hov, setHov] = useState(false);
-  const sm = STATUS_META[v.status] ?? { bg: "var(--bg-inner)", color: "var(--text-muted)" };
+  const sm = STATUS_META[v.status] ?? { pill: "bg-gray-100 text-gray-500 border border-gray-200" };
 
   return (
     <tr
-      style={{
-        height: ROW_H,
-        background: hov ? "var(--bg-inner)" : "transparent",
-        transition: "background .12s",
-      }}
+      className={`transition-colors duration-100 ${hov ? "bg-gray-50" : "bg-white"}`}
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
     >
-      <td style={{ ...TD_STYLE, fontWeight: 600, color: "var(--text-h)" }}>
+      {/* Vehicle */}
+      <td className="px-5 py-2.5 text-sm font-semibold text-gray-900 border-b border-gray-50 whitespace-nowrap">
         {v.make} {v.model}
       </td>
-      <td style={TD_STYLE}>
-        {v.licensePlate
-          ? <span style={{
-              background: "var(--bg-inner)", border: "1px solid var(--border)",
-              borderRadius: 6, padding: "2px 8px", fontSize: ".78rem", fontFamily: "monospace",
-            }}>{v.licensePlate}</span>
-          : <span style={{ color: "var(--text-faint)" }}>—</span>
-        }
+
+      {/* Year */}
+      <td className="px-5 py-2.5 text-sm text-gray-600 border-b border-gray-50">
+        {v.year}
       </td>
-      <td style={{ ...TD_STYLE, color: v.driverId ? "var(--text-body)" : "var(--text-faint)" }}>
-        {v.driverId ? "Assigned" : "Unassigned"}
+
+      {/* Color */}
+      <td className="px-5 py-2.5 text-sm text-gray-600 border-b border-gray-50">
+        {v.color ?? "—"}
       </td>
-      <td style={TD_STYLE}>
-        <span style={{
-          borderRadius: 9999, padding: "3px 10px",
-          fontSize: ".72rem", fontWeight: 700, whiteSpace: "nowrap",
-          background: sm.bg, color: sm.color,
-        }}>
+
+      {/* Driver */}
+      <td className={`px-5 py-2.5 text-sm border-b border-gray-50 ${v.driverId ? "text-gray-700" : "text-gray-300"}`}>
+        {v.driverId ? "Ahmed Hassan" : "Unassigned"}
+      </td>
+
+      {/* Status */}
+      <td className="px-5 py-2.5 border-b border-gray-50">
+        <span className={`inline-block rounded-full px-3 py-0.5 text-xs font-semibold whitespace-nowrap ${sm.pill}`}>
           {v.status === "On_Trip" ? "On Trip" : v.status}
         </span>
       </td>
 
-      {/* ✅ Eye — calls onView → sets selectedVehicle → triggers early return (full page, no modal) */}
-      <td style={{ ...TD_STYLE, textAlign: "center" }} onClick={e => e.stopPropagation()}>
+      {/* View icon */}
+      <td
+        className="px-3 py-2.5 border-b border-gray-50 text-center w-10"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           title="View vehicle details"
           onClick={onView}
-          style={{
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            width: 28, height: 28, borderRadius: 6, border: "none",
-            background: "transparent", color: "var(--text-faint)",
-            cursor: "pointer", transition: "all .15s", padding: 0,
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.color = "#7c3aed";
-            (e.currentTarget as HTMLButtonElement).style.background = "rgba(124,58,237,.08)";
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.color = "var(--text-faint)";
-            (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-          }}
+          className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-transparent text-gray-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer border-none"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
           </svg>
         </button>
       </td>
