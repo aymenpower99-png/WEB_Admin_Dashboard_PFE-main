@@ -14,6 +14,7 @@ import VehiclesPage       from "../Dashboard/Vehicles/Vehiclespage";
 import AddVehiclePage     from "../Dashboard/Vehicles/Addvehiclepage";
 import ClassesPage        from "../Dashboard/Classes/ClassesPage";
 import AddClassPage       from "../Dashboard/Classes/AddClassPage";
+import ClassDetailPage    from "../Dashboard/Classes/ClassDetailPage";
 import TripsPage          from "../Dashboard/BookingsPage";
 import AgencyPaymentsData from "../Dashboard/billing/AgencyBillingPage";
 import HelpCenter         from "../Dashboard/HelpCentre/HelpCenter";
@@ -26,10 +27,11 @@ import WorkAreasPage      from "../Dashboard/WorkArea/WorkAreasPage";
 import type { Vehicle }      from "../Dashboard/Vehicles/Vehiclespage";
 import type { VehicleClass } from "../api/classes";
 
+// ── Page order drives the slide direction ─────────────────────────────────
 const PAGE_ORDER = [
   "dashboard", "agency-dashboard",
   "users", "drivers",
-  "classes", "classes-add",
+  "classes", "classes-add", "class-detail",
   "vehicles", "agency-vehicles",
   "trips", "available-rides", "upcoming-rides", "past-rides",
   "payments", "agency-billing",
@@ -69,22 +71,38 @@ export default function Shell({
   const nav      = useNavigate();
   const location = useLocation();
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [slideClass,  setSlideClass]  = useState("");
+  const [sidebarOpen,   setSidebarOpen]   = useState(true);
+  const [slideClass,    setSlideClass]    = useState("");
   const prevKeyRef = useRef("dashboard");
 
-  const [editClass, setEditClass] = useState<VehicleClass | null>(null);
+  const [editClass,     setEditClass]     = useState<VehicleClass | null>(null);
+  const [detailClassId, setDetailClassId] = useState<string>("");
 
   const toKey      = (path: string) => path.replace(/^\/dashboard\/?/, "") || "dashboard";
   const activePage = toKey(location.pathname);
 
-  const navigate = (page: string, prefill?: Vehicle | VehicleClass | null) => {
+  // ── Unified navigate — accepts Vehicle | VehicleClass | string | null ────
+  const navigate = (page: string, prefill?: Vehicle | VehicleClass | string | null) => {
     const targetPath = page === "dashboard" ? "/dashboard" : `/dashboard/${page}`;
     if (location.pathname === targetPath && prefill === undefined) return;
 
-    if (page === "agency-vehicles") setEditVehicle((prefill as Vehicle | null) ?? null);
-    if (page === "classes-add")     setEditClass((prefill as VehicleClass | null) ?? null);
+    // Route-specific state
+    if (page === "agency-vehicles") {
+      setEditVehicle((prefill as Vehicle | null) ?? null);
+    }
+    if (page === "classes-add") {
+      setEditClass((prefill as VehicleClass | null) ?? null);
+    }
+    if (page === "class-detail") {
+      // prefill can be a plain class UUID string OR a VehicleClass object
+      if (typeof prefill === "string") {
+        setDetailClassId(prefill);
+      } else if (prefill && typeof prefill === "object" && "id" in prefill) {
+        setDetailClassId((prefill as VehicleClass).id);
+      }
+    }
 
+    // Slide animation direction
     const from = PAGE_ORDER.indexOf(prevKeyRef.current);
     const to   = PAGE_ORDER.indexOf(page);
     const dir  = to >= from ? "left" : "right";
@@ -103,6 +121,8 @@ export default function Shell({
       display: "flex", height: "100vh", overflow: "hidden",
       background: "var(--bg-page)", fontFamily: "var(--font)",
     }}>
+
+      {/* ── Sidebar ── */}
       {sidebarOpen && (
         <aside style={{
           width: "var(--sidebar-w)",
@@ -111,14 +131,13 @@ export default function Shell({
           flexDirection: "column",
           background: "var(--bg-sidebar)",
           borderRight: "1px solid var(--border)",
-          // ✅ No overflow here — handled by inner scroll div below
           overflow: "hidden",
         }}>
-          {/* ── Logo — fixed, never scrolls ── */}
+          {/* Logo — fixed, never scrolls */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: "4px",
             padding: "50px 20px", height: "80px", minHeight: "64px",
-            flexShrink: 0,   // ← never shrinks
+            flexShrink: 0,
           }}>
             <img
               src={dark ? logoDark : logoLight} alt="Moviroo"
@@ -132,13 +151,9 @@ export default function Shell({
             </span>
           </div>
 
-          {/* ✅ Only the nav items scroll, not the logo */}
+          {/* Nav items scroll independently */}
           <div style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "0.75rem",
-            // hide scrollbar visually but still scrollable
-            scrollbarWidth: "none",
+            flex: 1, overflowY: "auto", padding: "0.75rem", scrollbarWidth: "none",
           }}>
             <Sidebar
               dark={dark}
@@ -150,6 +165,7 @@ export default function Shell({
         </aside>
       )}
 
+      {/* ── Main content area ── */}
       <div style={{
         flex: 1, minWidth: 0, display: "flex",
         flexDirection: "column", overflow: "hidden",
@@ -172,29 +188,58 @@ export default function Shell({
             flex: 1, minHeight: 0, display: "flex", flexDirection: "column",
           }}>
             <Routes>
-              <Route index                element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard"     element={<AdminDashboard />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
+
+              {/* ── Overview ── */}
+              <Route path="dashboard"        element={<AdminDashboard />} />
               <Route path="agency-dashboard" element={<AgencyDashboard dark={dark} />} />
-              <Route path="users"         element={<UsersPage dark={dark} />} />
-              <Route path="drivers"       element={<DriversPage />} />
 
-              <Route path="classes"       element={<ClassesPage onNavigate={navigate} />} />
-              <Route path="classes-add"   element={<AddClassPage prefill={editClass} onNavigate={navigate} />} />
+              {/* ── Users ── */}
+              <Route path="users"   element={<UsersPage dark={dark} />} />
+              <Route path="drivers" element={<DriversPage />} />
 
-              <Route path="vehicles"      element={<VehiclesPage vehicles={vehicles} setVehicles={setVehicles} onNavigate={navigate} />} />
-              <Route path="agency-vehicles" element={<AddVehiclePage prefill={editVehicle as Vehicle | null} setVehicles={setVehicles} onNavigate={navigate} />} />
+              {/* ── Classes ── */}
+              <Route path="classes"      element={<ClassesPage onNavigate={navigate} />} />
+              <Route path="classes-add"  element={<AddClassPage prefill={editClass} onNavigate={navigate} />} />
+              <Route path="class-detail" element={
+                <ClassDetailPage classId={detailClassId} onNavigate={navigate} />
+              } />
 
-              <Route path="trips"         element={<TripsPage dark={dark} />} />
+              {/* ── Vehicles ── */}
+              <Route path="vehicles"        element={
+                <VehiclesPage vehicles={vehicles} setVehicles={setVehicles} onNavigate={navigate} />
+              } />
+              <Route path="agency-vehicles" element={
+                <AddVehiclePage
+                  prefill={editVehicle as Vehicle | null}
+                  setVehicles={setVehicles}
+                  onNavigate={navigate}
+                />
+              } />
+
+              {/* ── Trips & Rides ── */}
+              <Route path="trips"          element={<TripsPage dark={dark} />} />
               <Route path="available-rides" element={<AvailableRidesPage />} />
               <Route path="upcoming-rides"  element={<UpcomingRidesPage dark={false} />} />
-              <Route path="past-rides"    element={<PastRidesPage />} />
+              <Route path="past-rides"      element={<PastRidesPage />} />
+
+              {/* ── Billing ── */}
               <Route path="payments"      element={<AgencyPaymentsData />} />
-              <Route path="agency-billing" element={<PlaceholderPage title="Agency Billing" icon="💳" description="View and manage agency billing records." />} />
-              <Route path="work-area"     element={<WorkAreasPage />} />
-              <Route path="help"          element={<HelpCenter dark={dark} />} />
-              <Route path="settings"      element={<Settings dark={dark} onToggleDark={onToggleDark} />} />
-              <Route path="security"      element={<PlaceholderPage title="Security" icon="🛡️" description="Manage permissions, 2FA and audit logs." />} />
-              <Route path="*"            element={<Navigate to="dashboard" replace />} />
+              <Route path="agency-billing" element={
+                <PlaceholderPage title="Agency Billing" icon="💳"
+                  description="View and manage agency billing records." />
+              } />
+
+              {/* ── Other ── */}
+              <Route path="work-area" element={<WorkAreasPage />} />
+              <Route path="help"      element={<HelpCenter dark={dark} />} />
+              <Route path="settings"  element={<Settings dark={dark} onToggleDark={onToggleDark} />} />
+              <Route path="security"  element={
+                <PlaceholderPage title="Security" icon="🛡️"
+                  description="Manage permissions, 2FA and audit logs." />
+              } />
+
+              <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           </div>
         </main>

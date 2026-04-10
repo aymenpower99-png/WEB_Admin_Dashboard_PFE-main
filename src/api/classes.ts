@@ -1,5 +1,21 @@
 import apiClient from "./apiClient";
 
+// ── Vehicle (minimal, for class detail view) ─────────────────────────────────
+export interface ClassVehicle {
+  id: string;
+  make: string;
+  model: string;
+  year: number;
+  color: string | null;
+  licensePlate: string | null;
+  driverId: string | null;
+  status: "Pending" | "Available" | "On_Trip" | "Maintenance";
+  photos: string[] | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+// ── Class ─────────────────────────────────────────────────────────────────────
 export interface VehicleClass {
   id: string;
   name: string;
@@ -13,8 +29,25 @@ export interface VehicleClass {
   doorToDoor: boolean;
   meetAndGreet: boolean;
   isActive: boolean;
+  vehicleCount?: number;   // ← returned by GET /admin/classes list
   createdAt: string;
   updatedAt: string;
+}
+
+// ── Class Detail (with vehicles) ─────────────────────────────────────────────
+export interface VehicleClassDetail extends VehicleClass {
+  features: {
+    seats: number;
+    bags: number;
+    wifi: boolean;
+    ac: boolean;
+    water: boolean;
+    freeWaitingTime: number;
+    doorToDoor: boolean;
+    meetAndGreet: boolean;
+  };
+  vehicleCount: number;
+  vehicles: ClassVehicle[];
 }
 
 export interface ClassFeatures {
@@ -44,11 +77,17 @@ export interface CreateClassPayload {
 export type UpdateClassPayload = Partial<CreateClassPayload>;
 
 export const classesApi = {
+  /** GET /admin/classes — returns all classes WITH vehicleCount */
   getAll: (): Promise<VehicleClass[]> =>
     apiClient.get("/admin/classes").then((r) => r.data),
 
+  /** GET /admin/classes/:id — class info only */
   getOne: (id: string): Promise<VehicleClass> =>
     apiClient.get(`/admin/classes/${id}`).then((r) => r.data),
+
+  /** GET /admin/classes/:id/detail — class + features + all vehicles */
+  getDetail: (id: string): Promise<VehicleClassDetail> =>
+    apiClient.get(`/admin/classes/${id}/detail`).then((r) => r.data),
 
   getFeatures: (id: string): Promise<ClassFeatures> =>
     apiClient.get(`/admin/classes/${id}/features`).then((r) => r.data),

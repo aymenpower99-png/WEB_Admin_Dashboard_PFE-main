@@ -3,13 +3,13 @@ import "../travelsync-design-system.css";
 import apiClient from "../../api/apiClient";
 import { mapBackendVehicle, INITIAL_VEHICLES } from "./types";
 import type { Vehicle, VehiclesPageProps } from "./types";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import StatCards         from "./components/StatCards";
-import Pagination        from "./components/Pagination";
-import RemoveModal       from "./components/RemoveModal";
-import ChangeStatusModal from "./components/ChangeStatusModal";
-import VehicleTableRow   from "./components/VehicleTableRow";
-import UpdatePhotoModal  from "./UpdatePhotoModal"; // ✅
+import SearchRoundedIcon  from "@mui/icons-material/SearchRounded";
+import StatCards          from "./components/StatCards";
+import Pagination         from "./components/Pagination";
+import RemoveModal        from "./components/RemoveModal";
+import ChangeStatusModal  from "./components/ChangeStatusModal";
+import VehicleTableRow    from "./components/VehicleTableRow";
+import UpdatePhotoModal   from "./UpdatePhotoModal";
 
 export { INITIAL_VEHICLES, mapBackendVehicle };
 export type { Vehicle, VehiclesPageProps };
@@ -45,32 +45,43 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
   const [removeTarget,  setRemoveTarget]  = useState<Vehicle | null>(null);
   const [removeLoading, setRemoveLoading] = useState(false);
   const [statusTarget,  setStatusTarget]  = useState<Vehicle | null>(null);
-  const [photoTarget,   setPhotoTarget]   = useState<Vehicle | null>(null); // ✅
+  const [photoTarget,   setPhotoTarget]   = useState<Vehicle | null>(null);
+  const [error,         setError]         = useState<string | null>(null);
 
   function loadVehicles() {
     setLoading(true);
+    setError(null);
     apiClient.get("/vehicles")
       .then(async res => {
-        const list: any[] = Array.isArray(res.data)
-          ? res.data
-          : (res.data?.data ?? res.data?.vehicles ?? []);
+        // ✅ Handle both array and paginated { data: [] } response shapes
+        const raw = res.data;
+        const list: any[] = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+          ? raw.data
+          : Array.isArray(raw?.vehicles)
+          ? raw.vehicles
+          : [];
 
-        // ✅ Build driverId → "First Last" map
+        // ✅ Build driverId → "First Last" map from the driver names
         const driverMap = new Map<string, string>();
         const driverIds = [...new Set(list.map((v: any) => v.driverId).filter(Boolean))] as string[];
+
         if (driverIds.length > 0) {
           try {
-            const drRes  = await apiClient.get("/drivers", { params: { limit: 200 } });
-            const drList: any[] = Array.isArray(drRes.data) ? drRes.data : (drRes.data?.data ?? []);
+            const drRes  = await apiClient.get("/admin/drivers", { params: { limit: 200 } });
+            const drRaw  = drRes.data;
+            const drList: any[] = Array.isArray(drRaw) ? drRaw : (drRaw?.data ?? []);
             for (const d of drList) {
-              if (d.id && (d.firstName || d.lastName))
-                driverMap.set(d.id, `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim());
+              const name = `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim();
+              if (d.id && name) driverMap.set(d.id, name);
             }
-          } catch { /* cosmetic */ }
+          } catch { /* driver names are cosmetic */ }
         }
+
         setVehicles(list.map((v: any) => mapBackendVehicle(v, driverMap)));
       })
-      .catch(() => {})
+      .catch(() => setError("Failed to load vehicles. Check your connection."))
       .finally(() => setLoading(false));
   }
 
@@ -85,10 +96,11 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
   const filtered = useMemo(() => vehicles.filter(v => {
     const matchStatus = activeFilter === "All" || v.status === activeFilter;
     const q = search.toLowerCase();
+    const className = v.vehicleClass?.name ?? "";
     return matchStatus && (!q
       || `${v.make} ${v.model}`.toLowerCase().includes(q)
       || v.driver?.toLowerCase().includes(q)
-      || v.vehicleClass?.toLowerCase().includes(q)
+      || className.toLowerCase().includes(q)
       || String(v.year).includes(q));
   }), [vehicles, activeFilter, search]);
 
@@ -110,13 +122,14 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
-      {/* ── Modals ── */}
-      {removeTarget && <RemoveModal loading={removeLoading} onConfirm={handleRemove} onClose={() => setRemoveTarget(null)} />}
+      {removeTarget && (
+        <RemoveModal loading={removeLoading} onConfirm={handleRemove}
+          onClose={() => setRemoveTarget(null)} />
+      )}
       {statusTarget && (
         <ChangeStatusModal vehicle={statusTarget} onClose={() => setStatusTarget(null)}
           onUpdated={u => { setVehicles(p => p.map(v => v.id === u.id ? u : v)); setStatusTarget(null); }} />
       )}
-      {/* ✅ Photo modal */}
       {photoTarget && (
         <UpdatePhotoModal vehicle={photoTarget} onClose={() => setPhotoTarget(null)}
           onUploaded={u => { setVehicles(p => p.map(v => v.id === u.id ? u : v)); setPhotoTarget(null); }} />
@@ -125,24 +138,30 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
       <div className="ts-page-header">
         <div>
           <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800 }}>Vehicles</h1>
+          <p style={{ margin: 0, fontSize: ".82rem", color: "var(--text-muted)" }}>
+            Manage your fleet vehicles
+          </p>
         </div>
         <button className="ts-btn-primary" onClick={() => onNavigate("agency-vehicles", null)}>
           <span style={{ fontSize: "1rem", lineHeight: 1 }}>＋</span> Add Vehicle
         </button>
       </div>
 
-      <StatCards total={total} available={available} pending={pending} onTrip={onTrip} maintenance={maintenance} />
+      <StatCards total={total} available={available} pending={pending}
+        onTrip={onTrip} maintenance={maintenance} />
 
       <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>
           {TABS.map(t => (
-            <button key={t.key} onClick={() => { setActiveFilter(t.key); setPage(1); }} style={{
-              padding: ".3rem .85rem", borderRadius: "9999px", fontSize: ".82rem", fontWeight: 600,
-              cursor: "pointer", border: "none",
-              background: activeFilter === t.key ? "#7c3aed" : "var(--bg-inner)",
-              color:      activeFilter === t.key ? "#fff"    : "var(--text-muted)",
-              transition: "all .15s",
-            }}>{t.label}</button>
+            <button key={t.key} onClick={() => { setActiveFilter(t.key); setPage(1); }}
+              style={{
+                padding: ".3rem .85rem", borderRadius: "9999px",
+                fontSize: ".82rem", fontWeight: 600,
+                cursor: "pointer", border: "none",
+                background: activeFilter === t.key ? "#7c3aed" : "var(--bg-inner)",
+                color:      activeFilter === t.key ? "#fff"    : "var(--text-muted)",
+                transition: "all .15s",
+              }}>{t.label}</button>
           ))}
         </div>
         <div style={{ marginLeft: "auto" }}>
@@ -156,19 +175,37 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
 
       <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
         {loading ? (
-          <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".85rem" }}>Loading vehicles…</div>
+          <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".85rem" }}>
+            Loading vehicles…
+          </div>
+        ) : error ? (
+          <div style={{ padding: "3rem", textAlign: "center", color: "#ef4444", fontSize: ".85rem" }}>
+            {error}{" "}
+            <button onClick={loadVehicles} style={{
+              marginLeft: 8, textDecoration: "underline", cursor: "pointer",
+              background: "none", border: "none", color: "inherit",
+            }}>Retry</button>
+          </div>
         ) : (
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
               <colgroup>
-                <col style={{ width: "20%" }} /><col style={{ width: "12%" }} /><col style={{ width: "11%" }} />
-                <col style={{ width: "8%" }}  /><col style={{ width: "8%" }}  /><col style={{ width: "15%" }} />
-                <col style={{ width: "26%" }} />
+                <col style={{ width: "22%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "11%" }} />
+                <col style={{ width: "8%"  }} />
+                <col style={{ width: "8%"  }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "22%" }} />
               </colgroup>
               <thead>
                 <tr>
-                  <th style={TH}>Vehicle</th><th style={TH}>Class</th><th style={TH}>Status</th>
-                  <th style={TH}>Year</th><th style={TH}>Seats</th><th style={TH}>Driver</th>
+                  <th style={TH}>Vehicle</th>
+                  <th style={TH}>Class</th>
+                  <th style={TH}>Status</th>
+                  <th style={TH}>Year</th>
+                  <th style={TH}>Seats</th>
+                  <th style={TH}>Driver</th>
                   <th style={TH}>Actions</th>
                 </tr>
               </thead>
@@ -181,7 +218,9 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                       </td>
                     </tr>
                     {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
-                      <tr key={`ge-${i}`} style={{ height: ROW_H }}><td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} /></tr>
+                      <tr key={`ge-${i}`} style={{ height: ROW_H }}>
+                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                      </tr>
                     ))}
                   </>
                 ) : (
@@ -191,11 +230,13 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
                         onEdit={vehicle => onNavigate("agency-vehicles", vehicle)}
                         onStatusChange={vehicle => setStatusTarget(vehicle)}
                         onRemove={vehicle => setRemoveTarget(vehicle)}
-                        onUpdatePhotos={vehicle => setPhotoTarget(vehicle)} // ✅
+                        onUpdatePhotos={vehicle => setPhotoTarget(vehicle)}
                       />
                     ))}
                     {Array.from({ length: ghostCount }).map((_, i) => (
-                      <tr key={`g-${i}`} style={{ height: ROW_H }}><td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} /></tr>
+                      <tr key={`g-${i}`} style={{ height: ROW_H }}>
+                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                      </tr>
                     ))}
                   </>
                 )}

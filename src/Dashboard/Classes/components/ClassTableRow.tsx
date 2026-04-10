@@ -1,11 +1,11 @@
 import { useState } from "react";
-import WifiRoundedIcon   from "@mui/icons-material/WifiRounded";
-import AcUnitRoundedIcon from "@mui/icons-material/AcUnitRounded";
+import WifiRoundedIcon    from "@mui/icons-material/WifiRounded";
+import AcUnitRoundedIcon  from "@mui/icons-material/AcUnitRounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import type { VehicleClass } from "../../../api/classes";
 
-const ROW_H = 88; // ✅ same as Drivers
+const ROW_H = 88;
 
-// ✅ Exact copy of Drivers TD style
 const TD: React.CSSProperties = {
   padding: "0 1.25rem",
   height: ROW_H,
@@ -71,13 +71,19 @@ function ActionBtn({
   );
 }
 
-export default function ClassTableRow({
-  cls, onEdit, onDelete,
-}: {
-  cls: VehicleClass;
+// ── Props — all three handlers typed correctly ─────────────────────────────
+interface ClassTableRowProps {
+  cls:      VehicleClass;
   onEdit:   (c: VehicleClass) => void;
   onDelete: (c: VehicleClass) => void;
-}) {
+  onView:   (c: VehicleClass) => void;   // ← NEW
+  /** optional vehicle count badge */
+  vehicleCount?: number;
+}
+
+export default function ClassTableRow({
+  cls, onEdit, onDelete, onView, vehicleCount,
+}: ClassTableRowProps) {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -91,28 +97,28 @@ export default function ClassTableRow({
         transition: "background .12s",
       }}
     >
-      {/* CLASS — bold like Driver name */}
+      {/* CLASS name */}
       <td style={TD}>
         <span style={{ fontWeight: 600, color: "var(--text-h)", fontSize: ".85rem" }}>
           {cls.name}
         </span>
       </td>
 
-      {/* SEATS — bold number centered, like Trips */}
+      {/* SEATS */}
       <td style={{ ...TD, textAlign: "center" }}>
         <span style={{ fontWeight: 800, fontSize: ".85rem", color: "var(--text-h)" }}>
           {cls.seats}
         </span>
       </td>
 
-      {/* BAGS — bold number centered */}
+      {/* BAGS */}
       <td style={{ ...TD, textAlign: "center" }}>
         <span style={{ fontWeight: 800, fontSize: ".85rem", color: "var(--text-h)" }}>
           {cls.bags}
         </span>
       </td>
 
-      {/* FEATURES — chips like Driver email area */}
+      {/* FEATURES */}
       <td style={TD}>
         <div style={{ display: "flex", gap: ".3rem", flexWrap: "wrap", alignItems: "center" }}>
           {cls.wifi && (
@@ -155,7 +161,7 @@ export default function ClassTableRow({
         </div>
       </td>
 
-      {/* WAIT — like Trips: bold number + small unit */}
+      {/* WAIT */}
       <td style={{ ...TD, textAlign: "center" }}>
         <span style={{ fontWeight: 800, fontSize: ".85rem", color: "var(--text-h)" }}>
           {cls.freeWaitingTime}
@@ -163,10 +169,29 @@ export default function ClassTableRow({
         <span style={{ fontSize: ".72rem", color: "var(--text-faint)", marginLeft: 2 }}>min</span>
       </td>
 
-      {/* STATUS — badge like Driver status */}
+      {/* VEHICLES COUNT — NEW column */}
+      <td style={{ ...TD, textAlign: "center" }}>
+        <span style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          minWidth: 28, height: 22, borderRadius: 9999,
+          padding: "0 8px",
+          background: (vehicleCount ?? cls.vehicleCount ?? 0) > 0
+            ? "rgba(124,58,237,.12)"
+            : "var(--bg-inner)",
+          color: (vehicleCount ?? cls.vehicleCount ?? 0) > 0
+            ? "#7c3aed"
+            : "var(--text-faint)",
+          fontSize: ".78rem", fontWeight: 800,
+        }}>
+          {vehicleCount ?? cls.vehicleCount ?? 0}
+        </span>
+      </td>
+
+      {/* STATUS */}
       <td style={TD}>
         <span style={{
-          padding: "3px 10px", borderRadius: "9999px", fontSize: ".75rem", fontWeight: 700,
+          padding: "3px 10px", borderRadius: "9999px",
+          fontSize: ".75rem", fontWeight: 700,
           background: cls.isActive ? "var(--active-bg)" : "var(--blocked-bg)",
           color:      cls.isActive ? "var(--active-fg)" : "var(--blocked-fg)",
         }}>
@@ -174,9 +199,18 @@ export default function ClassTableRow({
         </span>
       </td>
 
-      {/* ACTIONS — icon buttons like Driver actions */}
+      {/* ACTIONS — Edit + View + Delete */}
       <td style={TD} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {/* View detail */}
+          <ActionBtn
+            title="View vehicles in class"
+            onClick={() => onView(cls)}
+            hoverStyle={{ background: "rgba(124,58,237,.1)", color: "#7c3aed", borderColor: "rgba(124,58,237,.35)" }}
+          >
+            <VisibilityRoundedIcon style={{ fontSize: 15 }} />
+          </ActionBtn>
+          {/* Edit */}
           <ActionBtn
             title="Edit class"
             onClick={() => onEdit(cls)}
@@ -184,6 +218,7 @@ export default function ClassTableRow({
           >
             <IconEdit />
           </ActionBtn>
+          {/* Delete */}
           <ActionBtn
             title="Delete class"
             onClick={() => onDelete(cls)}

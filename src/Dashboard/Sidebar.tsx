@@ -32,7 +32,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "OVERVIEW",
     items: [
-      { label: "Dashboard",        icon: "dashboard", page: "dashboard" },
+      { label: "Dashboard",        icon: "dashboard", page: "dashboard"        },
       { label: "Agency Dashboard", icon: "dashboard", page: "agency-dashboard" },
     ],
   },
@@ -40,7 +40,6 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
     section: "USERS",
     items: [
       { label: "Users",   icon: "people", page: "users"   },
-      // ✅ Drivers: direct link, no children dropdown
       { label: "Drivers", icon: "person", page: "drivers" },
     ],
   },
@@ -52,8 +51,9 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         icon: "category",
         page: "classes-parent",
         children: [
-          { label: "All Classes", page: "classes"     },
-          { label: "Add Class",   page: "classes-add" },
+          { label: "All Classes",   page: "classes"        },
+          { label: "Add Class",     page: "classes-add"    },
+          { label: "Class Detail",  page: "class-detail"   }, // ← NEW
         ],
       },
       {
@@ -159,6 +159,8 @@ interface SidebarProps {
   onToggleDark: () => void;
   activePage: string;
   onNavigate: (page: string) => void;
+  /** vehicle count per class id — shown as badge next to "Class Detail" */
+  classCounts?: Record<string, number>;
 }
 
 export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
@@ -175,7 +177,6 @@ export default function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const toggle = (label: string) => setExpanded(p => ({ [label]: !p[label] }));
 
   return (
-    // ✅ No overflow here — the <aside> in ShellRoutes handles the scroll
     <div style={{ display: "flex", flexDirection: "column" }}>
       {NAV_GROUPS.map(group => (
         <div key={group.section} style={{ marginBottom: "1.25rem" }}>

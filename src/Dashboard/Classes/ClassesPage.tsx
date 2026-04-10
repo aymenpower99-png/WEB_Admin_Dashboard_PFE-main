@@ -9,26 +9,19 @@ import DeleteClassModal from "./components/DeleteClassModal";
 import Pagination       from "../Vehicles/components/Pagination";
 
 const ROWS_PER_PAGE = 6;
-const ROW_H = 88; // ✅ same as Drivers (was 64)
+const ROW_H = 88;
 
-// ✅ Exact copy of Drivers TH style
 const TH: React.CSSProperties = {
-  padding: "0.75rem 1.25rem",
-  fontSize: ".78rem",
-  fontWeight: 800,
-  textTransform: "uppercase",
-  letterSpacing: ".06em",
-  color: "var(--text-body)",
-  textAlign: "left",
-  borderBottom: "1px solid var(--border)",
-  whiteSpace: "nowrap",
-  background: "var(--bg-thead)",
+  padding: "0.75rem 1.25rem", fontSize: ".78rem", fontWeight: 800,
+  textTransform: "uppercase", letterSpacing: ".06em",
+  color: "var(--text-body)", textAlign: "left",
+  borderBottom: "1px solid var(--border)", whiteSpace: "nowrap", background: "var(--bg-thead)",
 };
-
 const TH_CENTER: React.CSSProperties = { ...TH, textAlign: "center" };
 
+// ── onNavigate accepts: page + optional prefill of any shape ───────────────
 interface ClassesPageProps {
-  onNavigate: (page: string, prefill?: VehicleClass | null) => void;
+  onNavigate: (page: string, prefill?: VehicleClass | null | string) => void;
 }
 
 export default function ClassesPage({ onNavigate }: ClassesPageProps) {
@@ -41,8 +34,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
   const [error,         setError]         = useState<string | null>(null);
 
   function loadClasses() {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     classesApi.getAll()
       .then(setClasses)
       .catch(() => setError("Failed to load classes."))
@@ -61,7 +53,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
       const q = search.toLowerCase();
       return !q || c.name.toLowerCase().includes(q);
     }),
-    [classes, search]
+    [classes, search],
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
@@ -78,9 +70,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
       setDeleteTarget(null);
     } catch {
       alert("Could not delete class. Make sure no vehicles are linked to it.");
-    } finally {
-      setDeleteLoading(false);
-    }
+    } finally { setDeleteLoading(false); }
   }
 
   return (
@@ -88,19 +78,15 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
 
       {deleteTarget && (
         <DeleteClassModal
-          cls={deleteTarget}
-          loading={deleteLoading}
-          onConfirm={handleDelete}
-          onClose={() => setDeleteTarget(null)}
+          cls={deleteTarget} loading={deleteLoading}
+          onConfirm={handleDelete} onClose={() => setDeleteTarget(null)}
         />
       )}
 
       {/* Header */}
       <div className="ts-page-header">
         <div>
-          <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800 }}>
-            Classes
-          </h1>
+          <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800 }}>Classes</h1>
           <p style={{ margin: 0, fontSize: ".82rem", color: "var(--text-muted)" }}>
             Manage vehicle classes and their features
           </p>
@@ -110,22 +96,18 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
         </button>
       </div>
 
-      {/* Stat Cards */}
       <ClassStatCards total={total} active={active} withWifi={withWifi} withAc={withAc} />
 
-      {/* Search */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
         <div className="ts-search-bar" style={{ minWidth: 240 }}>
           <SearchRoundedIcon style={{ fontSize: 15, flexShrink: 0 }} />
           <input
-            placeholder="Search classes…"
-            value={search}
+            placeholder="Search classes…" value={search}
             onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
       </div>
 
-      {/* Table */}
       <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
         {loading ? (
           <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-faint)", fontSize: ".85rem" }}>
@@ -142,15 +124,15 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
         ) : (
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-              {/* ✅ Mirror Drivers page column distribution exactly */}
               <colgroup>
-                <col style={{ width: "20%" }} /> {/* CLASS    — like DRIVER   */}
-                <col style={{ width: "8%"  }} /> {/* SEATS    — like TRIPS    */}
-                <col style={{ width: "8%"  }} /> {/* BAGS     — compact num   */}
-                <col style={{ width: "27%" }} /> {/* FEATURES — like EMAIL    */}
-                <col style={{ width: "10%" }} /> {/* WAIT     — compact       */}
-                <col style={{ width: "13%" }} /> {/* STATUS   — like STATUS   */}
-                <col style={{ width: "14%" }} /> {/* ACTIONS  — like ACTIONS  */}
+                <col style={{ width: "17%" }} />
+                <col style={{ width: "6%"  }} />
+                <col style={{ width: "6%"  }} />
+                <col style={{ width: "23%" }} />
+                <col style={{ width: "7%"  }} />
+                <col style={{ width: "9%"  }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "22%" }} />
               </colgroup>
               <thead>
                 <tr>
@@ -159,6 +141,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
                   <th style={TH_CENTER}>Bags</th>
                   <th style={TH}>Features</th>
                   <th style={TH_CENTER}>Wait</th>
+                  <th style={TH_CENTER}>Vehicles</th>
                   <th style={TH}>Status</th>
                   <th style={TH}>Actions</th>
                 </tr>
@@ -167,7 +150,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
                 {filtered.length === 0 ? (
                   <>
                     <tr style={{ height: ROW_H }}>
-                      <td colSpan={7} style={{
+                      <td colSpan={8} style={{
                         padding: "0 1.25rem", height: ROW_H, textAlign: "center",
                         color: "var(--text-faint)", borderBottom: "1px solid var(--border)",
                       }}>
@@ -176,7 +159,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
                     </tr>
                     {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
                       <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                        <td colSpan={8} style={{ borderBottom: "1px solid var(--border)" }} />
                       </tr>
                     ))}
                   </>
@@ -186,13 +169,15 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
                       <ClassTableRow
                         key={c.id}
                         cls={c}
-                        onEdit={cls => onNavigate("classes-add", cls)}
+                        vehicleCount={c.vehicleCount}
+                        onEdit={cls   => onNavigate("classes-add",   cls)}
                         onDelete={cls => setDeleteTarget(cls)}
+                        onView={cls   => onNavigate("class-detail",  cls.id)}
                       />
                     ))}
                     {Array.from({ length: ghostCount }).map((_, i) => (
                       <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
+                        <td colSpan={8} style={{ borderBottom: "1px solid var(--border)" }} />
                       </tr>
                     ))}
                   </>
