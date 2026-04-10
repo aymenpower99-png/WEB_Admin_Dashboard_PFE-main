@@ -67,8 +67,10 @@ interface VehicleTableRowProps {
 }
 
 export default function VehicleTableRow({ v, onEdit, onStatusChange, onRemove, onUpdatePhotos }: VehicleTableRowProps) {
-  // ✅ Show 📷 button ONLY when vehicle has no photos yet (Pending state needing first upload)
   const needsPhotos = !Array.isArray(v.photos) || v.photos.length === 0;
+
+  // Seats come from the CLASS, not the vehicle itself
+  const seats = v.vehicleClass?.seats ?? "—";
 
   return (
     <tr className="ts-tr" style={{ height: ROW_H }}>
@@ -78,7 +80,7 @@ export default function VehicleTableRow({ v, onEdit, onStatusChange, onRemove, o
       <td style={TD}><ClassBadge vehicleClass={v.vehicleClass} /></td>
       <td style={TD}><StatusPill status={v.status} /></td>
       <td style={{ ...TD, color: "var(--text-muted)" }}>{v.year}</td>
-      <td style={{ ...TD, color: "var(--text-muted)" }}>{v.seats ?? "—"}</td>
+      <td style={{ ...TD, color: "var(--text-muted)" }}>{seats}</td>
       <td style={{ ...TD, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {v.driver
           ? v.driver
@@ -94,7 +96,6 @@ export default function VehicleTableRow({ v, onEdit, onStatusChange, onRemove, o
             <IconEdit />
           </ActionBtn>
 
-          {/* ✅ Only show camera button when vehicle has NO photos (first-time upload only) */}
           {needsPhotos && (
             <ActionBtn
               title="Add photos (required to activate)"

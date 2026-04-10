@@ -8,7 +8,7 @@ import { mapBackendVehicle } from "./types";
 import type { Vehicle, AddVehiclePageProps } from "./types";
 
 import {
-  YEARS, COLORS, SEAT_COUNTS,
+  YEARS, COLORS,
   EMPTY_FORM, EMPTY_ERRS,
   validate, hasErrors,
 } from "./AddvehicleComponents/types";
@@ -28,8 +28,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
     prefill ? {
       make: prefill.make, model: prefill.model, year: String(prefill.year),
       color: COLORS.includes(prefill.color as any) ? (prefill.color ?? "") : "",
-      vehicleClass: prefill.vehicleClass ?? "",
-      seats: String(prefill.seats ?? ""),
+      vehicleClass: prefill.vehicleClass?.id ?? prefill.classId ?? "",
       driver: prefill.driver ?? "",
     } : { ...EMPTY_FORM }
   );
@@ -51,7 +50,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
         setClassOptions(classes.map(c => ({ value: c.id, label: c.name })));
       })
       .catch(() => {
-        // fallback to static list if API fails
         setClassOptions([
           { value: "Economy",     label: "Economy"     },
           { value: "Standard",    label: "Standard"    },
@@ -82,13 +80,12 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
     setSubmitting(true); setApiError(null);
 
     const payload: Record<string, unknown> = {
-      make:      form.make,
-      model:     form.model,
-      year:      Number(form.year),
-      color:     form.color || undefined,
-      classId:   form.vehicleClass || undefined,   // ← send classId (UUID from API)
-      seats:     form.seats ? Number(form.seats) : undefined,
-      driverId:  driverId || undefined,
+      make:     form.make,
+      model:    form.model,
+      year:     Number(form.year),
+      color:    form.color || undefined,
+      classId:  form.vehicleClass || undefined,
+      driverId: driverId || undefined,
     };
 
     try {
@@ -108,7 +105,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
 
   const yearOptions  = YEARS.map(y => ({ value: String(y), label: String(y) }));
   const colorOptions = COLORS.map(c => ({ value: c, label: c }));
-  const seatOptions  = SEAT_COUNTS.map(s => ({ value: String(s), label: `${s} seats` }));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: ".75rem", width: "100%" }}>
@@ -143,7 +139,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           </Field>
         </div>
 
-        {/* Row 2 — Vehicle Class (loaded from API) */}
+        {/* Row 2 — Vehicle Class */}
         <Field label="Vehicle Class" error={errs.vehicleClass}>
           {classesLoading ? (
             <div style={{ padding: ".55rem .75rem", border: "1px solid var(--border)",
@@ -159,7 +155,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
               placeholder="SELECT CLASS"
             />
           )}
-          {/* Visual reference grid — static, for context */}
           <VehicleClassGrid />
         </Field>
 
@@ -168,15 +163,10 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           <PlainDropdown value={form.year} onChange={v => set("year", v)} options={yearOptions} error={errs.year} />
         </Field>
 
-        {/* Row 4 — Color / Seats */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".85rem" }}>
-          <Field label="Color" error={errs.color}>
-            <PlainDropdown value={form.color} onChange={v => set("color", v)} options={colorOptions} error={errs.color} />
-          </Field>
-          <Field label="Seat Count" error={errs.seats}>
-            <PlainDropdown value={form.seats} onChange={v => set("seats", v)} options={seatOptions} error={errs.seats} />
-          </Field>
-        </div>
+        {/* Row 4 — Color only (seats removed — defined by class) */}
+        <Field label="Color" error={errs.color}>
+          <PlainDropdown value={form.color} onChange={v => set("color", v)} options={colorOptions} error={errs.color} />
+        </Field>
 
         {/* Row 5 — Assigned Driver */}
         <Field label="Assigned Driver" error={errs.driver}>

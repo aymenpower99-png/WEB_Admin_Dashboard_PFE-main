@@ -1,6 +1,5 @@
 export const YEARS       = Array.from({ length: 11 }, (_, i) => 2016 + i).reverse();
 export const COLORS      = ["White", "Black", "Silver"] as const;
-export const SEAT_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] as const;
 export const VEHICLE_CLASSES = [
   { key: "Economy",     label: "Economy",     examples: ["Skoda Octavia",    "Toyota Prius",       "Hyundai Ioniq"]        },
   { key: "Standard",    label: "Standard",    examples: ["Mercedes E-Class", "BMW 5 Series",       "Cadillac XTS"]         },
@@ -10,15 +9,15 @@ export const VEHICLE_CLASSES = [
   { key: "Mini Bus",    label: "Mini Bus",    examples: ["Mercedes Sprinter","Volkswagen Crafter", "Iveco Daily"]          },
 ] as const;
 
-export interface FormState    { make: string; model: string; year: string; color: string; vehicleClass: string; seats: string; driver: string; }
-export interface ErrState     { make: string; model: string; year: string; color: string; vehicleClass: string; seats: string; driver: string; }
+export interface FormState    { make: string; model: string; year: string; color: string; vehicleClass: string; driver: string; }
+export interface ErrState     { make: string; model: string; year: string; color: string; vehicleClass: string; driver: string; }
 export interface DropdownOption { value: string; label: string; }
 export interface MakeOption     { id: number;   name: string;  }
 export interface ModelOption    { id: number;   name: string;  }
 export interface DriverOption   { id: string;   firstName: string; lastName: string; status?: string; }
 
-export const EMPTY_FORM: FormState = { make:"", model:"", year:"", color:"", vehicleClass:"", seats:"", driver:"" };
-export const EMPTY_ERRS: ErrState  = { make:"", model:"", year:"", color:"", vehicleClass:"", seats:"", driver:"" };
+export const EMPTY_FORM: FormState = { make:"", model:"", year:"", color:"", vehicleClass:"", driver:"" };
+export const EMPTY_ERRS: ErrState  = { make:"", model:"", year:"", color:"", vehicleClass:"", driver:"" };
 
 export function validate(f: FormState): ErrState {
   const e = { ...EMPTY_ERRS };
@@ -27,7 +26,6 @@ export function validate(f: FormState): ErrState {
   if (!f.year)         e.year         = "Year is required.";
   if (!f.color)        e.color        = "Color is required.";
   if (!f.vehicleClass) e.vehicleClass = "Vehicle class is required.";
-  if (!f.seats)        e.seats        = "Seat count is required.";
   return e;
 }
 export const hasErrors = (e: ErrState) => Object.values(e).some(Boolean);

@@ -87,9 +87,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
       <div className="ts-page-header">
         <div>
           <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800 }}>Classes</h1>
-          <p style={{ margin: 0, fontSize: ".82rem", color: "var(--text-muted)" }}>
-            Manage vehicle classes and their features
-          </p>
+      
         </div>
         <button className="ts-btn-primary" onClick={() => onNavigate("classes-add", null)}>
           <span style={{ fontSize: "1rem", lineHeight: 1 }}>＋</span> Add Class

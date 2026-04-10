@@ -32,7 +32,6 @@ export function mapBackendVehicle(v: any, driverMap?: Map<string, string>): Vehi
   return {
     id:           v.id,
     classId:      v.classId  ?? v.class_id ?? "",
-    // vehicleClass is eager-loaded by TypeORM: v.vehicleClass is the object
     vehicleClass: v.vehicleClass ?? null,
     make:         v.make,
     model:        v.model,

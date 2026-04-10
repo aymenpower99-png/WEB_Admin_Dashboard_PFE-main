@@ -7,8 +7,25 @@ const CLASS_CFG: Record<string, { label: string; color: string }> = {
   "Mini Bus":    { label: "Mini Bus",    color: "#ef4444" },
 };
 
-export default function ClassBadge({ vehicleClass }: { vehicleClass?: string | null }) {
-  const key = vehicleClass ?? "";
+interface VehicleClassObj {
+  id: string;
+  name: string;
+  seats: number;
+  bags: number;
+  wifi: boolean;
+  ac: boolean;
+}
+
+export default function ClassBadge({
+  vehicleClass,
+}: {
+  vehicleClass?: VehicleClassObj | string | null;
+}) {
+  // Accept either the full object (new) or a plain string (legacy)
+  const key = typeof vehicleClass === "object" && vehicleClass !== null
+    ? vehicleClass.name
+    : (vehicleClass ?? "");
+
   const c = CLASS_CFG[key] ?? { label: key || "—", color: "#9ca3af" };
   return (
     <span style={{
