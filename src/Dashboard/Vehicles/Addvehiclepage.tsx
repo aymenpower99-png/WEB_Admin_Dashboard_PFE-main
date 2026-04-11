@@ -30,6 +30,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       model:        prefill.model,
       year:         String(prefill.year),
       color:        COLORS.includes(prefill.color as any) ? (prefill.color ?? "") : "",
+      // ✅ FIX: always resolve the class ID — first from the relation, then from classId
       vehicleClass: prefill.vehicleClass?.id ?? prefill.classId ?? "",
       driver:       prefill.driver ?? "",
     } : { ...EMPTY_FORM }
@@ -100,34 +101,38 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       make:     form.make,
       model:    form.model,
       year:     Number(form.year),
-      color:    form.color    || undefined,
-      classId:  form.vehicleClass || undefined,
-      driverId: driverId      || undefined,
+      color:    form.color          || undefined,
+      // ✅ FIX: always include classId when a class is selected
+      classId:  form.vehicleClass   || undefined,
+      driverId: driverId            || undefined,
     };
 
     try {
       if (isEdit) {
-        // 1️⃣  Send the PATCH
-        await apiClient.patch<any>(`/vehicles/${prefill!.id}`, payload);
+        // ✅ FIX: Use the PATCH response directly — the backend update() method
+        //    already re-fetches the vehicle with relations: ['vehicleClass'],
+        //    so the response always contains the full updated vehicleClass object.
+        //    No need for a second GET call.
+        const res = await apiClient.patch<any>(`/vehicles/${prefill!.id}`, payload);
 
-        // 2️⃣  Re-fetch the vehicle with ALL relations populated
-        //     This guarantees vehicleClass is always a full object, regardless
-        //     of what TypeORM returns from save().
-        const fresh = await apiClient.get<any>(`/vehicles/${prefill!.id}`);
-
-        // 3️⃣  Build driverMap from the name we already know
+        // Build driverMap from the name we already know
         const driverMapLocal = new Map<string, string>();
-        const resolvedDriverId: string | null = fresh.data?.driverId ?? null;
+        const resolvedDriverId: string | null = res.data?.driverId ?? null;
         const resolvedName = driverName || prefill?.driver || "";
         if (resolvedDriverId && resolvedName) {
           driverMapLocal.set(resolvedDriverId, resolvedName);
         }
 
-        // 4️⃣  If vehicleClass is still missing from the response, inject it
-        //     from our local classMap (loaded at page mount).
-        const rawData = { ...fresh.data };
-        if (!rawData.vehicleClass && rawData.classId && classMap.has(rawData.classId)) {
-          rawData.vehicleClass = classMap.get(rawData.classId);
+        // ✅ FIX: If vehicleClass is still missing from the PATCH response,
+        //    inject it from classMap using form.vehicleClass (the NEW class the
+        //    user just selected) — NOT rawData.classId which could be stale.
+        const rawData = { ...res.data };
+        if (!rawData.vehicleClass && form.vehicleClass && classMap.has(form.vehicleClass)) {
+          rawData.vehicleClass = classMap.get(form.vehicleClass);
+        }
+        // Also ensure classId is up-to-date in rawData
+        if (form.vehicleClass) {
+          rawData.classId = form.vehicleClass;
         }
 
         const updated = mapBackendVehicle(rawData, driverMapLocal);
