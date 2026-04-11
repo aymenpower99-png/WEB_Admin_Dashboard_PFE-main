@@ -9,6 +9,7 @@ export interface ClassVehicle {
   color: string | null;
   licensePlate: string | null;
   driverId: string | null;
+  driverName: string | null;   // ✅ NEW — resolved from backend
   status: "Pending" | "Available" | "On_Trip" | "Maintenance";
   photos: string[] | null;
   isActive: boolean;

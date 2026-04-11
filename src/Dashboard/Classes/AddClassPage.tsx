@@ -7,7 +7,6 @@ import { classesApi } from "../../api/classes";
 import type { VehicleClass } from "../../api/classes";
 import ClassFormFields, { DEFAULT_FORM } from "./components/ClassFormFields";
 import type { ClassFormData } from "./components/ClassFormFields";
-import ClassPreview from "./components/ClassPreview";
 
 interface AddClassPageProps {
   prefill?: VehicleClass | null;
@@ -63,15 +62,13 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
     setApiError(null);
 
     try {
-      // 1. Upload image if a new file was selected
       let finalImageUrl = form.imageUrl;
       if (form.imageFile) {
         try {
           const res = await classesApi.uploadImage(form.imageFile);
           finalImageUrl = res.url;
         } catch {
-          // If no upload endpoint yet, use object URL as fallback
-          // (replace with real upload endpoint when ready)
+          // fallback: no upload endpoint yet
         }
       }
 
@@ -106,7 +103,7 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: ".75rem", width: "100%" }}>
 
-      {/* ── Header (back + title only, no top buttons) ── */}
+      {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "center", gap: ".6rem" }}>
         <button className="ts-icon-btn" onClick={() => onNavigate("classes")} title="Back">
           <ArrowBackRoundedIcon style={{ fontSize: 18 }} />
@@ -119,64 +116,44 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
         </div>
       </div>
 
-      {/* ── Main card ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: "1rem", alignItems: "start" }}>
+      {/* ── Form card (full width) ── */}
+      <div className="ts-card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.1rem" }}>
 
-        {/* Form card */}
-        <div className="ts-card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.1rem" }}>
+        <ClassFormFields form={form} onChange={handleChange} nameError={nameError} />
 
-          <ClassFormFields form={form} onChange={handleChange} nameError={nameError} />
-
-          {/* API Error */}
-          {apiError && (
-            <div style={{
-              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)",
-              borderRadius: ".4rem", padding: "8px 14px",
-              color: "#ef4444", fontSize: ".875rem",
-            }}>
-              {apiError}
-            </div>
-          )}
-
-          {/* ── Actions at bottom ── */}
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", paddingTop: ".25rem" }}>
-            <button
-              className="ts-btn-ghost"
-              onClick={() => onNavigate("classes")}
-              disabled={saving}
-            >
-              Cancel
-            </button>
-            <button
-              className="ts-btn-primary"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? "Saving…" : isEdit
-                ? <><SaveRoundedIcon style={{ fontSize: 14 }} /> Save Changes</>
-                : <><AddRoundedIcon  style={{ fontSize: 14 }} /> Create Class</>
-              }
-            </button>
+        {/* API Error */}
+        {apiError && (
+          <div style={{
+            background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)",
+            borderRadius: ".4rem", padding: "8px 14px",
+            color: "#ef4444", fontSize: ".875rem",
+          }}>
+            {apiError}
           </div>
-        </div>
+        )}
 
-        {/* Live Preview — sticky */}
-        <div style={{ position: "sticky", top: "1rem" }}>
-          <p style={{
-            margin: "0 0 .45rem", fontSize: ".78rem", fontWeight: 700,
-            color: "var(--text-h)", letterSpacing: ".01em",
-          }}>
-            LIVE PREVIEW
-          </p>
-          <ClassPreview form={form} />
-          <p style={{
-            margin: ".4rem 0 0", fontSize: ".72rem",
-            color: "var(--text-faint)", textAlign: "center",
-          }}>
-            This is how the class appears in the app
-          </p>
+        {/* ── Actions ── */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: ".5rem", paddingTop: ".25rem" }}>
+          <button
+            className="ts-btn-ghost"
+            onClick={() => onNavigate("classes")}
+            disabled={saving}
+          >
+            Cancel
+          </button>
+          <button
+            className="ts-btn-primary"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? "Saving…" : isEdit
+              ? <><SaveRoundedIcon style={{ fontSize: 14 }} /> Save Changes</>
+              : <><AddRoundedIcon  style={{ fontSize: 14 }} /> Create Class</>
+            }
+          </button>
         </div>
       </div>
+
     </div>
   );
 }

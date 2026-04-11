@@ -26,10 +26,12 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
 
   const [form, setForm] = useState<FormState>(
     prefill ? {
-      make: prefill.make, model: prefill.model, year: String(prefill.year),
-      color: COLORS.includes(prefill.color as any) ? (prefill.color ?? "") : "",
+      make:         prefill.make,
+      model:        prefill.model,
+      year:         String(prefill.year),
+      color:        COLORS.includes(prefill.color as any) ? (prefill.color ?? "") : "",
       vehicleClass: prefill.vehicleClass?.id ?? prefill.classId ?? "",
-      driver: prefill.driver ?? "",
+      driver:       prefill.driver ?? "",
     } : { ...EMPTY_FORM }
   );
   const [errs,       setErrs]       = useState({ ...EMPTY_ERRS });
@@ -37,17 +39,28 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   const [submitting, setSubmitting] = useState(false);
   const [apiError,   setApiError]   = useState<string | null>(null);
   const [makeId,     setMakeId]     = useState<number | null>(null);
-  const [driverId,   setDriverId]   = useState<string | null>(prefill?.driverId ?? null);
 
-  // ── Load classes from API ──────────────────────────────────────────────────
-  const [classOptions, setClassOptions] = useState<{ value: string; label: string }[]>([]);
+  // Keep driverId + driverName in sync
+  const [driverId,   setDriverId]   = useState<string | null>(prefill?.driverId ?? null);
+  const [driverName, setDriverName] = useState<string>(prefill?.driver ?? "");
+
+  // ── Load classes ────────────────────────────────────────────────────────────
+  const [classOptions,   setClassOptions]   = useState<{ value: string; label: string }[]>([]);
   const [classesLoading, setClassesLoading] = useState(true);
+  // Full class objects so we can rebuild vehicleClass after save
+  const [classMap, setClassMap] = useState<Map<string, { id: string; name: string; seats: number; bags: number; wifi: boolean; ac: boolean }>>(new Map());
 
   useEffect(() => {
     setClassesLoading(true);
     classesApi.getAll()
       .then(classes => {
         setClassOptions(classes.map(c => ({ value: c.id, label: c.name })));
+        // Build a map: classId → class object
+        const m = new Map<string, any>();
+        for (const c of classes) {
+          m.set(c.id, { id: c.id, name: c.name, seats: c.seats, bags: c.bags, wifi: c.wifi, ac: c.ac });
+        }
+        setClassMap(m);
       })
       .catch(() => {
         setClassOptions([
@@ -63,44 +76,87 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
   }, []);
 
   const set = (key: keyof FormState, val: string) => {
-    const next = { ...form, [key]: val }; setForm(next);
+    const next = { ...form, [key]: val };
+    setForm(next);
     if (submitted) setErrs(validate(next));
   };
 
   const handleMakeSelect = (name: string, id: number | null) => {
     const next = { ...form, make: name, model: "" };
-    setForm(next); setMakeId(id);
+    setForm(next);
+    setMakeId(id);
     if (submitted) setErrs(validate(next));
   };
 
   const handleSubmit = async () => {
     setSub(true);
-    const e = validate(form); setErrs(e);
+    const e = validate(form);
+    setErrs(e);
     if (hasErrors(e)) return;
-    setSubmitting(true); setApiError(null);
+    setSubmitting(true);
+    setApiError(null);
 
     const payload: Record<string, unknown> = {
       make:     form.make,
       model:    form.model,
       year:     Number(form.year),
-      color:    form.color || undefined,
+      color:    form.color    || undefined,
       classId:  form.vehicleClass || undefined,
-      driverId: driverId || undefined,
+      driverId: driverId      || undefined,
     };
 
     try {
       if (isEdit) {
-        const res = await apiClient.patch<any>(`/vehicles/${prefill!.id}`, payload);
-        setVehicles((prev: Vehicle[]) => prev.map(v => v.id === prefill!.id ? mapBackendVehicle(res.data) : v));
+        // 1️⃣  Send the PATCH
+        await apiClient.patch<any>(`/vehicles/${prefill!.id}`, payload);
+
+        // 2️⃣  Re-fetch the vehicle with ALL relations populated
+        //     This guarantees vehicleClass is always a full object, regardless
+        //     of what TypeORM returns from save().
+        const fresh = await apiClient.get<any>(`/vehicles/${prefill!.id}`);
+
+        // 3️⃣  Build driverMap from the name we already know
+        const driverMapLocal = new Map<string, string>();
+        const resolvedDriverId: string | null = fresh.data?.driverId ?? null;
+        const resolvedName = driverName || prefill?.driver || "";
+        if (resolvedDriverId && resolvedName) {
+          driverMapLocal.set(resolvedDriverId, resolvedName);
+        }
+
+        // 4️⃣  If vehicleClass is still missing from the response, inject it
+        //     from our local classMap (loaded at page mount).
+        const rawData = { ...fresh.data };
+        if (!rawData.vehicleClass && rawData.classId && classMap.has(rawData.classId)) {
+          rawData.vehicleClass = classMap.get(rawData.classId);
+        }
+
+        const updated = mapBackendVehicle(rawData, driverMapLocal);
+        setVehicles((prev: Vehicle[]) =>
+          prev.map(v => v.id === prefill!.id ? updated : v)
+        );
       } else {
         const res = await apiClient.post<any>("/vehicles", payload);
-        setVehicles((prev: Vehicle[]) => [...prev, mapBackendVehicle(res.data)]);
+
+        const rawData = { ...res.data };
+        if (!rawData.vehicleClass && rawData.classId && classMap.has(rawData.classId)) {
+          rawData.vehicleClass = classMap.get(rawData.classId);
+        }
+
+        const driverMapLocal = new Map<string, string>();
+        if (driverId && driverName) driverMapLocal.set(driverId, driverName);
+
+        setVehicles((prev: Vehicle[]) => [
+          ...prev,
+          mapBackendVehicle(rawData, driverMapLocal),
+        ]);
       }
       onNavigate("vehicles");
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? "Failed to save vehicle.";
       setApiError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
-    } finally { setSubmitting(false); }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const yearOptions  = YEARS.map(y => ({ value: String(y), label: String(y) }));
@@ -142,8 +198,10 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
         {/* Row 2 — Vehicle Class */}
         <Field label="Vehicle Class" error={errs.vehicleClass}>
           {classesLoading ? (
-            <div style={{ padding: ".55rem .75rem", border: "1px solid var(--border)",
-              borderRadius: ".4rem", fontSize: ".82rem", color: "var(--text-faint)" }}>
+            <div style={{
+              padding: ".55rem .75rem", border: "1px solid var(--border)",
+              borderRadius: ".4rem", fontSize: ".82rem", color: "var(--text-faint)",
+            }}>
               Loading classes…
             </div>
           ) : (
@@ -163,7 +221,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
           <PlainDropdown value={form.year} onChange={v => set("year", v)} options={yearOptions} error={errs.year} />
         </Field>
 
-        {/* Row 4 — Color only (seats removed — defined by class) */}
+        {/* Row 4 — Color */}
         <Field label="Color" error={errs.color}>
           <PlainDropdown value={form.color} onChange={v => set("color", v)} options={colorOptions} error={errs.color} />
         </Field>
@@ -175,6 +233,7 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
             error={errs.driver}
             onSelect={({ id, fullName }) => {
               setDriverId(id);
+              setDriverName(fullName);   // ✅ keep in sync for driverMap
               set("driver", fullName);
             }}
           />
