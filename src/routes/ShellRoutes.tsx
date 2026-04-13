@@ -19,9 +19,9 @@ import TripsPage          from "../Dashboard/BookingsPage";
 import AgencyPaymentsData from "../Dashboard/billing/AgencyBillingPage";
 import HelpCenter         from "../Dashboard/HelpCentre/HelpCenter";
 import Settings           from "../Dashboard/settings/Settings";
-import AvailableRidesPage from "../Dashboard/Rides/AvailableRides";
-import UpcomingRidesPage  from "../Dashboard/Rides/UpcomingRides";
-import PastRidesPage      from "../Dashboard/Rides/PastRides";
+import AvailableRidesPage from "../Dashboard/Rides/available-rides/AvailableRidesPage";
+import UpcomingRidesPage  from "../Dashboard/Rides/upcoming-rides/UpcomingRidesPage";
+import PastRidesPage      from "../Dashboard/Rides/past-rides/PastRidesPage";
 import WorkAreasPage      from "../Dashboard/WorkArea/WorkAreasPage";
 
 import type { Vehicle }      from "../Dashboard/Vehicles/Vehiclespage";
@@ -220,7 +220,7 @@ export default function Shell({
               {/* ── Trips & Rides ── */}
               <Route path="trips"          element={<TripsPage dark={dark} />} />
               <Route path="available-rides" element={<AvailableRidesPage />} />
-              <Route path="upcoming-rides"  element={<UpcomingRidesPage dark={false} />} />
+              <Route path="upcoming-rides"  element={<UpcomingRidesPage />} />
               <Route path="past-rides"      element={<PastRidesPage />} />
 
               {/* ── Billing ── */}

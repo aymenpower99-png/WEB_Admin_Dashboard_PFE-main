@@ -1,0 +1,71 @@
+import type { RideStatus } from "../../../api/rides";
+import { statusLabel } from "../../../api/rides";
+
+const BADGE_BASE: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "4px 10px",
+  borderRadius: "999px",
+  fontSize: ".72rem",
+  fontWeight: 700,
+  whiteSpace: "nowrap",
+  lineHeight: 1,
+  borderWidth: "1px",
+  borderStyle: "solid",
+};
+
+const CFG: Record<string, React.CSSProperties> = {
+  PENDING: {
+    ...BADGE_BASE,
+    background: "#fef9c3",
+    color: "#854d0e",
+    borderColor: "#fde047",
+  },
+  SEARCHING_DRIVER: {
+    ...BADGE_BASE,
+    background: "rgba(37,99,235,0.12)",
+    color: "#2563eb",
+    borderColor: "rgba(37,99,235,0.35)",
+  },
+  ASSIGNED: {
+    ...BADGE_BASE,
+    background: "rgba(16,185,129,0.15)",
+    color: "#10b981",
+    borderColor: "rgba(16,185,129,0.4)",
+  },
+  EN_ROUTE_TO_PICKUP: {
+    ...BADGE_BASE,
+    background: "rgba(59,130,246,0.12)",
+    color: "#3b82f6",
+    borderColor: "rgba(59,130,246,0.35)",
+  },
+  ARRIVED: {
+    ...BADGE_BASE,
+    background: "rgba(234,88,12,0.12)",
+    color: "#c2410c",
+    borderColor: "rgba(234,88,12,0.35)",
+  },
+  IN_TRIP: {
+    ...BADGE_BASE,
+    background: "rgba(99,102,241,0.12)",
+    color: "#6366f1",
+    borderColor: "rgba(99,102,241,0.35)",
+  },
+  COMPLETED: {
+    ...BADGE_BASE,
+    background: "rgba(16,185,129,0.15)",
+    color: "#10b981",
+    borderColor: "rgba(16,185,129,0.4)",
+  },
+  CANCELLED: {
+    ...BADGE_BASE,
+    background: "rgba(220,38,38,0.12)",
+    color: "#dc2626",
+    borderColor: "rgba(220,38,38,0.35)",
+  },
+};
+
+export function RideStatusBadge({ status }: { status: RideStatus | string }) {
+  const style = CFG[status] ?? CFG.PENDING;
+  return <span style={style}>{statusLabel(status as RideStatus)}</span>;
+}

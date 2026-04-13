@@ -1,14 +1,14 @@
+import { useState } from "react";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import RouteRoundedIcon from "@mui/icons-material/RouteRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import RadioButtonCheckedRoundedIcon from "@mui/icons-material/RadioButtonCheckedRounded";
 import FmdGoodRoundedIcon from "@mui/icons-material/FmdGoodRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
-import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
+import type { BackendRide } from "../../../api/rides";
+import { ridesApi, passengerName, driverName, vehicleLabel, statusLabel, fmtDate, fmtTime } from "../../../api/rides";
 
 /* ─── Design tokens ──────────────────────────────────────────────────── */
 const T = {
@@ -28,31 +28,6 @@ const T = {
   rInner:       "10px",
   rPill:        "9999px",
 };
-
-/* ─── Types ──────────────────────────────────────────────────────────── */
-export type RideStatus = "completed" | "cancelled";
-
-export interface PastRide {
-  id: number;
-  rider: string;
-  driver: string;
-  driverAvatar: string;
-  driverRating: number;
-  vehicle: string;
-  plate: string;
-  pickup: string;
-  drop: string;
-  vehicleType: string;
-  date: string;
-  time: string;
-  fare: number;
-  distance: string;
-  duration: string;
-  passengerCount: number;
-  status: RideStatus;
-  riderRating: number | null;
-  paymentMethod: string;
-}
 
 /* ─── Shared styles ──────────────────────────────────────────────────── */
 const overlay: React.CSSProperties = {
@@ -153,110 +128,183 @@ function StatsGrid({ stats }: { stats: { label: string; value: string; icon: Rea
   );
 }
 
-function FareCard({ fare }: { fare: number }) {
+function FareCard({ fare }: { fare: number | null }) {
   return (
     <div style={{
       background: T.violetGrad, borderRadius: T.rInner, border: `1px solid ${T.violetBorder}`,
       padding: "1rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between",
     }}>
       <p style={{ fontSize: ".68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: T.violet, margin: 0 }}>Total Fare</p>
-      <span style={{ fontSize: "1.5rem", fontWeight: 800, color: T.violet }}>${fare.toFixed(2)}</span>
+      <span style={{ fontSize: "1.5rem", fontWeight: 800, color: T.violet }}>{fare != null ? `${fare} TND` : "—"}</span>
     </div>
   );
 }
 
+/* ─── Status banner colours ──────────────────────────────────────────── */
+const STATUS_CFG: Record<string, { bg: string; fg: string }> = {
+  ASSIGNED:           { bg: "#d1fae5", fg: "#059669" },
+  EN_ROUTE_TO_PICKUP: { bg: "#dbeafe", fg: "#2563eb" },
+  ARRIVED:            { bg: "#fff7ed", fg: "#c2410c" },
+  IN_TRIP:            { bg: "#ede9fe", fg: "#7c3aed" },
+};
+
 /* ════════════════════════════════════════════════════════════════════════════
-   PAST RIDE DETAILS MODAL
+   1. UPCOMING RIDE DETAILS MODAL
    ════════════════════════════════════════════════════════════════════════════ */
-export function PastRideDetailsModal({
-  ride, onClose,
+export function UpcomingRideDetailsModal({
+  ride, onClose, onCancel,
 }: {
-  ride: PastRide;
+  ride: BackendRide;
   onClose: () => void;
+  onCancel?: () => void;
 }) {
-  const isCompleted = ride.status === "completed";
+  const sc = STATUS_CFG[ride.status] ?? { bg: T.bgInner, fg: T.textSub };
 
   return (
     <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={modalBase}>
 
-        {/* Header */}
+        {/* ── Header ── */}
         <div style={modalHeader}>
           <div>
             <p style={{ fontWeight: 700, fontSize: "1rem", color: T.textH, margin: 0 }}>Ride Details</p>
             <p style={{ fontSize: ".72rem", color: T.textSub, marginTop: ".25rem", marginBottom: 0 }}>
-              BOOKING ID: <span style={{ color: T.violet, fontWeight: 700 }}>#RID-{String(ride.id).padStart(5, "0")}</span>
+              RIDE ID: <span style={{ color: T.violet, fontWeight: 700 }}>{ride.id.slice(0, 8).toUpperCase()}</span>
             </p>
           </div>
           <button style={btnClose} onClick={onClose}><CloseRoundedIcon style={{ fontSize: 15 }} /></button>
         </div>
 
+        {/* ── Body ── */}
         <div style={modalBody}>
 
           {/* Status banner */}
           <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: ".5rem",
-            padding: ".55rem 1rem", borderRadius: T.rInner,
-            background: isCompleted ? "#d1fae5" : "#fee2e2",
-            color: isCompleted ? "#059669" : "#dc2626",
+            padding: ".45rem .85rem", borderRadius: T.rPill,
+            background: sc.bg, color: sc.fg,
+            fontSize: ".72rem", fontWeight: 700, textAlign: "center",
+            letterSpacing: ".04em", textTransform: "uppercase",
           }}>
-            {isCompleted
-              ? <CheckCircleRoundedIcon style={{ fontSize: 15 }} />
-              : <CancelRoundedIcon      style={{ fontSize: 15 }} />
-            }
-            <span style={{ fontSize: ".78rem", fontWeight: 700, textTransform: "capitalize" }}>{ride.status}</span>
+            {statusLabel(ride.status)}
           </div>
 
-          {/* Rider + Driver */}
+          {/* Rider / Driver */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".75rem" }}>
             <div style={{ ...cardInner, padding: ".875rem 1rem" }}>
               <p style={{ fontSize: ".68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: T.textFaint, margin: "0 0 .3rem" }}>Rider</p>
-              <p style={{ fontWeight: 700, fontSize: ".88rem", color: T.textH, margin: "0 0 .2rem" }}>{ride.rider}</p>
+              <p style={{ fontWeight: 700, fontSize: ".88rem", color: T.textH, margin: "0 0 .2rem" }}>{passengerName(ride)}</p>
               <p style={{ fontSize: ".72rem", color: T.textSub, margin: 0 }}>
-                <PersonRoundedIcon style={{ fontSize: 11, verticalAlign: "middle" }} /> {ride.passengerCount} pax
+                <PersonRoundedIcon style={{ fontSize: 11, verticalAlign: "middle" }} /> {ride.passenger?.email ?? ""}
               </p>
             </div>
             <div style={{ ...cardInner, padding: ".875rem 1rem" }}>
               <p style={{ fontSize: ".68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: T.textFaint, margin: "0 0 .3rem" }}>Driver</p>
-              <p style={{ fontWeight: 700, fontSize: ".88rem", color: T.textH, margin: "0 0 .2rem" }}>{ride.driver}</p>
+              <p style={{ fontWeight: 700, fontSize: ".88rem", color: T.textH, margin: "0 0 .2rem" }}>{driverName(ride)}</p>
               <p style={{ fontSize: ".72rem", color: T.textSub, margin: 0 }}>
-                <DirectionsCarRoundedIcon style={{ fontSize: 11, verticalAlign: "middle" }} /> {ride.vehicle}
+                <DirectionsCarRoundedIcon style={{ fontSize: 11, verticalAlign: "middle" }} /> {vehicleLabel(ride)}{ride.vehicle?.licensePlate ? ` · ${ride.vehicle.licensePlate}` : ""}
               </p>
             </div>
           </div>
 
-          {/* Route */}
-          <RouteCard pickup={ride.pickup} drop={ride.drop} />
+          <RouteCard pickup={ride.pickupAddress} drop={ride.dropoffAddress} />
 
-          {/* Stats */}
           <StatsGrid stats={[
-            { label: "Date",     value: ride.date,     icon: <CalendarTodayRoundedIcon style={{ fontSize: 14, color: T.textFaint }} /> },
-            { label: "Time",     value: ride.time,     icon: <AccessTimeRoundedIcon    style={{ fontSize: 14, color: T.textFaint }} /> },
-            { label: "Distance", value: ride.distance, icon: <RouteRoundedIcon         style={{ fontSize: 14, color: T.violet    }} /> },
-            { label: "Duration", value: ride.duration, icon: <AccessTimeRoundedIcon    style={{ fontSize: 14, color: T.violet    }} /> },
+            { label: "Date",     value: fmtDate(ride.scheduledAt), icon: <CalendarTodayRoundedIcon style={{ fontSize: 14, color: T.textFaint }} /> },
+            { label: "Time",     value: fmtTime(ride.scheduledAt), icon: <AccessTimeRoundedIcon    style={{ fontSize: 14, color: T.textFaint }} /> },
+            { label: "Distance", value: ride.distanceKm ? `${ride.distanceKm} km` : "—", icon: <RouteRoundedIcon style={{ fontSize: 14, color: T.violet }} /> },
+            { label: "Duration", value: ride.durationMin ? `${ride.durationMin} min` : "—", icon: <AccessTimeRoundedIcon style={{ fontSize: 14, color: T.violet }} /> },
           ]} />
 
-          {/* Fare */}
-          <FareCard fare={ride.fare} />
-
-          {/* Rider rating (completed only) */}
-          {isCompleted && ride.riderRating !== null && (
-            <div style={{ ...cardInner, padding: ".75rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: ".78rem", color: T.textSub }}>Rider Rating</span>
-              <div style={{ display: "flex", alignItems: "center", gap: ".2rem" }}>
-                {[1, 2, 3, 4, 5].map(i => (
-                  <StarRoundedIcon key={i} style={{ fontSize: 14, color: i <= (ride.riderRating ?? 0) ? "#f59e0b" : T.border }} />
-                ))}
-                <span style={{ fontSize: ".78rem", fontWeight: 700, color: T.textH, marginLeft: ".25rem" }}>{ride.riderRating}.0</span>
-              </div>
-            </div>
-          )}
+          <FareCard fare={ride.priceFinal} />
         </div>
 
-        {/* Footer */}
+        {/* ── Footer ── */}
         <div style={modalFooter}>
-          <button style={btnGhost} onClick={onClose}>Report Issue</button>
+          {onCancel && (
+            <button style={btnGhost} onClick={onCancel}>Cancel</button>
+          )}
           <button style={btnPrimary} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   2. CANCEL RIDE MODAL
+   ════════════════════════════════════════════════════════════════════════════ */
+export function CancelRideModal({
+  ride, onClose, onCancelled,
+}: {
+  ride: BackendRide;
+  onClose: () => void;
+  onCancelled: (id: string) => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleCancel = async () => {
+    setLoading(true);
+    try {
+      await ridesApi.cancel(ride.id, reason.trim() ? { cancellation_reason: reason.trim() } : undefined);
+      onCancelled(ride.id);
+      onClose();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to cancel ride");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ ...modalBase, maxWidth: "400px" }}>
+
+        <div style={modalHeader}>
+          <p style={{ fontWeight: 700, fontSize: "1rem", color: T.textH, margin: 0 }}>Cancel Ride?</p>
+          <button style={btnClose} onClick={onClose}><CloseRoundedIcon style={{ fontSize: 15 }} /></button>
+        </div>
+
+        <div style={modalBody}>
+          <p style={{ fontSize: ".85rem", color: T.textSub, margin: 0, lineHeight: 1.5 }}>
+            This action will cancel the ride for{" "}
+            <strong style={{ color: T.textH }}>{passengerName(ride)}</strong>.
+            The driver will be notified and the passenger will be refunded according to the cancellation policy.
+          </p>
+
+          <div>
+            <label style={{ fontSize: ".72rem", fontWeight: 600, color: T.textSub, display: "block", marginBottom: ".35rem", textTransform: "uppercase", letterSpacing: ".05em" }}>
+              Reason (optional)
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Enter cancellation reason…"
+              rows={3}
+              style={{
+                width: "100%", padding: ".55rem .75rem", borderRadius: "8px",
+                border: `1px solid ${T.border}`, background: T.bgInner,
+                fontSize: ".82rem", color: T.textH, outline: "none",
+                resize: "vertical", boxSizing: "border-box",
+                fontFamily: "inherit",
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={modalFooter}>
+          <button style={btnGhost} onClick={onClose}>Keep Ride</button>
+          <button
+            style={{
+              ...btnPrimary,
+              background: "#dc2626",
+              ...(loading ? { opacity: 0.45, cursor: "not-allowed" } : {}),
+            }}
+            disabled={loading}
+            onClick={handleCancel}
+          >
+            {loading ? "Cancelling…" : "Cancel Ride"}
+          </button>
         </div>
       </div>
     </div>
