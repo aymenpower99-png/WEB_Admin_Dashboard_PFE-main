@@ -11,6 +11,9 @@ export interface AdminUser {
   phone?: string;
   role: UserRole;
   status: UserStatus;
+  emailVerified: boolean;
+  agencyId: string | null;
+  provider: string;
   createdAt: string;
   trips?: number;
   profileComplete?: boolean;

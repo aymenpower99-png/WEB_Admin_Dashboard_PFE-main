@@ -171,6 +171,12 @@ export default function ClassDetailPage({ classId, onNavigate }: ClassDetailPage
             <FeatureChip icon={<AccessTimeRoundedIcon style={{ fontSize: 12 }} />} label={`${detail.features.freeWaitingTime}min Wait`} on={true} />
             <FeatureChip icon={<DoorFrontRoundedIcon style={{ fontSize: 12 }} />} label="Door-to-Door" on={detail.features.doorToDoor} />
             <FeatureChip icon={<EmojiPeopleRoundedIcon style={{ fontSize: 12 }} />} label="Meet & Greet" on={detail.features.meetAndGreet} />
+            {(detail.features.extraFeatures ?? []).map((f, i) => (
+              <FeatureChip key={`ef-${i}`} icon={null} label={f.name} on={f.enabled} />
+            ))}
+            {(detail.features.extraServices ?? []).map((s, i) => (
+              <FeatureChip key={`es-${i}`} icon={null} label={s.name} on={s.enabled} />
+            ))}
           </div>
         </div>
 

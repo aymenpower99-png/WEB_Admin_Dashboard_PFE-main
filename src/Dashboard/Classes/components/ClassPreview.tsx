@@ -92,6 +92,16 @@ export default function ClassPreview({ form }: { form: ClassFormData }) {
               <WaterDropRoundedIcon style={{ fontSize: 11 }} /> Water
             </span>
           )}
+          {(form.extraFeatures ?? []).filter(f => f.enabled).map((f, i) => (
+            <span key={i} style={{
+              display: "inline-flex", alignItems: "center",
+              padding: "2px 8px", borderRadius: "9999px", fontSize: ".7rem",
+              fontWeight: 600, background: "var(--bg-inner)", color: "var(--text-muted)",
+              border: "1px solid var(--border)",
+            }}>
+              {f.name}
+            </span>
+          ))}
         </div>
 
         {/* Service */}
@@ -118,6 +128,11 @@ export default function ClassPreview({ form }: { form: ClassFormData }) {
               ✓ Meet &amp; Greet
             </div>
           )}
+          {(form.extraServices ?? []).filter(s => s.enabled).map((s, i) => (
+            <div key={i} style={{ fontSize: ".75rem", color: "var(--active-fg)", fontWeight: 600 }}>
+              ✓ {s.name}
+            </div>
+          ))}
         </div>
       </div>
     </div>

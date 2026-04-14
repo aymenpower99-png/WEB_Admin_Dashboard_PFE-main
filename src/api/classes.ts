@@ -1,5 +1,11 @@
 import apiClient from "./apiClient";
 
+// ── Extra feature/service item ────────────────────────────────────────────────
+export interface ExtraFeatureItem {
+  name: string;
+  enabled: boolean;
+}
+
 // ── Vehicle (minimal, for class detail view) ─────────────────────────────────
 export interface ClassVehicle {
   id: string;
@@ -29,6 +35,8 @@ export interface VehicleClass {
   freeWaitingTime: number;
   doorToDoor: boolean;
   meetAndGreet: boolean;
+  extraFeatures: ExtraFeatureItem[];
+  extraServices: ExtraFeatureItem[];
   isActive: boolean;
   vehicleCount?: number;   // ← returned by GET /admin/classes list
   createdAt: string;
@@ -60,6 +68,8 @@ export interface ClassFeatures {
   freeWaitingTime: number;
   doorToDoor: boolean;
   meetAndGreet: boolean;
+  extraFeatures: ExtraFeatureItem[];
+  extraServices: ExtraFeatureItem[];
 }
 
 export interface CreateClassPayload {
@@ -73,6 +83,8 @@ export interface CreateClassPayload {
   freeWaitingTime?: number;
   doorToDoor?: boolean;
   meetAndGreet?: boolean;
+  extraFeatures?: ExtraFeatureItem[];
+  extraServices?: ExtraFeatureItem[];
 }
 
 export type UpdateClassPayload = Partial<CreateClassPayload>;

@@ -4,7 +4,7 @@ import AddRoundedIcon       from "@mui/icons-material/AddRounded";
 import SaveRoundedIcon      from "@mui/icons-material/SaveRounded";
 import "../travelsync-design-system.css";
 import { classesApi } from "../../api/classes";
-import type { VehicleClass } from "../../api/classes";
+import type { VehicleClass, ExtraFeatureItem } from "../../api/classes";
 import ClassFormFields, { DEFAULT_FORM } from "./components/ClassFormFields";
 import type { ClassFormData } from "./components/ClassFormFields";
 
@@ -35,6 +35,8 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
         freeWaitingTime: prefill.freeWaitingTime,
         doorToDoor:      prefill.doorToDoor,
         meetAndGreet:    prefill.meetAndGreet,
+        extraFeatures:   prefill.extraFeatures ?? [],
+        extraServices:   prefill.extraServices ?? [],
       });
     } else {
       setForm(DEFAULT_FORM);
@@ -45,7 +47,7 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
 
   function handleChange(
     field: keyof ClassFormData,
-    value: string | number | boolean | File | null,
+    value: string | number | boolean | File | null | ExtraFeatureItem[],
   ) {
     setForm(prev => ({ ...prev, [field]: value }));
     if (field === "name") setNameError("");
@@ -83,6 +85,8 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
         freeWaitingTime: form.freeWaitingTime,
         doorToDoor:      form.doorToDoor,
         meetAndGreet:    form.meetAndGreet,
+        extraFeatures:   form.extraFeatures,
+        extraServices:   form.extraServices,
       };
 
       if (isEdit && prefill) {

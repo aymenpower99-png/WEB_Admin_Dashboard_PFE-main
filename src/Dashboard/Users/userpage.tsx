@@ -15,7 +15,7 @@ import UsersPagination from "./components/UsersPagination";
 import InviteModal from "./components/InviteModal";
 import EditModal from "./components/EditModal";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
-import { StatusBadge } from "./Badge_action_buttons/UsersBadges";
+import { StatusBadge, EmailVerifiedBadge, ProviderBadge } from "./Badge_action_buttons/UsersBadges";
 import { InlineRowActions } from "./Badge_action_buttons/UsersActionButtons";
 
 interface UsersPageProps {
@@ -170,12 +170,13 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
           <div style={{ overflowX: "auto", width: "100%" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
               <colgroup>
-                <col style={{ width: "20%" }} />
-                <col style={{ width: "24%" }} />
-                <col style={{ width: "10%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "22%" }} />
+                <col style={{ width: "9%" }} />
+                <col style={{ width: "13%" }} />
                 <col style={{ width: "12%" }} />
-                <col style={{ width: "10%" }} />
-                <col style={{ width: "24%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "14%" }} />
               </colgroup>
 
               <thead>
@@ -184,7 +185,8 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                   <th style={TH}>Email</th>
                   <th style={TH}>Role</th>
                   <th style={TH}>Status</th>
-                  <th style={TH}>Trips</th>
+                  <th style={TH}>Joined</th>
+                  <th style={TH}>Account Type</th>
                   <th style={TH}>Actions</th>
                 </tr>
               </thead>
@@ -193,14 +195,14 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                 {filteredUsers.length === 0 ? (
                   <>
                     <tr style={{ height: ROW_H }}>
-                      <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                      <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
                         No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found
                         {search ? ` matching "${search}"` : ""}.
                       </td>
                     </tr>
                     {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
                       <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
+                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
                       </tr>
                     ))}
                   </>
@@ -232,13 +234,22 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                           </span>
                         </td>
 
-                        {/* Status */}
+                        {/* Status → Email Verified */}
                         <td style={TD}>
-                          <StatusBadge status={u.status} />
+                          <EmailVerifiedBadge verified={u.emailVerified} />
                         </td>
 
-                        {/* Trips */}
-                        <td style={{ ...TD, fontWeight: 800, color: "var(--text-h)" }}>{u.trips ?? 0}</td>
+                        {/* Joined (Created At) */}
+                        <td style={{ ...TD, color: "var(--text-muted)", fontSize: ".78rem" }}>
+                          {u.createdAt
+                            ? new Date(u.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+                            : "—"}
+                        </td>
+
+                        {/* Account Type */}
+                        <td style={TD}>
+                          <ProviderBadge provider={u.provider ?? "manual"} />
+                        </td>
 
                         {/* Actions */}
                         <td style={TD} onClick={e => e.stopPropagation()}>
@@ -256,7 +267,7 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                     ))}
                     {Array.from({ length: ghostCount }).map((_, i) => (
                       <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
+                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
                       </tr>
                     ))}
                   </>
