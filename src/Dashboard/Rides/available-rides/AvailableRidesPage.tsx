@@ -202,12 +202,14 @@ export default function AvailableRidesPage() {
                           </td>
                           <td style={TD} onClick={e => e.stopPropagation()}>
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <ActionButton title="Dispatch" onClick={() => setDispatchModal(r)} hoverStyle={HOVER.dispatch}>
-                                <IconDispatch />
-                              </ActionButton>
                               <ActionButton title="View" onClick={() => setDetailModal(r)} hoverStyle={HOVER.view}>
                                 <IconEye />
                               </ActionButton>
+                              {r.status === "SEARCHING_DRIVER" && (
+                                <ActionButton title="Force Dispatch" onClick={() => setDispatchModal(r)} hoverStyle={HOVER.dispatch}>
+                                  <IconDispatch />
+                                </ActionButton>
+                              )}
                               <ActionButton title="Cancel" onClick={() => handleCancel(r)} hoverStyle={HOVER.cancel}>
                                 <IconCancel />
                               </ActionButton>

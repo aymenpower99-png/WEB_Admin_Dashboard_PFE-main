@@ -160,7 +160,7 @@ function FareCard({ fare }: { fare: number | null }) {
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   1. DISPATCH RIDE MODAL (replaces Assign Driver — triggers automated dispatch)
+   1. FORCE DISPATCH MODAL (admin override — dispatch is normally automatic)
    ════════════════════════════════════════════════════════════════════════════ */
 export function DispatchRideModal({
   ride, onClose, onDispatch,
@@ -194,7 +194,7 @@ export function DispatchRideModal({
 
         <div style={modalHeader}>
           <div>
-            <p style={{ fontWeight: 700, fontSize: "1rem", color: T.textH, margin: 0 }}>Dispatch Ride</p>
+            <p style={{ fontWeight: 700, fontSize: "1rem", color: T.textH, margin: 0 }}>Force Dispatch</p>
             <p style={{ fontSize: ".72rem", color: T.textSub, marginTop: ".25rem", marginBottom: 0 }}>
               RIDE ID: <span style={{ color: T.violet, fontWeight: 700 }}>{ride.id.slice(0, 8).toUpperCase()}</span>
             </p>
@@ -203,6 +203,13 @@ export function DispatchRideModal({
         </div>
 
         <div style={modalBody}>
+          <div style={{ ...cardInner, padding: ".75rem 1rem", background: "#fef3c7", border: "1px solid #fde68a" }}>
+            <p style={{ fontSize: ".75rem", color: "#92400e", margin: 0, fontWeight: 600 }}>
+              ⚠ Manual override — dispatch is handled automatically by the system.
+              Use this only if a ride appears stuck or needs immediate attention.
+            </p>
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".75rem" }}>
             <div style={{ ...cardInner, padding: ".875rem 1rem" }}>
               <p style={{ fontSize: ".68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", color: T.textFaint, margin: "0 0 .3rem" }}>Rider</p>
@@ -235,8 +242,8 @@ export function DispatchRideModal({
 
           <div style={{ ...cardInner, padding: ".75rem 1rem" }}>
             <p style={{ fontSize: ".75rem", color: T.textSub, margin: 0 }}>
+              This will immediately trigger the dispatch pipeline, bypassing the automatic scheduler.
               The system will find the best available driver based on distance, rating, and vehicle class.
-              Offers are sent one-by-one with a 60s timeout per driver.
             </p>
           </div>
         </div>
@@ -248,7 +255,7 @@ export function DispatchRideModal({
             disabled={loading}
             onClick={handleDispatch}
           >
-            <SendRoundedIcon style={{ fontSize: 14 }} /> {loading ? "Dispatching…" : "Start Dispatch"}
+            <SendRoundedIcon style={{ fontSize: 14 }} /> {loading ? "Dispatching…" : "Force Dispatch"}
           </button>
         </div>
       </div>
