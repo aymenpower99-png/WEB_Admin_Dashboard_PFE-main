@@ -1,0 +1,205 @@
+import apiClient from "./apiClient";
+
+/* ══════════════════════════════════════════════════
+   Types
+══════════════════════════════════════════════════ */
+
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+export type PaymentMethod = "CARD" | "CASH" | "WALLET";
+export type TransactionType = "RIDE_PAYMENT" | "REFUND" | "ADJUSTMENT";
+export type TransactionStatus = "SUCCESS" | "FAILED";
+export type EarningStatus = "PENDING" | "CALCULATED" | "PAID";
+
+export interface TripPaymentRecord {
+  id: string;
+  rideId: string;
+  passengerId: string;
+  driverId: string | null;
+  amount: number;
+  currency: string;
+  paymentStatus: PaymentStatus;
+  paymentMethod: PaymentMethod | null;
+  stripePaymentIntentId: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  ride?: {
+    id: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    distanceKm: number | null;
+    durationMin: number | null;
+    priceEstimate: number | null;
+    priceFinal: number | null;
+    scheduledAt: string | null;
+    vehicleClass?: { name: string };
+  };
+}
+
+export interface TransactionRecord {
+  id: string;
+  transactionType: TransactionType;
+  transactionStatus: TransactionStatus;
+  amount: number;
+  currency: string;
+  rideId: string | null;
+  tripPaymentId: string | null;
+  stripeChargeId: string | null;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface DriverEarningRecord {
+  id: string;
+  driverId: string;
+  month: string;
+  fixedSalary: number;
+  totalBonuses: number;
+  totalPenalties: number;
+  netEarnings: number;
+  completedTrips: number;
+  avgRating: number;
+  cancellationCount: number;
+  earningStatus: EarningStatus;
+  calculatedAt: string | null;
+}
+
+export interface RevenueStats {
+  totalEarnings: number;
+  paidRevenue: number;
+  pendingPayments: number;
+  refundedAmount: number;
+  totalTrips: number;
+}
+
+export interface DailyRevenue {
+  day: string;
+  earnings: number;
+}
+
+export interface MonthlyRevenue {
+  month: string;
+  earnings: number;
+}
+
+export interface ClassRevenue {
+  className: string;
+  revenue: number;
+}
+
+export interface CompanyProfit {
+  month: string;
+  totalRevenue: number;
+  totalDriverCosts: number;
+  profit: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+}
+
+/* ══════════════════════════════════════════════════
+   API Calls
+══════════════════════════════════════════════════ */
+
+export const billingApi = {
+  /* ── Trip Payments ── */
+  getPayments(params?: {
+    status?: PaymentStatus;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    return apiClient
+      .get<PaginatedResponse<TripPaymentRecord>>("/billing/payments", { params })
+      .then((r) => r.data);
+  },
+
+  getPaymentById(id: string) {
+    return apiClient
+      .get<TripPaymentRecord>(`/billing/payments/${id}`)
+      .then((r) => r.data);
+  },
+
+  /* ── Stripe ── */
+  createStripeIntent(tripPaymentId: string) {
+    return apiClient
+      .post<{ clientSecret: string; paymentIntentId: string }>(
+        `/billing/payments/${tripPaymentId}/stripe-intent`
+      )
+      .then((r) => r.data);
+  },
+
+  /* ── Cash ── */
+  confirmCashPayment(tripPaymentId: string) {
+    return apiClient
+      .patch<TripPaymentRecord>(`/billing/payments/${tripPaymentId}/confirm-cash`)
+      .then((r) => r.data);
+  },
+
+  /* ── Wallet ── */
+  payWithWallet(tripPaymentId: string) {
+    return apiClient
+      .patch<TripPaymentRecord>(`/billing/payments/${tripPaymentId}/pay-wallet`)
+      .then((r) => r.data);
+  },
+
+  /* ── Refund ── */
+  processRefund(tripPaymentId: string, reason?: string) {
+    return apiClient
+      .post<TransactionRecord>(`/billing/payments/${tripPaymentId}/refund`, { reason })
+      .then((r) => r.data);
+  },
+
+  /* ── Transactions ── */
+  getTransactions(params?: { type?: TransactionType; page?: number; limit?: number }) {
+    return apiClient
+      .get<PaginatedResponse<TransactionRecord>>("/billing/transactions", { params })
+      .then((r) => r.data);
+  },
+
+  /* ── Revenue Stats ── */
+  getRevenueStats() {
+    return apiClient.get<RevenueStats>("/billing/revenue/stats").then((r) => r.data);
+  },
+
+  getDailyRevenue(days?: number) {
+    return apiClient
+      .get<DailyRevenue[]>("/billing/revenue/daily", { params: { days } })
+      .then((r) => r.data);
+  },
+
+  getMonthlyRevenue(months?: number) {
+    return apiClient
+      .get<MonthlyRevenue[]>("/billing/revenue/monthly", { params: { months } })
+      .then((r) => r.data);
+  },
+
+  getRevenueByClass() {
+    return apiClient.get<ClassRevenue[]>("/billing/revenue/by-class").then((r) => r.data);
+  },
+
+  /* ── Driver Earnings ── */
+  getDriverEarnings(params?: { month?: string; driverId?: string; page?: number; limit?: number }) {
+    return apiClient
+      .get<PaginatedResponse<DriverEarningRecord>>("/billing/driver-earnings", { params })
+      .then((r) => r.data);
+  },
+
+  calculateEarnings(month?: string) {
+    return apiClient
+      .post<DriverEarningRecord[]>("/billing/driver-earnings/calculate", null, {
+        params: { month },
+      })
+      .then((r) => r.data);
+  },
+
+  /* ── Company Profit ── */
+  getCompanyProfit(month?: string) {
+    return apiClient
+      .get<CompanyProfit>("/billing/company-profit", { params: { month } })
+      .then((r) => r.data);
+  },
+};
