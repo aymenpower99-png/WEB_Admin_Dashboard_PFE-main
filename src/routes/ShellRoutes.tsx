@@ -18,6 +18,7 @@ import ClassDetailPage    from "../Dashboard/Classes/ClassDetailPage";
 import TripsPage          from "../Dashboard/BookingsPage";
 import AgencyPaymentsData from "../Dashboard/billing/AgencyBillingPage";
 import HelpCenter         from "../Dashboard/HelpCentre/HelpCenter";
+import HelpCenterAdmin    from "../Dashboard/HelpCenter/HelpCenterAdmin";
 import Settings           from "../Dashboard/settings/Settings";
 import AvailableRidesPage from "../Dashboard/Rides/available-rides/AvailableRidesPage";
 import UpcomingRidesPage  from "../Dashboard/Rides/upcoming-rides/UpcomingRidesPage";
@@ -36,7 +37,7 @@ const PAGE_ORDER = [
   "trips", "available-rides", "upcoming-rides", "past-rides",
   "payments", "agency-billing",
   "work-area",
-  "help", "settings", "security",
+  "help", "help-center", "settings", "security",
 ];
 
 function PlaceholderPage({ title, icon, description }: {
@@ -232,7 +233,8 @@ export default function Shell({
 
               {/* ── Other ── */}
               <Route path="work-area" element={<WorkAreasPage />} />
-              <Route path="help"      element={<HelpCenter dark={dark} />} />
+              <Route path="help"         element={<HelpCenter dark={dark} />} />
+              <Route path="help-center"  element={<HelpCenterAdmin dark={dark} />} />
               <Route path="settings"  element={<Settings dark={dark} onToggleDark={onToggleDark} />} />
               <Route path="security"  element={
                 <PlaceholderPage title="Security" icon="🛡️"

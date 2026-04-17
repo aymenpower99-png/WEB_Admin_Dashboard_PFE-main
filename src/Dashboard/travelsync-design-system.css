@@ -367,6 +367,25 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
 .ts-input-error { border-color: #ef4444 !important; }
 
+/* Date / time / select dark-mode colour-scheme */
+.dark .ts-input { color-scheme: dark; }
+.dark select.ts-input { color-scheme: dark; }
+.dark input[type="date"].ts-input,
+.dark input[type="time"].ts-input,
+.dark input[type="datetime-local"].ts-input {
+  color-scheme: dark;
+}
+select.ts-input {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 2.25rem;
+}
+.dark select.ts-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+/* Textarea following same pattern */
+textarea.ts-input { resize: vertical; min-height: 4.5rem; }
+
 .ts-label    { display: block; font-size: .75rem; font-weight: 500; color: var(--text-muted); margin-bottom: .375rem; }
 .ts-err      { font-size: .75rem; color: #ef4444; margin-top: .25rem; }
 
@@ -399,7 +418,7 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-selector-card.ts-sel { border-color: #7c3aed; color: #7c3aed; background: var(--brand-soft); }
 
 /* ─── 11. MODALS ─────────────────────────────────────────────────────── */
-.ts-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); }
+.ts-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); animation: tsOverlayIn .2s ease; }
 .ts-modal { position: relative; width: 100%; max-width: 32rem; border-radius: var(--r-modal); background: var(--bg-card); border: 1px solid var(--border); box-shadow: var(--shadow-modal); overflow: hidden; animation: tsModalIn .2s ease; }
 .ts-modal-sm { max-width: 24rem; }
 .ts-modal-lg { max-width: 48rem; }
@@ -407,8 +426,15 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; background: var(--bg-card); }
 .ts-modal-body   { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
 .ts-modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: var(--bg-card); }
-.ts-modal-close  { width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; border-radius: var(--r-pill); border: none; background: transparent; font-size: .875rem; color: var(--text-faint); cursor: pointer; transition: background var(--t-fast); }
-.ts-modal-close:hover { background: var(--bg-inner); }
+.ts-modal-close  { width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; border-radius: var(--r-pill); border: none; background: transparent; font-size: .875rem; color: var(--text-faint); cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
+.ts-modal-close:hover { background: var(--bg-inner); color: var(--text-h); }
+/* Alert box styles for modals */
+.ts-alert-error { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); border-radius: .5rem; padding: .5rem .875rem; color: #ef4444; font-size: .8rem; }
+.ts-alert-success { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25); border-radius: .5rem; padding: .5rem .875rem; color: #10b981; font-size: .8rem; }
+.ts-alert-info { background: rgba(124,58,237,.06); border: 1px solid rgba(124,58,237,.2); border-radius: .5rem; padding: .5rem .875rem; color: #7c3aed; font-size: .8rem; }
+.dark .ts-alert-error { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); }
+.dark .ts-alert-success { background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.35); }
+.dark .ts-alert-info { background: rgba(124,58,237,.12); border-color: rgba(124,58,237,.35); }
 
 /* ─── 12. FILTER BAR ─────────────────────────────────────────────────── */
 .ts-filter-bar { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .75rem 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-card); }
@@ -447,6 +473,7 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 
 /* ─── 17. ANIMATIONS ─────────────────────────────────────────────────── */
 @keyframes tsModalIn       { from{opacity:0;transform:scale(.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes tsOverlayIn     { from{opacity:0} to{opacity:1} }
 @keyframes tsSlideOutLeft  { from{opacity:1;transform:translateX(0)}    to{opacity:0;transform:translateX(-28px)} }
 @keyframes tsSlideOutRight { from{opacity:1;transform:translateX(0)}    to{opacity:0;transform:translateX(28px)} }
 @keyframes tsSlideInRight  { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }

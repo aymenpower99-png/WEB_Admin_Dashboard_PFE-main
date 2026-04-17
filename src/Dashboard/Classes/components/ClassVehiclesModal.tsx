@@ -3,12 +3,12 @@ import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import type { VehicleClass } from "../../../api/classes";
 import apiClient from "../../../api/apiClient";
 
-// ── Status badge palette — matches ClassDetailPage exactly ───────────────────
+// ── Status badge palette — uses design system CSS variables for dark/light ───
 const STATUS_STYLE: Record<string, React.CSSProperties> = {
-  Available:   { background: "rgba(16,185,129,.12)",  color: "#10b981" },
-  Pending:     { background: "rgba(245,158,11,.12)",  color: "#f59e0b" },
-  On_Trip:     { background: "rgba(99,102,241,.12)",  color: "#6366f1" },
-  Maintenance: { background: "rgba(239,68,68,.12)",   color: "#ef4444" },
+  Available:   { background: "var(--active-bg)",   color: "var(--active-fg)" },
+  Pending:     { background: "var(--pending-bg)",  color: "var(--pending-fg)" },
+  On_Trip:     { background: "var(--rider-bg)",    color: "var(--rider-fg)" },
+  Maintenance: { background: "var(--blocked-bg)",  color: "var(--blocked-fg)" },
 };
 
 function StatusBadge({ status }: { status: string }) {

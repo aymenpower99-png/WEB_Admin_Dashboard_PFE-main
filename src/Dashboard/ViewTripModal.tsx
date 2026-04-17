@@ -52,16 +52,16 @@ export default function ViewTripModal({
 
   const statusConfig = isPaid
     ? {
-        iconBg: "#dcfce7",
+        iconBg: "var(--active-bg)",
         label: "PAYMENT SUCCESSFUL",
-        labelColor: "#16a34a",
-        icon: <CheckCircleRoundedIcon style={{ fontSize: 30, color: "#16a34a" }} />,
+        labelColor: "var(--active-fg)",
+        icon: <CheckCircleRoundedIcon style={{ fontSize: 30, color: "var(--active-fg)" }} />,
       }
     : {
-        iconBg: "#fef3c7",
+        iconBg: "var(--pending-bg)",
         label: "PAYMENT PENDING",
-        labelColor: "#d97706",
-        icon: <HourglassTopRoundedIcon style={{ fontSize: 30, color: "#d97706" }} />,
+        labelColor: "var(--pending-fg)",
+        icon: <HourglassTopRoundedIcon style={{ fontSize: 30, color: "var(--pending-fg)" }} />,
       };
 
   const dateLabel =

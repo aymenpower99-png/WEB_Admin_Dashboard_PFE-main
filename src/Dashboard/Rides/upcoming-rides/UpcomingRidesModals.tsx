@@ -12,28 +12,28 @@ import { ridesApi, passengerName, driverName, vehicleLabel, statusLabel, fmtDate
 
 /* ─── Design tokens ──────────────────────────────────────────────────── */
 const T = {
-  violet:       "#7c3aed",
-  violetLight:  "#ede9fe",
+  violet:       "var(--brand-to)",
+  violetLight:  "var(--brand-soft)",
   violetMid:    "#a78bfa",
-  violetBorder: "#ddd6fe",
-  violetGrad:   "linear-gradient(135deg,#ede9fe 0%,#e0e7ff 100%)",
-  textH:        "#111827",
-  textSub:      "#6b7280",
-  textFaint:    "#9ca3af",
-  border:       "#e5e7eb",
-  bgModal:      "#ffffff",
-  bgOverlay:    "rgba(17,24,39,.45)",
-  bgInner:      "#f9fafb",
-  rModal:       "16px",
-  rInner:       "10px",
-  rPill:        "9999px",
+  violetBorder: "var(--border)",
+  violetGrad:   "linear-gradient(135deg, var(--brand-soft) 0%, rgba(124,58,237,.08) 100%)",
+  textH:        "var(--text-h)",
+  textSub:      "var(--text-muted)",
+  textFaint:    "var(--text-faint)",
+  border:       "var(--border)",
+  bgModal:      "var(--bg-card)",
+  bgOverlay:    "rgba(0,0,0,.5)",
+  bgInner:      "var(--bg-inner)",
+  rModal:       "var(--r-modal)",
+  rInner:       "var(--r-inner)",
+  rPill:        "var(--r-pill)",
 };
 
 /* ─── Shared styles ──────────────────────────────────────────────────── */
 const overlay: React.CSSProperties = {
   position: "fixed", inset: 0, background: T.bgOverlay,
   display: "flex", alignItems: "center", justifyContent: "center",
-  zIndex: 1000, padding: "1rem",
+  zIndex: 1000, padding: "1rem", backdropFilter: "blur(4px)",
 };
 
 const modalBase: React.CSSProperties = {

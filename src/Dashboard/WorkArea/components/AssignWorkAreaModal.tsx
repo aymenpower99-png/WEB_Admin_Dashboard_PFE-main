@@ -58,7 +58,7 @@ export default function AssignWorkAreaModal({ driver, areas, onClose, onSaved }:
 
         <div className="ts-modal-body">
           {error && (
-            <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: 8, padding: "8px 14px", color: "#ef4444", fontSize: ".875rem", marginBottom: ".5rem" }}>
+            <div className="ts-alert-error" style={{ marginBottom: ".5rem" }}>
               {error}
             </div>
           )}

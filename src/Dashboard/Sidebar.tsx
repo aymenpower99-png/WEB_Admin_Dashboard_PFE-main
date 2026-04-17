@@ -8,6 +8,7 @@ import DirectionsCarRoundedIcon  from "@mui/icons-material/DirectionsCarRounded"
 import PersonRoundedIcon         from "@mui/icons-material/PersonRounded";
 import MapRoundedIcon            from "@mui/icons-material/MapRounded";
 import CategoryRoundedIcon       from "@mui/icons-material/CategoryRounded";
+import HelpCenterRoundedIcon      from "@mui/icons-material/HelpCenterRounded";
 import "./travelsync-design-system.css";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -19,6 +20,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   person:          <PersonRoundedIcon          style={{ fontSize: 20 }} />,
   map:             <MapRoundedIcon             style={{ fontSize: 20 }} />,
   category:        <CategoryRoundedIcon        style={{ fontSize: 20 }} />,
+  help_center:     <HelpCenterRoundedIcon      style={{ fontSize: 20 }} />,
 };
 
 interface NavItem {
@@ -95,13 +97,14 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "SUPPORT & SETTINGS",
     items: [
+      { label: "Help Center", icon: "help_center", page: "help-center" },
       {
         label: "Settings",
         icon: "manage_accounts",
         page: "settings-parent",
         children: [
-          { label: "Help Center", page: "help"     },
-          { label: "Settings",    page: "settings" },
+          { label: "Tickets",  page: "help"     },
+          { label: "Settings", page: "settings" },
         ],
       },
     ],

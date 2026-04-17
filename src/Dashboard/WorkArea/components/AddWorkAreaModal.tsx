@@ -42,10 +42,7 @@ export default function AddWorkAreaModal({ onClose, onCreated }: Props) {
 
         <div className="ts-modal-body" style={{ display: "flex", flexDirection: "column", gap: ".75rem" }}>
           {error && (
-            <div style={{
-              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.35)",
-              borderRadius: 8, padding: "8px 14px", color: "#ef4444", fontSize: ".875rem",
-            }}>
+            <div className="ts-alert-error">
               {error}
             </div>
           )}
