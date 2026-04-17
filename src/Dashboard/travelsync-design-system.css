@@ -354,40 +354,9 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-link { font-size: .75rem; font-weight: 500; color: #a855f7; background: none; border: none; cursor: pointer; }
 .ts-link:hover { color: #9333ea; }
 
-/* ─── 10. FORM CONTROLS ─────────────────────────────────────────────── */
-.ts-input {
-  width: 100%; padding: .5rem .875rem;
-  font-size: .875rem; font-family: var(--font);
-  color: var(--text-body); background: var(--bg-card);
-  border: 1px solid var(--border); border-radius: .5rem;
-  outline: none; appearance: none;
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
-}
-.ts-input::placeholder { color: var(--text-faint); }
-.ts-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.12); }
-.ts-input-error { border-color: #ef4444 !important; }
-
-/* Date / time / select dark-mode colour-scheme */
-.dark .ts-input { color-scheme: dark; }
-.dark select.ts-input { color-scheme: dark; }
-.dark input[type="date"].ts-input,
-.dark input[type="time"].ts-input,
-.dark input[type="datetime-local"].ts-input {
-  color-scheme: dark;
-}
-select.ts-input {
-  cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 12px center; padding-right: 2.25rem;
-}
-.dark select.ts-input {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-}
-/* Textarea following same pattern */
-textarea.ts-input { resize: vertical; min-height: 4.5rem; }
-
-.ts-label    { display: block; font-size: .75rem; font-weight: 500; color: var(--text-muted); margin-bottom: .375rem; }
-.ts-err      { font-size: .75rem; color: #ef4444; margin-top: .25rem; }
+/* ─── 10. FORM CONTROLS (legacy aliases — real definitions in §12) ──── */
+.ts-input-error { border-color: #ef4444 !important; }  /* compat alias for ts-field-error */
+.ts-err         { font-size: .75rem; color: #ef4444; margin-top: .25rem; }
 
 .ts-search-bar {
   display: flex; align-items: center; gap: .375rem;
@@ -436,7 +405,106 @@ textarea.ts-input { resize: vertical; min-height: 4.5rem; }
 .dark .ts-alert-success { background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.35); }
 .dark .ts-alert-info { background: rgba(124,58,237,.12); border-color: rgba(124,58,237,.35); }
 
-/* ─── 12. FILTER BAR ─────────────────────────────────────────────────── */
+/* ─── 12. FORM FIELDS ──────────────────────────────────────────────── */
+.ts-field { display: flex; flex-direction: column; gap: .375rem; }
+
+.ts-label {
+  font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-faint);
+}
+
+.ts-input,
+.ts-select,
+.ts-textarea {
+  width: 100%;
+  padding: .6rem .875rem;
+  border-radius: var(--r-inner);
+  border: 1.5px solid var(--border);
+  background: var(--bg-inner);
+  color: var(--text-h);
+  font-size: .875rem;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ts-input:focus,
+.ts-select:focus,
+.ts-textarea:focus {
+  border-color: var(--brand-to);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.15);
+}
+
+.ts-input::placeholder,
+.ts-textarea::placeholder { color: var(--text-faint); }
+
+.ts-textarea { resize: vertical; line-height: 1.65; min-height: 100px; }
+
+/* Select arrow */
+.ts-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239ca3af' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .875rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+/* Date and time inputs */
+.ts-input[type="date"],
+.ts-input[type="time"],
+.ts-input[type="datetime-local"] {
+  cursor: pointer;
+  color-scheme: light;
+}
+
+.dark .ts-input[type="date"],
+.dark .ts-input[type="time"],
+.dark .ts-input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+/* Input group (icon + input) */
+.ts-input-group {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-inner);
+  background: var(--bg-inner);
+  padding: .5rem .875rem;
+  gap: .5rem;
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.ts-input-group:focus-within {
+  border-color: var(--brand-to);
+  box-shadow: 0 0 0 3px rgba(124,58,237,.15);
+}
+.ts-input-group input {
+  border: none; outline: none;
+  background: transparent;
+  color: var(--text-h); font-size: .875rem;
+  font-family: var(--font); flex: 1;
+}
+.ts-input-group input::placeholder { color: var(--text-faint); }
+
+/* Field with validation error */
+.ts-input.ts-field-error,
+.ts-select.ts-field-error,
+.ts-input-group.ts-field-error {
+  border-color: var(--blocked-fg);
+  box-shadow: 0 0 0 3px rgba(239,68,68,.10);
+}
+.ts-field-hint {
+  font-size: .7rem; color: var(--blocked-fg); margin-top: .15rem;
+}
+
+/* Form grid helpers */
+.ts-form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.ts-form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+/* ─── 13. FILTER BAR ─────────────────────────────────────────────────── */
 .ts-filter-bar { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding: .75rem 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-card); box-shadow: var(--shadow-card); }
 .ts-date-chip { display: flex; align-items: center; gap: .5rem; padding: .375rem .75rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--bg-inner); font-size: .75rem; color: var(--text-body); cursor: pointer; }
 .ts-record-count { margin-left: auto; font-size: .75rem; color: var(--text-muted); }

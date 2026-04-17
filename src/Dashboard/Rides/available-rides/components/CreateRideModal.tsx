@@ -79,17 +79,6 @@ export function CreateRideModal({
     }
   };
 
-  const inputStyle: React.CSSProperties = {
-    padding: ".45rem .7rem", borderRadius: ".4rem",
-    border: `1px solid ${T.border}`, background: T.bgInner,
-    fontSize: ".82rem", color: T.textH,
-    outline: "none", width: "100%", boxSizing: "border-box",
-  };
-  const labelStyle: React.CSSProperties = {
-    fontSize: ".72rem", fontWeight: 700, textTransform: "uppercase",
-    letterSpacing: ".05em", color: T.textFaint,
-  };
-
   return (
     <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ ...modalBase, maxWidth: "520px" }}>
@@ -106,17 +95,12 @@ export function CreateRideModal({
 
         <div style={modalBody}>
           {/* Passenger selector */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
-            <label style={labelStyle}>Passenger *</label>
-            <div style={{
-              display: "flex", alignItems: "center", gap: ".5rem",
-              border: `1px solid ${errors.passenger ? "#ef4444" : T.border}`, borderRadius: T.rInner,
-              padding: ".4rem .7rem", background: T.bgInner,
-            }}>
+          <div className="ts-field">
+            <label className="ts-label">Passenger *</label>
+            <div className={`ts-input-group${errors.passenger ? " ts-field-error" : ""}`}>
               <SearchRoundedIcon style={{ fontSize: 14, color: T.textFaint }} />
               <input placeholder="Search passengers…" value={passengerSearch}
-                onChange={e => setPassengerSearch(e.target.value)}
-                style={{ border: "none", outline: "none", background: "transparent", fontSize: ".82rem", flex: 1, color: T.textH }} />
+                onChange={e => setPassengerSearch(e.target.value)} />
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: ".35rem", maxHeight: 140, overflowY: "auto", marginTop: ".25rem" }}>
               {filteredPassengers.slice(0, 20).map(p => {
@@ -148,48 +132,48 @@ export function CreateRideModal({
                 <p style={{ textAlign: "center", color: T.textFaint, fontSize: ".78rem", padding: ".5rem 0" }}>No passengers found.</p>
               )}
             </div>
-            {errors.passenger && <span style={{ color: "#ef4444", fontSize: ".7rem" }}>{errors.passenger}</span>}
+            {errors.passenger && <span className="ts-field-hint">{errors.passenger}</span>}
           </div>
 
           {/* Vehicle class */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
-            <label style={labelStyle}>Vehicle Class *</label>
+          <div className="ts-field">
+            <label className="ts-label">Vehicle Class *</label>
             <select value={classId} onChange={e => { setClassId(e.target.value); setErrors(ev => ({ ...ev, classId: "" })); }}
-              style={{ ...inputStyle, borderColor: errors.classId ? "#ef4444" : T.border }}>
+              className={`ts-select${errors.classId ? " ts-field-error" : ""}`}>
               <option value="">Select a class…</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name} ({c.seats} seats)</option>)}
             </select>
-            {errors.classId && <span style={{ color: "#ef4444", fontSize: ".7rem" }}>{errors.classId}</span>}
+            {errors.classId && <span className="ts-field-hint">{errors.classId}</span>}
           </div>
 
           {/* Route */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>
-            <label style={labelStyle}>Route</label>
+          <div className="ts-field">
+            <label className="ts-label">Route</label>
             <input placeholder="Pickup address" value={pickupAddress}
               onChange={e => { setPickupAddress(e.target.value); setErrors(ev => ({ ...ev, pickup: "" })); }}
-              style={{ ...inputStyle, borderColor: errors.pickup ? "#ef4444" : T.border }} />
-            {errors.pickup && <span style={{ color: "#ef4444", fontSize: ".7rem" }}>{errors.pickup}</span>}
+              className={`ts-input${errors.pickup ? " ts-field-error" : ""}`} />
+            {errors.pickup && <span className="ts-field-hint">{errors.pickup}</span>}
             <input placeholder="Drop-off address" value={dropoffAddress}
               onChange={e => { setDropoffAddress(e.target.value); setErrors(ev => ({ ...ev, dropoff: "" })); }}
-              style={{ ...inputStyle, borderColor: errors.dropoff ? "#ef4444" : T.border }} />
-            {errors.dropoff && <span style={{ color: "#ef4444", fontSize: ".7rem" }}>{errors.dropoff}</span>}
+              className={`ts-input${errors.dropoff ? " ts-field-error" : ""}`} />
+            {errors.dropoff && <span className="ts-field-hint">{errors.dropoff}</span>}
           </div>
 
           {/* Schedule */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".75rem" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
-              <label style={labelStyle}>Date *</label>
+          <div className="ts-form-grid-2">
+            <div className="ts-field">
+              <label className="ts-label">Date *</label>
               <input type="date" value={scheduledDate}
                 onChange={e => { setScheduledDate(e.target.value); setErrors(ev => ({ ...ev, date: "" })); }}
-                style={{ ...inputStyle, borderColor: errors.date ? "#ef4444" : T.border }} />
-              {errors.date && <span style={{ color: "#ef4444", fontSize: ".7rem" }}>{errors.date}</span>}
+                className={`ts-input${errors.date ? " ts-field-error" : ""}`} />
+              {errors.date && <span className="ts-field-hint">{errors.date}</span>}
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
-              <label style={labelStyle}>Time *</label>
+            <div className="ts-field">
+              <label className="ts-label">Time *</label>
               <input type="time" value={scheduledTime}
                 onChange={e => { setScheduledTime(e.target.value); setErrors(ev => ({ ...ev, time: "" })); }}
-                style={{ ...inputStyle, borderColor: errors.time ? "#ef4444" : T.border }} />
-              {errors.time && <span style={{ color: "#ef4444", fontSize: ".7rem" }}>{errors.time}</span>}
+                className={`ts-input${errors.time ? " ts-field-error" : ""}`} />
+              {errors.time && <span className="ts-field-hint">{errors.time}</span>}
             </div>
           </div>
         </div>

@@ -134,7 +134,7 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
           )}
 
           {/* Assign Vehicle — only Available vehicles shown */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
+          <div className="ts-field">
             <label className="ts-label">
               Assign Vehicle
               <span style={{ marginLeft: 6, fontSize: ".72rem", color: "var(--text-faint)", fontWeight: 400 }}>
@@ -147,10 +147,9 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
               </div>
             ) : (
               <select
-                className="ts-input"
+                className="ts-select"
                 value={vehicleId}
                 onChange={e => setVehicleId(e.target.value)}
-                style={{ cursor: "pointer" }}
               >
                 <option value="">— No vehicle assigned —</option>
                 {allOptions.map(v => (

@@ -48,17 +48,17 @@ export default function AddWorkAreaModal({ onClose, onCreated }: Props) {
           )}
 
           {/* Country */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
+          <div className="ts-field">
             <label className="ts-label">Country</label>
-            <select className="ts-input" value={country} onChange={e => { setCountry(e.target.value); setVille(""); }} style={{ cursor: "pointer" }}>
+            <select className="ts-select" value={country} onChange={e => { setCountry(e.target.value); setVille(""); }}>
               {COUNTRIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
 
           {/* Ville */}
-          <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
+          <div className="ts-field">
             <label className="ts-label">Ville</label>
-            <select className="ts-input" value={ville} onChange={e => setVille(e.target.value)} style={{ cursor: "pointer" }}>
+            <select className="ts-select" value={ville} onChange={e => setVille(e.target.value)}>
               <option value="">— Select a ville —</option>
               {TUNISIA_VILLES.map(v => <option key={v} value={v}>{v}</option>)}
             </select>
