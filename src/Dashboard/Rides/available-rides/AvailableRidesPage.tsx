@@ -62,9 +62,7 @@ export default function AvailableRidesPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS));
   const safePage   = Math.min(page, totalPages);
   const paged      = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
-  const ghostCount = Math.max(0, ROWS - paged.length);
-
-  /* ── Handlers ────────────────────────────────────────────────────── */
+  /* ── Handlers────────────────────────────────────────────────────── */
   const handleCancel = async (ride: BackendRide) => {
     try {
       await ridesApi.cancel(ride.id, { cancellation_reason: "Cancelled by admin" });
@@ -173,22 +171,14 @@ export default function AvailableRidesPage() {
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <>
-                      <tr style={{ height: ROW_H }}>
-                        <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
-                          No rides found{search ? ` matching "${search}"` : ""}.
-                        </td>
-                      </tr>
-                      {Array.from({ length: ROWS - 1 }).map((_, i) => (
-                        <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
-                        </tr>
-                      ))}
-                    </>
+                    <tr style={{ height: ROW_H }}>
+                      <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                        No rides found{search ? ` matching "${search}"` : ""}.
+                      </td>
+                    </tr>
                   ) : (
-                    <>
-                      {paged.map(r => (
-                        <tr key={r.id} className="ts-tr" style={{ height: ROW_H }}>
+                    paged.map(r => (
+                      <tr key={r.id} className="ts-tr" style={{ height: ROW_H }}>
                           <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {passengerName(r)}
                           </td>
@@ -216,13 +206,7 @@ export default function AvailableRidesPage() {
                             </div>
                           </td>
                         </tr>
-                      ))}
-                      {Array.from({ length: ghostCount }).map((_, i) => (
-                        <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
-                        </tr>
-                      ))}
-                    </>
+                      ))
                   )}
                 </tbody>
               </table>

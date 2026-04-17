@@ -31,22 +31,20 @@ const labelStyle: React.CSSProperties = {
 export default function ArticleModal({ dark, article, onClose, onSaved }: Props) {
   const isEdit = !!article;
   const [titleEn, setTitleEn] = useState(article?.title?.en || "");
-  const [titleFr, setTitleFr] = useState(article?.title?.fr || "");
   const [descEn, setDescEn]   = useState(article?.description?.en || "");
-  const [descFr, setDescFr]   = useState(article?.description?.fr || "");
   const [catKey, setCatKey]   = useState(article?.categoryKey || "account");
   const [order, setOrder]     = useState(article?.sortOrder ?? 0);
   const [saving, setSaving]   = useState(false);
   const [err, setErr]         = useState<string | null>(null);
 
   async function handleSave() {
-    if (!titleEn.trim() || !descEn.trim()) { setErr("Title and description (EN) are required"); return; }
+    if (!titleEn.trim() || !descEn.trim()) { setErr("Title and description are required"); return; }
     setSaving(true); setErr(null);
     try {
       if (isEdit) {
         await helpCenterApi.update(article!.id, {
-          title: { ...article!.title, en: titleEn, ...(titleFr ? { fr: titleFr } : {}) },
-          description: { ...article!.description, en: descEn, ...(descFr ? { fr: descFr } : {}) },
+          title: { ...article!.title, en: titleEn },
+          description: { ...article!.description, en: descEn },
           categoryKey: catKey,
           categoryLabel: {
             ...(article!.categoryLabel || {}),
@@ -55,17 +53,11 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
           sortOrder: order,
         });
       } else {
-        const created = await helpCenterApi.create({
+        await helpCenterApi.create({
           title: titleEn, description: descEn, categoryKey: catKey,
           categoryLabel: HELP_CATEGORIES.find(c => c.key === catKey)?.label || catKey,
           sortOrder: order,
         });
-        if (titleFr || descFr) {
-          await helpCenterApi.update(created.id, {
-            title: { en: titleEn, ...(titleFr ? { fr: titleFr } : {}) },
-            description: { en: descEn, ...(descFr ? { fr: descFr } : {}) },
-          });
-        }
       }
       onSaved(); onClose();
     } catch (e: unknown) {
@@ -93,7 +85,7 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
           background: "var(--bg-sidebar)",
           borderRadius: 20,
           border: "1px solid var(--border)",
-          width: "100%", maxWidth: 540,
+          width: "100%", maxWidth: 480,
           maxHeight: "90vh", overflowY: "auto",
           boxShadow: "var(--shadow-modal)",
         }}
@@ -116,7 +108,7 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
               {isEdit ? "Edit Article" : "New Article"}
             </h2>
             <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--text-muted)" }}>
-              {isEdit ? "Update this help article" : "Create a new FAQ entry"}
+              Write in English — other languages are auto-translated
             </p>
           </div>
           <button onClick={onClose} style={{
@@ -128,52 +120,27 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
 
         {/* Modal body */}
         <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div>
-              <label style={labelStyle}>Title (English)</label>
-              <input
-                className="hca-input"
-                value={titleEn}
-                onChange={e => setTitleEn(e.target.value)}
-                placeholder="e.g. How do I reset my password?"
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>Title (Français)</label>
-              <input
-                className="hca-input"
-                value={titleFr}
-                onChange={e => setTitleFr(e.target.value)}
-                placeholder="ex. Comment réinitialiser…"
-                style={inputStyle}
-              />
-            </div>
+          <div>
+            <label style={labelStyle}>Title</label>
+            <input
+              className="hca-input"
+              value={titleEn}
+              onChange={e => setTitleEn(e.target.value)}
+              placeholder="e.g. How do I reset my password?"
+              style={inputStyle}
+            />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div>
-              <label style={labelStyle}>Description (English)</label>
-              <textarea
-                className="hca-input"
-                value={descEn}
-                onChange={e => setDescEn(e.target.value)}
-                rows={4}
-                placeholder="Write the full answer here…"
-                style={{ ...inputStyle, resize: "vertical", lineHeight: 1.65 }}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>Description (Français)</label>
-              <textarea
-                className="hca-input"
-                value={descFr}
-                onChange={e => setDescFr(e.target.value)}
-                rows={4}
-                placeholder="Rédigez la réponse complète…"
-                style={{ ...inputStyle, resize: "vertical", lineHeight: 1.65 }}
-              />
-            </div>
+          <div>
+            <label style={labelStyle}>Description</label>
+            <textarea
+              className="hca-input"
+              value={descEn}
+              onChange={e => setDescEn(e.target.value)}
+              rows={5}
+              placeholder="Write the full answer here…"
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.65 }}
+            />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 120px", gap: 16 }}>
@@ -186,7 +153,7 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
                 style={inputStyle}
               >
                 {HELP_CATEGORIES.map(c => (
-                  <option key={c.key} value={c.key}>{c.icon} {c.label}</option>
+                  <option key={c.key} value={c.key}>{c.label}</option>
                 ))}
               </select>
             </div>
@@ -201,6 +168,10 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
               />
             </div>
           </div>
+
+          <p style={{ margin: 0, fontSize: 11, color: "var(--text-faint)" }}>
+            🔄 FR &amp; AR translations are generated automatically after saving.
+          </p>
 
           {err && <div className="ts-alert-error">{err}</div>}
         </div>
@@ -219,7 +190,7 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
               padding: "10px 20px", borderRadius: 10, fontSize: 13,
               border: "1px solid var(--border)", background: "transparent",
               color: "var(--text-muted)", cursor: "pointer", fontWeight: 600,
-              fontFamily: "inherit", transition: "all .15s",
+              fontFamily: "inherit",
             }}
           >Cancel</button>
           <button
@@ -227,14 +198,10 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
             disabled={saving}
             style={{
               padding: "10px 22px", borderRadius: 10, fontSize: 13,
-              background: saving
-                ? "var(--brand-soft)"
-                : "linear-gradient(135deg, var(--brand-from), var(--brand-to))",
+              background: saving ? "var(--brand-soft)" : "#7c3aed",
               color: saving ? "var(--text-muted)" : "#fff",
               border: "none", cursor: saving ? "wait" : "pointer",
               fontWeight: 700, fontFamily: "inherit",
-              boxShadow: saving ? "none" : "0 6px 20px var(--brand-soft)",
-              transition: "all .2s",
             }}
           >
             {saving ? "Saving…" : isEdit ? "Update Article" : "Create Article"}
@@ -244,3 +211,5 @@ export default function ArticleModal({ dark, article, onClose, onSaved }: Props)
     </div>
   );
 }
+
+

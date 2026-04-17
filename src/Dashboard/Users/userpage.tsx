@@ -58,8 +58,6 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / ROWS_PER_PAGE));
   const safePage = Math.min(page, totalPages);
   const pagedUsers = filteredUsers.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
-  const ghostCount = ROWS_PER_PAGE - pagedUsers.length;
-
   async function handleBlock(u: AdminUser) {
     setActionLoading(u.id + "-block");
     try { await usersApi.block(u.id); setUsers(p => p.map(x => x.id === u.id ? { ...x, status: "blocked" } : x)); }
@@ -193,22 +191,14 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
 
               <tbody>
                 {filteredUsers.length === 0 ? (
-                  <>
-                    <tr style={{ height: ROW_H }}>
-                      <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
-                        No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found
-                        {search ? ` matching "${search}"` : ""}.
-                      </td>
-                    </tr>
-                    {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
-                      <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
-                      </tr>
-                    ))}
-                  </>
+                  <tr style={{ height: ROW_H }}>
+                    <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                      No {activeFilter === "All" ? "users" : activeFilter.toLowerCase()} found
+                      {search ? ` matching "${search}"` : ""}.
+                    </td>
+                  </tr>
                 ) : (
-                  <>
-                    {pagedUsers.map((u, i) => (
+                  pagedUsers.map((u, i) => (
                       <tr
                         key={`${u.id}-${i}`}
                         className="ts-tr"
@@ -264,13 +254,7 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
                           />
                         </td>
                       </tr>
-                    ))}
-                    {Array.from({ length: ghostCount }).map((_, i) => (
-                      <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
-                      </tr>
-                    ))}
-                  </>
+                    ))
                 )}
               </tbody>
             </table>

@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { helpCenterApi, type HelpArticleRaw } from "../../api/helpCenter";
 import HelpStatsBar from "./components/HelpStatsBar";
-import CategoryFilter from "./components/CategoryFilter";
 import ArticleTable from "./components/ArticleTable";
 import ArticleModal from "./components/ArticleModal";
+import { HELP_CATEGORIES } from "./components/helpCenterConstants";
+
+const PAGE_SIZE = 5;
 
 interface Props { dark: boolean; }
 
-
+const FILTER_TABS = [
+  { key: "all", label: "All" },
+  ...HELP_CATEGORIES.map(c => ({ key: c.key, label: c.label })),
+];
 
 export default function HelpCenterAdmin({ dark }: Props) {
   const [articles, setArticles] = useState<HelpArticleRaw[]>([]);
@@ -17,6 +23,7 @@ export default function HelpCenterAdmin({ dark }: Props) {
   const [editArticle, setEditArticle] = useState<HelpArticleRaw | null>(null);
   const [filter, setFilter]     = useState("all");
   const [search, setSearch]     = useState("");
+  const [page, setPage]         = useState(1);
 
   function loadArticles() {
     setLoading(true);
@@ -28,7 +35,7 @@ export default function HelpCenterAdmin({ dark }: Props) {
   useEffect(() => { loadArticles(); }, []);
 
   function handleDelete(id: string) {
-    if (!confirm("Delete this article?")) return;
+    if (!confirm("Permanently delete this article? This cannot be undone.")) return;
     helpCenterApi.delete(id).then(loadArticles);
   }
   function handleToggleStatus(article: HelpArticleRaw) {
@@ -43,82 +50,70 @@ export default function HelpCenterAdmin({ dark }: Props) {
     .filter(a => filter === "all" || a.categoryKey === filter)
     .filter(a => !search || (a.title?.en || "").toLowerCase().includes(search.toLowerCase()));
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages);
+  const paged      = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  function handleFilterChange(key: string) { setFilter(key); setPage(1); }
+  function handleSearchChange(val: string) { setSearch(val); setPage(1); }
+
   return (
-    <div
-      className={dark ? "dark" : ""}
-      style={{ minHeight: "100vh", background: "var(--bg-page)", padding: "36px 32px", color: "var(--text-h)" }}
-    >
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
-        .hca-root * { font-family: 'Sora', sans-serif; box-sizing: border-box; }
-        .hca-add-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-      `}</style>
+    <div className={dark ? "dark" : ""} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
-      <div className="hca-root" style={{ maxWidth: 1160, margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 12,
-                background: "linear-gradient(135deg, var(--brand-from), var(--brand-to))",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 18, boxShadow: "0 6px 20px var(--brand-soft)",
-              }}>💬</div>
-              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: "-.02em", color: "var(--text-h)" }}>
-                Help Center
-              </h1>
-            </div>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", paddingLeft: 52 }}>
-              Manage FAQ articles for drivers and passengers
-            </p>
-          </div>
-
-          <button
-            className="hca-add-btn"
-            onClick={() => { setEditArticle(null); setShowModal(true); }}
-            style={{
-              background: "linear-gradient(135deg, var(--brand-from), var(--brand-to))",
-              color: "#fff", border: "none", borderRadius: 12,
-              padding: "11px 22px", fontSize: 13, fontWeight: 700,
-              cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-              boxShadow: "0 6px 20px var(--brand-soft)", transition: "all .2s",
-            }}
-          >
-            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Add Article
-          </button>
-        </div>
-
-        <HelpStatsBar total={articles.length} reviewed={reviewed} auto={auto} />
-        <CategoryFilter filter={filter} onFilter={setFilter} search={search} onSearch={setSearch} />
-
-        {loading && (
-          <div style={{ textAlign: "center", padding: 60, color: "var(--text-muted)", fontSize: 13 }}>
-            Loading articles…
-          </div>
-        )}
-        {error && <div className="ts-alert-error" style={{ marginTop: 16 }}>{error}</div>}
-
-        {!loading && !error && (
-          <>
-            <ArticleTable
-              articles={articles}
-              filter={filter}
-              search={search}
-              dark={dark}
-              onEdit={a => { setEditArticle(a); setShowModal(true); }}
-              onDelete={handleDelete}
-              onToggleStatus={handleToggleStatus}
-            />
-            <p style={{ textAlign: "right", fontSize: 11, color: "var(--text-faint)", marginTop: 12 }}>
-              Showing {filtered.length} of {articles.length} articles
-            </p>
-          </>
-        )}
+      <div className="ts-page-header">
+        <div><h1 className="ts-page-title">Help Center</h1></div>
+        <button
+          onClick={() => { setEditArticle(null); setShowModal(true); }}
+          style={{
+            background: "#7c3aed", color: "#fff", border: "none",
+            borderRadius: 8, padding: "8px 18px", fontSize: ".82rem",
+            fontWeight: 600, cursor: "pointer",
+          }}
+        >
+          + Add Article
+        </button>
       </div>
+
+      <HelpStatsBar total={articles.length} reviewed={reviewed} auto={auto} />
+
+      <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap" }}>
+          {FILTER_TABS.map(({ key, label }) => (
+            <button key={key} onClick={() => handleFilterChange(key)} style={{
+              padding: ".3rem .85rem", borderRadius: "9999px", fontSize: ".82rem",
+              fontWeight: 600, cursor: "pointer", border: "none",
+              background: filter === key ? "#7c3aed" : "var(--bg-inner)",
+              color:      filter === key ? "#fff"    : "var(--text-muted)",
+              transition: "all .15s",
+            }}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div style={{ marginLeft: "auto" }}>
+          <div className="ts-search-bar" style={{ minWidth: 240 }}>
+            <SearchRoundedIcon style={{ fontSize: 15, flexShrink: 0 }} />
+            <input
+              placeholder="Search articles…"
+              value={search}
+              onChange={e => handleSearchChange(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {error && <div className="ts-alert-error">{error}</div>}
+
+      <ArticleTable
+        articles={paged}
+        loading={loading}
+        page={safePage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        onEdit={a => { setEditArticle(a); setShowModal(true); }}
+        onDelete={handleDelete}
+        onToggleStatus={handleToggleStatus}
+      />
 
       {showModal && (
         <ArticleModal

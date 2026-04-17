@@ -65,8 +65,6 @@ export default function DriversPage({ onNavigate: _onNavigate }: DriversPageProp
   const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS));
   const safePage   = Math.min(page, totalPages);
   const paged      = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
-  const ghostCount = ROWS - paged.length;
-
   async function handleDelete(id: string) {
     setActionLoading(id + "-delete");
     try {
@@ -172,22 +170,14 @@ export default function DriversPage({ onNavigate: _onNavigate }: DriversPageProp
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <>
-                      <tr style={{ height: ROW_H }}>
-                        <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
-                          No drivers found{search ? ` matching "${search}"` : ""}.
-                        </td>
-                      </tr>
-                      {Array.from({ length: ROWS - 1 }).map((_, i) => (
-                        <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
-                        </tr>
-                      ))}
-                    </>
+                    <tr style={{ height: ROW_H }}>
+                      <td colSpan={6} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                        No drivers found{search ? ` matching "${search}"` : ""}.
+                      </td>
+                    </tr>
                   ) : (
-                    <>
-                      {paged.map(d => (
-                        <tr key={d.id} className="ts-tr" style={{ height: ROW_H }}>
+                    paged.map(d => (
+                      <tr key={d.id} className="ts-tr" style={{ height: ROW_H }}>
                           <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {d.firstName} {d.lastName}
                           </td>
@@ -215,13 +205,7 @@ export default function DriversPage({ onNavigate: _onNavigate }: DriversPageProp
                             />
                           </td>
                         </tr>
-                      ))}
-                      {Array.from({ length: ghostCount }).map((_, i) => (
-                        <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={6} style={{ borderBottom: "1px solid var(--border)" }} />
-                        </tr>
-                      ))}
-                    </>
+                      ))
                   )}
                 </tbody>
               </table>

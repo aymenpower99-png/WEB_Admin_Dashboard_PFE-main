@@ -104,8 +104,6 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
   const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS_PER_PAGE));
   const safePage   = Math.min(page, totalPages);
   const paged      = filtered.slice((safePage - 1) * ROWS_PER_PAGE, safePage * ROWS_PER_PAGE);
-  const ghostCount = ROWS_PER_PAGE - paged.length;
-
   async function handleRemove() {
     if (!removeTarget) return;
     setRemoveLoading(true);
@@ -208,34 +206,20 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <>
-                    <tr style={{ height: ROW_H }}>
-                      <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
-                        No vehicles found{search ? ` matching "${search}"` : ""}.
-                      </td>
-                    </tr>
-                    {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
-                      <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
-                      </tr>
-                    ))}
-                  </>
+                  <tr style={{ height: ROW_H }}>
+                    <td colSpan={7} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                      No vehicles found{search ? ` matching "${search}"` : ""}.
+                    </td>
+                  </tr>
                 ) : (
-                  <>
-                    {paged.map(v => (
-                      <VehicleTableRow key={v.id} v={v}
-                        onEdit={vehicle => onNavigate("agency-vehicles", vehicle)}
-                        onStatusChange={vehicle => setStatusTarget(vehicle)}
-                        onRemove={vehicle => setRemoveTarget(vehicle)}
-                        onUpdatePhotos={vehicle => setPhotoTarget(vehicle)}
-                      />
-                    ))}
-                    {Array.from({ length: ghostCount }).map((_, i) => (
-                      <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td colSpan={7} style={{ borderBottom: "1px solid var(--border)" }} />
-                      </tr>
-                    ))}
-                  </>
+                  paged.map(v => (
+                    <VehicleTableRow key={v.id} v={v}
+                      onEdit={vehicle => onNavigate("agency-vehicles", vehicle)}
+                      onStatusChange={vehicle => setStatusTarget(vehicle)}
+                      onRemove={vehicle => setRemoveTarget(vehicle)}
+                      onUpdatePhotos={vehicle => setPhotoTarget(vehicle)}
+                    />
+                  ))
                 )}
               </tbody>
             </table>

@@ -72,8 +72,6 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
     (safePage - 1) * ROWS_PER_PAGE,
     safePage * ROWS_PER_PAGE,
   );
-  const ghostCount = ROWS_PER_PAGE - paged.length;
-
   async function handleDelete() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
@@ -217,51 +215,31 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <>
-                    <tr style={{ height: ROW_H }}>
-                      <td
-                        colSpan={8}
-                        style={{
-                          padding: "0 1.25rem",
-                          height: ROW_H,
-                          textAlign: "center",
-                          color: "var(--text-faint)",
-                          borderBottom: "1px solid var(--border)",
-                        }}
-                      >
-                        No classes found{search ? ` matching "${search}"` : ""}.
-                      </td>
-                    </tr>
-                    {Array.from({ length: ROWS_PER_PAGE - 1 }).map((_, i) => (
-                      <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                        <td
-                          colSpan={8}
-                          style={{ borderBottom: "1px solid var(--border)" }}
-                        />
-                      </tr>
-                    ))}
-                  </>
+                  <tr style={{ height: ROW_H }}>
+                    <td
+                      colSpan={8}
+                      style={{
+                        padding: "0 1.25rem",
+                        height: ROW_H,
+                        textAlign: "center",
+                        color: "var(--text-faint)",
+                        borderBottom: "1px solid var(--border)",
+                      }}
+                    >
+                      No classes found{search ? ` matching "${search}"` : ""}.
+                    </td>
+                  </tr>
                 ) : (
-                  <>
-                    {paged.map((c) => (
-                      <ClassTableRow
-                        key={c.id}
-                        cls={c}
-                        vehicleCount={c.vehicleCount}
-                        onEdit={(cls) => onNavigate("classes-add", cls)}
-                        onDelete={(cls) => setDeleteTarget(cls)}
-                        onView={(cls) => onNavigate("class-detail", cls.id)}
-                      />
-                    ))}
-                    {Array.from({ length: ghostCount }).map((_, i) => (
-                      <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                        <td
-                          colSpan={8}
-                          style={{ borderBottom: "1px solid var(--border)" }}
-                        />
-                      </tr>
-                    ))}
-                  </>
+                  paged.map((c) => (
+                    <ClassTableRow
+                      key={c.id}
+                      cls={c}
+                      vehicleCount={c.vehicleCount}
+                      onEdit={(cls) => onNavigate("classes-add", cls)}
+                      onDelete={(cls) => setDeleteTarget(cls)}
+                      onView={(cls) => onNavigate("class-detail", cls.id)}
+                    />
+                  ))
                 )}
               </tbody>
             </table>

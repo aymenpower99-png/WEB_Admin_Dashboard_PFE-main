@@ -55,8 +55,6 @@ export default function WorkAreasPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / ROWS));
   const safePage   = Math.min(page, totalPages);
   const paged      = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
-  const ghostCount = ROWS - paged.length;
-
   return (
     <>
       {showAddArea && (
@@ -150,22 +148,14 @@ export default function WorkAreasPage() {
                 </thead>
                 <tbody>
                   {paged.length === 0 ? (
-                    <>
-                      <tr style={{ height: ROW_H }}>
-                        <td colSpan={5} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
-                          No drivers found{search ? ` matching "${search}"` : ""}.
-                        </td>
-                      </tr>
-                      {Array.from({ length: ROWS - 1 }).map((_, i) => (
-                        <tr key={`ge-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={5} style={{ borderBottom: "1px solid var(--border)" }} />
-                        </tr>
-                      ))}
-                    </>
+                    <tr style={{ height: ROW_H }}>
+                      <td colSpan={5} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
+                        No drivers found{search ? ` matching "${search}"` : ""}.
+                      </td>
+                    </tr>
                   ) : (
-                    <>
-                      {paged.map(driver => (
-                        <tr key={driver.id} className="ts-tr" style={{ height: ROW_H }}>
+                    paged.map(driver => (
+                      <tr key={driver.id} className="ts-tr" style={{ height: ROW_H }}>
                           {/* Driver */}
                           <td style={{ ...TD, fontWeight: 600, color: "var(--text-h)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {driver.name || "—"}
@@ -220,13 +210,7 @@ export default function WorkAreasPage() {
                             </button>
                           </td>
                         </tr>
-                      ))}
-                      {Array.from({ length: ghostCount }).map((_, i) => (
-                        <tr key={`g-${i}`} style={{ height: ROW_H }}>
-                          <td colSpan={5} style={{ borderBottom: "1px solid var(--border)" }} />
-                        </tr>
-                      ))}
-                    </>
+                      ))
                   )}
                 </tbody>
               </table>
