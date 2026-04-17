@@ -115,8 +115,15 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
             <h1 className="ts-page-title" style={{ fontSize: "1.25rem", fontWeight: 800 }}>Users</h1>
           </div>
         </div>
-        <button className="ts-btn-primary" onClick={() => setModal("invite")}>
-          <span style={{ fontSize: "1rem", lineHeight: 1 }}>＋</span> Invite User
+        <button
+          onClick={() => setModal("invite")}
+          style={{
+            background: "#7c3aed", color: "#fff", border: "none",
+            borderRadius: 8, padding: "8px 18px", fontSize: ".82rem",
+            fontWeight: 600, cursor: "pointer",
+          }}
+        >
+          + Invite User
         </button>
       </div>
 

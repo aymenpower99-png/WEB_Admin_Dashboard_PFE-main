@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import MapboxAutocomplete from "./MapboxAutocomplete";
 import type { BackendRide, CreateRidePayload } from "../../../../api/rides";
 import { ridesApi } from "../../../../api/rides";
 import { classesApi } from "../../../../api/classes";
@@ -8,27 +9,27 @@ import { usersApi } from "../../../../api/users";
 import type { AdminUser } from "../../../../api/users";
 import type { VehicleClass } from "../../../../api/classes";
 
-// ─── Design tokens (Light Mode) ────────────────────────────────────────────────
+// ─── Design tokens (dark-mode safe via CSS vars) ────────────────────────────
 const T = {
-  bg: "#ffffff",
-  surface: "#f8f9fb",
-  surfaceHover: "#f1f3f7",
-  border: "#e4e7ee",
-  borderFocus: "rgba(109,40,217,0.4)",
-  accent: "#7c3aed",
-  accentGlow: "rgba(124,58,237,0.15)",
-  accentLight: "rgba(124,58,237,0.08)",
-  textH: "#111827",
-  textSub: "#6b7280",
-  textFaint: "#9ca3af",
+  bg: "var(--bg-card)",
+  surface: "var(--bg-inner)",
+  surfaceHover: "var(--bg-thead)",
+  border: "var(--border)",
+  borderFocus: "rgba(168,85,247,0.4)",
+  accent: "#a855f7",
+  accentGlow: "rgba(168,85,247,0.18)",
+  accentLight: "rgba(168,85,247,0.08)",
+  textH: "var(--text-h)",
+  textSub: "var(--text-muted)",
+  textFaint: "var(--text-faint)",
   red: "#ef4444",
   redBg: "rgba(239,68,68,0.06)",
   r: "16px",
   rSm: "10px",
   rInner: "8px",
-  violet: "#7c3aed",
-  violetLight: "rgba(124,58,237,0.08)",
-  bgInner: "#f8f9fb",
+  violet: "#a855f7",
+  violetLight: "rgba(168,85,247,0.08)",
+  bgInner: "var(--bg-inner)",
 };
 
 // ─── Shared styles ──────────────────────────────────────────────────────────────
@@ -58,19 +59,36 @@ const inputBase: React.CSSProperties = {
   fontFamily: "inherit",
 };
 
-// ─── Custom Date Picker ─────────────────────────────────────────────────────────
-function DatePicker({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
+// ─── Schedule Picker (Calendar + Spinner Time) ──────────────────────────────────
+function SchedulePicker({
+  date, time, onDateChange, onTimeChange, dateError, timeError,
+}: {
+  date: string; time: string;
+  onDateChange: (v: string) => void;
+  onTimeChange: (v: string) => void;
+  dateError?: string; timeError?: string;
+}) {
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
-  const [open, setOpen] = useState(false);
+  const [calOpen, setCalOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const selectedDate = value ? new Date(value + "T00:00:00") : null;
+  const selDate = date ? new Date(date + "T00:00:00") : null;
+  const initH = time ? parseInt(time.split(":")[0]) : today.getHours();
+  const initM = time ? Math.round(parseInt(time.split(":")[1]) / 15) * 15 % 60 : 0;
+  const [dispH, setDispH] = useState(initH);
+  const [dispM, setDispM] = useState(initM);
+
+  useEffect(() => {
+    const h = String(dispH).padStart(2, "0");
+    const m = String(dispM).padStart(2, "0");
+    onTimeChange(`${h}:${m}`);
+  }, [dispH, dispM]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) setCalOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -78,203 +96,182 @@ function DatePicker({ value, onChange, error }: { value: string; onChange: (v: s
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const firstDay = new Date(viewYear, viewMonth, 1).getDay();
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const dayNames = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 
-  const prevMonth = () => { if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); } else setViewMonth(m => m - 1); };
-  const nextMonth = () => { if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); } else setViewMonth(m => m + 1); };
+  const prevMonth = () => {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1); }
+    else setViewMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1); }
+    else setViewMonth(m => m + 1);
+  };
 
   const selectDay = (d: number) => {
     const mm = String(viewMonth + 1).padStart(2, "0");
     const dd = String(d).padStart(2, "0");
-    onChange(`${viewYear}-${mm}-${dd}`);
-    setOpen(false);
+    onDateChange(`${viewYear}-${mm}-${dd}`);
+    setCalOpen(false);
   };
 
-  const displayValue = selectedDate
-    ? selectedDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    : "";
+  const displayDate = selDate
+    ? selDate.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })
+    : "Pick a date";
+
+  const spinnerBtn: React.CSSProperties = {
+    background: "none", border: "none", cursor: "pointer",
+    color: T.textSub, padding: "2px 6px", borderRadius: 6,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    transition: "background .12s",
+  };
+
+  const spinnerNum: React.CSSProperties = {
+    fontSize: "1.35rem", fontWeight: 700, color: T.textH,
+    minWidth: 42, textAlign: "center" as const,
+    lineHeight: 1,
+  };
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <div
-        onClick={() => setOpen(o => !o)}
-        style={{
-          ...inputBase,
-          borderColor: error ? T.red : open ? T.accent : T.border,
-          boxShadow: open ? `0 0 0 3px ${T.accentGlow}` : "none",
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
-          userSelect: "none",
-        }}
-      >
-        <span style={{ color: displayValue ? T.textH : T.textFaint }}>
-          {displayValue || "Pick a date"}
-        </span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textFaint} strokeWidth="2">
-          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-        </svg>
+    <div ref={ref}>
+      {/* Date + Time combined row */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: ".5rem",
+        border: `1.5px solid ${(dateError || timeError) ? T.red : T.border}`,
+        borderRadius: T.rSm, padding: ".45rem .85rem",
+        background: T.bg,
+      }}>
+        {/* Date trigger */}
+        <div
+          onClick={() => setCalOpen(o => !o)}
+          style={{ cursor: "pointer", flex: 1, display: "flex", alignItems: "center", gap: ".5rem", userSelect: "none" }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span style={{ fontSize: ".82rem", color: selDate ? T.textH : T.textFaint }}>
+            {displayDate}
+          </span>
+        </div>
+
+        <div style={{ width: 1, height: 32, background: T.border, flexShrink: 0 }} />
+
+        {/* Time spinners */}
+        <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+          {/* Hours */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <button style={spinnerBtn} onClick={() => setDispH(h => (h + 1) % 24)}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="18 15 12 9 6 15"/>
+              </svg>
+            </button>
+            <span style={spinnerNum}>{String(dispH).padStart(2, "0")}</span>
+            <button style={spinnerBtn} onClick={() => setDispH(h => (h - 1 + 24) % 24)}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+          </div>
+
+          <span style={{ fontSize: "1.2rem", fontWeight: 700, color: T.textH, paddingBottom: 2 }}>:</span>
+
+          {/* Minutes */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <button style={spinnerBtn} onClick={() => setDispM(m => (m + 15) % 60)}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="18 15 12 9 6 15"/>
+              </svg>
+            </button>
+            <span style={spinnerNum}>{String(dispM).padStart(2, "0")}</span>
+            <button style={spinnerBtn} onClick={() => setDispM(m => (m - 15 + 60) % 60)}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {open && (
+      {/* Calendar dropdown */}
+      {calOpen && (
         <div style={{
-          position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200,
-          background: "#fff",
+          marginTop: 6, zIndex: 200,
+          background: T.bg,
           border: `1.5px solid ${T.border}`,
-          borderRadius: T.r, padding: "1rem", width: 260,
+          borderRadius: T.r,
+          width: "100%",
           boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+          boxSizing: "border-box",
         }}>
-          {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: ".85rem" }}>
-            <button onClick={prevMonth} style={{ background: T.surface, border: `1px solid ${T.border}`, cursor: "pointer", color: T.textSub, padding: "4px 6px", borderRadius: "6px" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          {/* Month/Year header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+            <button onClick={prevMonth} style={{
+              background: T.surface, border: `1px solid ${T.border}`,
+              cursor: "pointer", color: T.textSub, padding: "5px 8px", borderRadius: "6px",
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
             </button>
-            <span style={{ fontSize: ".82rem", fontWeight: 700, color: T.textH }}>
+            <span style={{ fontSize: ".88rem", fontWeight: 700, color: T.textH }}>
               {monthNames[viewMonth]} {viewYear}
             </span>
-            <button onClick={nextMonth} style={{ background: T.surface, border: `1px solid ${T.border}`, cursor: "pointer", color: T.textSub, padding: "4px 6px", borderRadius: "6px" }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            <button onClick={nextMonth} style={{
+              background: T.surface, border: `1px solid ${T.border}`,
+              cursor: "pointer", color: T.textSub, padding: "5px 8px", borderRadius: "6px",
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
             </button>
           </div>
-          {/* Day names */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: ".5rem" }}>
+
+          {/* Day name headers */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: ".4rem" }}>
             {dayNames.map(d => (
-              <div key={d} style={{ textAlign: "center", fontSize: ".6rem", fontWeight: 700, color: T.textFaint, padding: "3px 0" }}>{d}</div>
+              <div key={d} style={{
+                textAlign: "center", fontSize: ".62rem", fontWeight: 700,
+                color: T.textFaint, padding: "3px 0",
+              }}>
+                {d}
+              </div>
             ))}
           </div>
-          {/* Days */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2 }}>
+
+          {/* Day cells */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3 }}>
             {Array.from({ length: firstDay }).map((_, i) => <div key={`e${i}`} />)}
             {Array.from({ length: daysInMonth }).map((_, i) => {
               const d = i + 1;
-              const isSelected = selectedDate?.getDate() === d && selectedDate?.getMonth() === viewMonth && selectedDate?.getFullYear() === viewYear;
-              const isToday = today.getDate() === d && today.getMonth() === viewMonth && today.getFullYear() === viewYear;
+              const isSel =
+                selDate?.getDate() === d &&
+                selDate?.getMonth() === viewMonth &&
+                selDate?.getFullYear() === viewYear;
+              const isTod =
+                today.getDate() === d &&
+                today.getMonth() === viewMonth &&
+                today.getFullYear() === viewYear;
               return (
-                <div key={d} onClick={() => selectDay(d)} style={{
-                  textAlign: "center", padding: "5px 0", borderRadius: "7px", cursor: "pointer", fontSize: ".78rem",
-                  fontWeight: isSelected ? 700 : 400,
-                  background: isSelected ? T.accent : "transparent",
-                  color: isSelected ? "#fff" : isToday ? T.accent : T.textH,
-                  outline: isToday && !isSelected ? `1.5px solid ${T.accent}` : "none",
-                  transition: "background .15s",
-                }}>
+                <div
+                  key={d}
+                  onClick={() => selectDay(d)}
+                  style={{
+                    textAlign: "center", padding: "6px 0", borderRadius: "8px",
+                    cursor: "pointer", fontSize: ".8rem",
+                    fontWeight: isSel ? 700 : 400,
+                    background: isSel ? T.accent : "transparent",
+                    color: isSel ? "#fff" : isTod ? T.accent : T.textH,
+                    outline: isTod && !isSel ? `1.5px solid ${T.accent}` : "none",
+                    transition: "background .15s",
+                  }}
+                >
                   {d}
                 </div>
               );
             })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Custom Time Picker ─────────────────────────────────────────────────────────
-function TimePicker({ value, onChange, error }: { value: string; onChange: (v: string) => void; error?: string }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const hourRef = useRef<HTMLDivElement>(null);
-  const minRef = useRef<HTMLDivElement>(null);
-
-  const parsedHour = value ? parseInt(value.split(":")[0]) : -1;
-  const parsedMin = value ? parseInt(value.split(":")[1]) : -1;
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  useEffect(() => {
-    if (open && parsedHour >= 0) {
-      setTimeout(() => {
-        hourRef.current?.children[parsedHour]?.scrollIntoView({ block: "center" });
-        minRef.current?.children[parsedMin]?.scrollIntoView({ block: "center" });
-      }, 50);
-    }
-  }, [open]);
-
-  const selectHour = (h: number) => {
-    const mm = parsedMin >= 0 ? String(parsedMin).padStart(2, "0") : "00";
-    onChange(`${String(h).padStart(2, "0")}:${mm}`);
-  };
-  const selectMin = (m: number) => {
-    const hh = parsedHour >= 0 ? String(parsedHour).padStart(2, "0") : "00";
-    onChange(`${hh}:${String(m).padStart(2, "0")}`);
-  };
-
-  const displayHour = parsedHour >= 0 ? parsedHour % 12 || 12 : null;
-  const displayAmPm = parsedHour >= 0 ? (parsedHour >= 12 ? "PM" : "AM") : null;
-  const displayMin = parsedMin >= 0 ? String(parsedMin).padStart(2, "0") : null;
-  const displayValue = displayHour !== null ? `${displayHour}:${displayMin} ${displayAmPm}` : "";
-
-  const scrollStyle: React.CSSProperties = {
-    overflowY: "auto", height: 160, scrollbarWidth: "none",
-    display: "flex", flexDirection: "column", gap: 2,
-  };
-  const itemStyle = (active: boolean): React.CSSProperties => ({
-    padding: "5px 10px", borderRadius: "7px", cursor: "pointer",
-    fontSize: ".8rem", textAlign: "center",
-    background: active ? T.accent : "transparent",
-    color: active ? "#fff" : T.textSub,
-    fontWeight: active ? 700 : 400,
-    flexShrink: 0,
-    transition: "background .12s",
-  });
-
-  return (
-    <div ref={ref} style={{ position: "relative" }}>
-      <div
-        onClick={() => setOpen(o => !o)}
-        style={{
-          ...inputBase,
-          borderColor: error ? T.red : open ? T.accent : T.border,
-          boxShadow: open ? `0 0 0 3px ${T.accentGlow}` : "none",
-          cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between",
-          userSelect: "none",
-        }}
-      >
-        <span style={{ color: displayValue ? T.textH : T.textFaint }}>
-          {displayValue || "Pick a time"}
-        </span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.textFaint} strokeWidth="2">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-
-      {open && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200,
-          background: "#fff",
-          border: `1.5px solid ${T.border}`,
-          borderRadius: T.r, padding: "1rem", width: 200,
-          boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
-        }}>
-          <div style={{ fontSize: ".6rem", fontWeight: 700, letterSpacing: ".1em", color: T.textFaint, textTransform: "uppercase", marginBottom: ".6rem" }}>
-            Select Time
-          </div>
-          <div style={{ display: "flex", gap: ".5rem" }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: ".6rem", color: T.textFaint, textAlign: "center", marginBottom: ".3rem" }}>HR</div>
-              <div ref={hourRef} style={scrollStyle}>
-                {Array.from({ length: 24 }, (_, h) => (
-                  <div key={h} onClick={() => selectHour(h)} style={itemStyle(parsedHour === h)}>
-                    {h % 12 || 12}{h < 12 ? "am" : "pm"}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: ".6rem", color: T.textFaint, textAlign: "center", marginBottom: ".3rem" }}>MIN</div>
-              <div ref={minRef} style={scrollStyle}>
-                {Array.from({ length: 60 }, (_, m) => (
-                  <div key={m} onClick={() => selectMin(m)} style={itemStyle(parsedMin === m)}>
-                    {String(m).padStart(2, "0")}
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -304,10 +301,10 @@ export function CreateRideModal({
 
   useEffect(() => {
     usersApi.getAll().then(res => {
-      setPassengers(res.data.filter(u => u.role === "passenger"));
+      setPassengers(res.data.filter((u: AdminUser) => u.role === "passenger"));
     }).catch(() => {});
     classesApi.getAll().then(res => {
-      setClasses(res.filter(c => c.isActive));
+      setClasses(res.filter((c: VehicleClass) => c.isActive));
     }).catch(() => {});
   }, []);
 
@@ -318,12 +315,12 @@ export function CreateRideModal({
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!passengerId)          e.passenger = "Select a passenger";
-    if (!classId)              e.classId   = "Select a class";
-    if (!pickupAddress.trim()) e.pickup    = "Required";
-    if (!dropoffAddress.trim())e.dropoff   = "Required";
-    if (!scheduledDate)        e.date      = "Required";
-    if (!scheduledTime)        e.time      = "Required";
+    if (!passengerId)           e.passenger = "Select a passenger";
+    if (!classId)               e.classId   = "Select a class";
+    if (!pickupAddress.trim())  e.pickup    = "Required";
+    if (!dropoffAddress.trim()) e.dropoff   = "Required";
+    if (!scheduledDate)         e.date      = "Required";
+    if (!scheduledTime)         e.time      = "Required";
     return e;
   };
 
@@ -358,18 +355,19 @@ export function CreateRideModal({
         .crm-scroll::-webkit-scrollbar { width: 4px; }
         .crm-scroll::-webkit-scrollbar-track { background: transparent; }
         .crm-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
-        .crm-input:focus { border-color: ${T.accent} !important; box-shadow: 0 0 0 3px ${T.accentGlow} !important; }
         .crm-passenger-row:hover { background: ${T.surfaceHover} !important; }
         .crm-btn-ghost:hover { background: ${T.surface} !important; }
         .crm-select:focus { border-color: ${T.accent} !important; box-shadow: 0 0 0 3px ${T.accentGlow} !important; outline: none; }
-        .crm-select option { background: #fff; color: #111827; }
+        .crm-select option { background: var(--bg-card); color: var(--text-h); }
+        .crm-input:focus { border-color: ${T.accent} !important; box-shadow: 0 0 0 3px ${T.accentGlow} !important; }
+        .crm-spinner-btn:hover { background: ${T.surface} !important; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
 
       <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
         <div style={{
           width: "100%", maxWidth: 520,
-          background: "#ffffff",
+          background: T.bg,
           border: `1.5px solid ${T.border}`,
           borderRadius: "20px",
           boxShadow: "0 24px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.06)",
@@ -379,23 +377,24 @@ export function CreateRideModal({
           display: "flex", flexDirection: "column",
         }}>
 
-          {/* Header */}
+          {/* ── Header ── */}
           <div style={{
             padding: "1.2rem 1.5rem",
             borderBottom: `1.5px solid ${T.border}`,
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            background: "#fafbfc",
+            background: T.surface,
             flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
               <div style={{
                 width: 36, height: 36, borderRadius: "10px",
-                background: `linear-gradient(135deg, ${T.accent}, #5b21b6)`,
+                background: `linear-gradient(135deg, ${T.accent}, #7c22ce)`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: `0 4px 14px ${T.accentGlow}`,
               }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
                 </svg>
               </div>
               <div>
@@ -413,30 +412,25 @@ export function CreateRideModal({
             </button>
           </div>
 
-          {/* Body */}
+          {/* ── Body ── */}
           <div className="crm-scroll" style={{ overflowY: "auto", padding: "1.4rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1 }}>
 
-            {/* ── Schedule (MOVED TO TOP) ── */}
+            {/* ── Schedule ── */}
             <div>
               <label style={labelStyle}>Schedule</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".75rem" }}>
-                <div>
-                  <DatePicker
-                    value={scheduledDate}
-                    onChange={v => { setScheduledDate(v); setErrors(e => ({ ...e, date: "" })); }}
-                    error={errors.date}
-                  />
-                  {errors.date && <span style={{ color: T.red, fontSize: ".68rem", marginTop: ".3rem", display: "block" }}>{errors.date}</span>}
-                </div>
-                <div>
-                  <TimePicker
-                    value={scheduledTime}
-                    onChange={v => { setScheduledTime(v); setErrors(e => ({ ...e, time: "" })); }}
-                    error={errors.time}
-                  />
-                  {errors.time && <span style={{ color: T.red, fontSize: ".68rem", marginTop: ".3rem", display: "block" }}>{errors.time}</span>}
-                </div>
-              </div>
+              <SchedulePicker
+                date={scheduledDate}
+                time={scheduledTime}
+                onDateChange={v => { setScheduledDate(v); setErrors(e => ({ ...e, date: "" })); }}
+                onTimeChange={v => { setScheduledTime(v); setErrors(e => ({ ...e, time: "" })); }}
+                dateError={errors.date}
+                timeError={errors.time}
+              />
+              {(errors.date || errors.time) && (
+                <span style={{ color: T.red, fontSize: ".68rem", marginTop: ".3rem", display: "block" }}>
+                  {errors.date || errors.time}
+                </span>
+              )}
             </div>
 
             {/* ── Divider ── */}
@@ -445,19 +439,34 @@ export function CreateRideModal({
             {/* ── Passenger ── */}
             <div>
               <label style={labelStyle}>Passenger *</label>
-              {/* Search */}
-              <div style={{
-                display: "flex", alignItems: "center", gap: ".5rem",
-                border: `1.5px solid ${T.border}`, borderRadius: T.rSm,
-                padding: ".55rem .85rem", background: T.bg, marginBottom: ".5rem",
-              }}>
+
+              <div
+                style={{
+                  display: "flex", alignItems: "center", gap: ".5rem",
+                  border: `1.5px solid ${T.border}`, borderRadius: T.rSm,
+                  padding: ".55rem .85rem", background: T.bg, marginBottom: ".5rem",
+                  transition: "border-color .2s, box-shadow .2s",
+                }}
+                onFocus={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.borderColor = T.accent;
+                  el.style.boxShadow = `0 0 0 3px ${T.accentGlow}`;
+                }}
+                onBlur={e => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.borderColor = T.border;
+                  el.style.boxShadow = "none";
+                }}
+              >
                 <SearchRoundedIcon style={{ fontSize: 14, color: T.textFaint, flexShrink: 0 }} />
                 <input
-                  className="crm-input"
                   placeholder="Search by name or email…"
                   value={passengerSearch}
                   onChange={e => setPassengerSearch(e.target.value)}
-                  style={{ border: "none", outline: "none", background: "transparent", fontSize: ".82rem", flex: 1, color: T.textH, fontFamily: "inherit" }}
+                  style={{
+                    border: "none", outline: "none", background: "transparent",
+                    fontSize: ".82rem", flex: 1, color: T.textH, fontFamily: "inherit",
+                  }}
                 />
               </div>
 
@@ -472,7 +481,9 @@ export function CreateRideModal({
                 {filteredPassengers.slice(0, 20).map(p => {
                   const isSel = passengerId === p.id;
                   return (
-                    <div key={p.id} className={isSel ? "" : "crm-passenger-row"}
+                    <div
+                      key={p.id}
+                      className={isSel ? "" : "crm-passenger-row"}
                       onClick={() => { setPassengerId(p.id); setErrors(e => ({ ...e, passenger: "" })); }}
                       style={{
                         display: "flex", alignItems: "center", gap: ".6rem",
@@ -480,10 +491,11 @@ export function CreateRideModal({
                         background: isSel ? T.violetLight : "transparent",
                         border: `1.5px solid ${isSel ? T.accent : "transparent"}`,
                         transition: "all .15s",
-                      }}>
+                      }}
+                    >
                       <div style={{
                         width: 30, height: 30, borderRadius: "50%", flexShrink: 0,
-                        background: isSel ? `linear-gradient(135deg, ${T.accent}, #5b21b6)` : "rgba(0,0,0,0.06)",
+                        background: isSel ? `linear-gradient(135deg, ${T.accent}, #7c22ce)` : "rgba(0,0,0,0.06)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontWeight: 700, fontSize: ".62rem",
                         color: isSel ? "#fff" : T.textSub,
@@ -503,13 +515,15 @@ export function CreateRideModal({
                   );
                 })}
                 {filteredPassengers.length === 0 && (
-                  <div style={{ textAlign: "center", color: T.textFaint, fontSize: ".78rem", padding: ".75rem 0" }}>No passengers found</div>
+                  <div style={{ textAlign: "center", color: T.textFaint, fontSize: ".78rem", padding: ".75rem 0" }}>
+                    No passengers found
+                  </div>
                 )}
               </div>
               {errors.passenger && <span style={{ color: T.red, fontSize: ".68rem", marginTop: ".3rem", display: "block" }}>{errors.passenger}</span>}
             </div>
 
-            {/* ── Vehicle Class (Dropdown) ── */}
+            {/* ── Vehicle Class ── */}
             <div>
               <label style={labelStyle}>Vehicle Class *</label>
               <select
@@ -539,29 +553,42 @@ export function CreateRideModal({
             <div>
               <label style={labelStyle}>Route</label>
               <div style={{ display: "flex", flexDirection: "column", gap: ".5rem" }}>
+
                 {/* Pickup */}
                 <div style={{ position: "relative" }}>
                   <div style={{
                     position: "absolute", left: ".85rem", top: "50%", transform: "translateY(-50%)",
                     width: 8, height: 8, borderRadius: "50%",
-                    background: "#22c55e", boxShadow: "0 0 8px #22c55e66",
+                    background: T.accent,
+                    boxShadow: `0 0 8px ${T.accentGlow}`,
+                    zIndex: 1,
                   }} />
-                  <input
-                    className="crm-input"
-                    placeholder="Pickup address"
+                  <MapboxAutocomplete
                     value={pickupAddress}
-                    onChange={e => { setPickupAddress(e.target.value); setErrors(ev => ({ ...ev, pickup: "" })); }}
-                    style={{
+                    onChange={v => { setPickupAddress(v); setErrors(ev => ({ ...ev, pickup: "" })); }}
+                    placeholder="Pickup address"
+                    inputClassName="crm-input"
+                    inputStyle={{
                       ...inputBase, paddingLeft: "2rem",
                       borderColor: errors.pickup ? T.red : T.border,
+                    }}
+                    onFocus={e => {
+                      (e.target as HTMLInputElement).style.borderColor = T.accent;
+                      (e.target as HTMLInputElement).style.boxShadow = `0 0 0 3px ${T.accentGlow}`;
+                    }}
+                    onBlur={e => {
+                      if (e?.target) {
+                        (e.target as HTMLInputElement).style.borderColor = errors.pickup ? T.red : T.border;
+                        (e.target as HTMLInputElement).style.boxShadow = "none";
+                      }
                     }}
                   />
                 </div>
                 {errors.pickup && <span style={{ color: T.red, fontSize: ".68rem" }}>{errors.pickup}</span>}
 
-                {/* Connector line */}
+                {/* Connector */}
                 <div style={{ display: "flex", alignItems: "center", gap: ".5rem", padding: "0 .85rem" }}>
-                  <div style={{ width: 1, height: 14, background: `linear-gradient(to bottom, #22c55e, ${T.red})`, marginLeft: 3 }} />
+                  <div style={{ width: 1, height: 14, background: `linear-gradient(to bottom, ${T.accent}, ${T.red})`, marginLeft: 3 }} />
                   <span style={{ fontSize: ".65rem", color: T.textFaint }}>direct route</span>
                 </div>
 
@@ -571,15 +598,26 @@ export function CreateRideModal({
                     position: "absolute", left: ".85rem", top: "50%", transform: "translateY(-50%)",
                     width: 8, height: 8, borderRadius: "2px",
                     background: T.red, boxShadow: `0 0 8px ${T.red}55`,
+                    zIndex: 1,
                   }} />
-                  <input
-                    className="crm-input"
-                    placeholder="Drop-off address"
+                  <MapboxAutocomplete
                     value={dropoffAddress}
-                    onChange={e => { setDropoffAddress(e.target.value); setErrors(ev => ({ ...ev, dropoff: "" })); }}
-                    style={{
+                    onChange={v => { setDropoffAddress(v); setErrors(ev => ({ ...ev, dropoff: "" })); }}
+                    placeholder="Drop-off address"
+                    inputClassName="crm-input"
+                    inputStyle={{
                       ...inputBase, paddingLeft: "2rem",
                       borderColor: errors.dropoff ? T.red : T.border,
+                    }}
+                    onFocus={e => {
+                      (e.target as HTMLInputElement).style.borderColor = T.accent;
+                      (e.target as HTMLInputElement).style.boxShadow = `0 0 0 3px ${T.accentGlow}`;
+                    }}
+                    onBlur={e => {
+                      if (e?.target) {
+                        (e.target as HTMLInputElement).style.borderColor = errors.dropoff ? T.red : T.border;
+                        (e.target as HTMLInputElement).style.boxShadow = "none";
+                      }
                     }}
                   />
                 </div>
@@ -589,18 +627,18 @@ export function CreateRideModal({
 
           </div>
 
-          {/* Footer */}
+          {/* ── Footer ── */}
           <div style={{
             padding: "1rem 1.5rem",
             borderTop: `1.5px solid ${T.border}`,
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            background: "#fafbfc", flexShrink: 0,
+            background: T.surface, flexShrink: 0,
           }}>
             {selectedPassenger ? (
               <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
                 <div style={{
                   width: 24, height: 24, borderRadius: "6px",
-                  background: `linear-gradient(135deg, ${T.accent}, #5b21b6)`,
+                  background: `linear-gradient(135deg, ${T.accent}, #7c22ce)`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: ".55rem", fontWeight: 700, color: "#fff",
                 }}>
@@ -624,7 +662,7 @@ export function CreateRideModal({
               <button onClick={handleCreate} disabled={loading} style={{
                 padding: ".55rem 1.25rem", borderRadius: "10px",
                 border: "none",
-                background: loading ? "rgba(124,58,237,0.35)" : `linear-gradient(135deg, ${T.accent}, #5b21b6)`,
+                background: loading ? "rgba(168,85,247,0.35)" : `linear-gradient(135deg, ${T.accent}, #7c22ce)`,
                 color: loading ? "rgba(255,255,255,0.6)" : "#fff",
                 fontSize: ".82rem", fontWeight: 700,
                 cursor: loading ? "not-allowed" : "pointer",
@@ -635,14 +673,16 @@ export function CreateRideModal({
                 {loading ? (
                   <>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "spin 1s linear infinite" }}>
-                      <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".3"/><path d="M21 12a9 9 0 01-9 9"/>
+                      <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".3"/>
+                      <path d="M21 12a9 9 0 01-9 9"/>
                     </svg>
                     Creating…
                   </>
                 ) : (
                   <>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
                     </svg>
                     Create Ride
                   </>

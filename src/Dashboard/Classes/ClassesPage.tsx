@@ -109,10 +109,14 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
           </h1>
         </div>
         <button
-          className="ts-btn-primary"
           onClick={() => onNavigate("classes-add", null)}
+          style={{
+            background: "#7c3aed", color: "#fff", border: "none",
+            borderRadius: 8, padding: "8px 18px", fontSize: ".82rem",
+            fontWeight: 600, cursor: "pointer",
+          }}
         >
-          <span style={{ fontSize: "1rem", lineHeight: 1 }}>＋</span> Add Class
+          + Add Class
         </button>
       </div>
 

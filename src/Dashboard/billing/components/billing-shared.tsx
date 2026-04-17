@@ -25,6 +25,7 @@ export const TD: React.CSSProperties = {
   padding: "0 1.1rem",
   height: ROW_H,
   fontSize: ".85rem",
+  fontWeight: 600,
   color: "var(--text-body)",
   borderBottom: "1px solid var(--border)",
   verticalAlign: "middle",

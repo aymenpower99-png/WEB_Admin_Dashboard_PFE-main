@@ -1,14 +1,10 @@
-import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import HighlightOffRoundedIcon from "@mui/icons-material/HighlightOffRounded";
-import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
-import BuildRoundedIcon from "@mui/icons-material/BuildRounded";
+import { User, CheckCircle, XCircle, Clock, Wrench } from "lucide-react";
 
 import type { DriverProfile } from "../../../api/drivers";
 
-function StatCard({ label, value, icon, iconBg, iconColor }: {
+function StatCard({ label, value, Icon, iconBg, iconColor }: {
   label: string; value: number | string;
-  icon: React.ReactNode; iconBg: string; iconColor: string;
+  Icon: React.ElementType; iconBg: string; iconColor: string;
 }) {
   return (
     <div style={{
@@ -18,18 +14,18 @@ function StatCard({ label, value, icon, iconBg, iconColor }: {
       flex: 1, minWidth: 0, boxShadow: "0 1px 3px rgba(0,0,0,.04)",
     }}>
       <div>
-        <p style={{ margin: 0, fontSize: ".78rem", color: "var(--text-muted)", fontWeight: 500, marginBottom: ".3rem" }}>
-          {label}
-        </p>
-        <p style={{ margin: 0, fontSize: "1.65rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>
-          {value}
-        </p>
+        <p style={{
+          margin: 0, fontSize: ".78rem", color: "var(--text-muted)",
+          fontWeight: 500, marginBottom: ".3rem",
+          textTransform: "uppercase", letterSpacing: ".05em",
+        }}>{label}</p>
+        <p style={{ margin: 0, fontSize: "1.65rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>{value}</p>
       </div>
       <div style={{
         width: 42, height: 42, borderRadius: "50%", background: iconBg,
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}>
-        <span style={{ color: iconColor, display: "flex" }}>{icon}</span>
+        <Icon size={18} color={iconColor} strokeWidth={1.75} />
       </div>
     </div>
   );
@@ -46,30 +42,29 @@ export default function DriverKpiCards({ drivers }: { drivers: DriverProfile[] }
     <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
       <StatCard
         label="Total Drivers" value={total}
-        icon={<PersonRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={User}
         iconBg="var(--driver-bg)" iconColor="var(--driver-fg)"
       />
       <StatCard
         label="Pending" value={pending}
-        icon={<HourglassEmptyRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={Clock}
         iconBg="#fef9c3" iconColor="#854d0e"
       />
       <StatCard
         label="Setup Required" value={setupRequired}
-        icon={<BuildRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={Wrench}
         iconBg="rgba(234,88,12,0.12)" iconColor="#c2410c"
       />
       <StatCard
         label="Online" value={online}
-        icon={<CheckCircleRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={CheckCircle}
         iconBg="var(--active-bg)" iconColor="var(--active-fg)"
       />
       <StatCard
         label="Offline" value={offline}
-        icon={<HighlightOffRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={XCircle}
         iconBg="var(--refunded-bg)" iconColor="var(--refunded-fg)"
       />
-      {/* Avg Rating card removed */}
     </div>
   );
 }

@@ -83,9 +83,15 @@ export default function WorkAreasPage() {
             <h1 className="ts-page-title">Work Areas</h1>
             <p className="ts-page-subtitle">Assign each driver to their service zone</p>
           </div>
-          <button className="ts-btn-primary" onClick={() => setShowAddArea(true)}>
-            <AddLocationAltRoundedIcon style={{ fontSize: 15 }} />
-            Add Work Area
+          <button
+            onClick={() => setShowAddArea(true)}
+            style={{
+              background: "#7c3aed", color: "#fff", border: "none",
+              borderRadius: 8, padding: "8px 18px", fontSize: ".82rem",
+              fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            + Add Work Area
           </button>
         </div>
 

@@ -24,7 +24,7 @@ const TH: React.CSSProperties = {
   borderBottom: "1px solid var(--border)", whiteSpace: "nowrap", background: "var(--bg-thead)",
 };
 const TD: React.CSSProperties = {
-  padding: "0 1rem", height: ROW_H, fontSize: ".875rem", color: "var(--text-body)",
+  padding: "0 1rem", height: ROW_H, fontSize: ".875rem", fontWeight: 600, color: "var(--text-body)",
   borderBottom: "1px solid var(--border)", verticalAlign: "middle",
 };
 
@@ -137,8 +137,15 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
             Manage your fleet vehicles
           </p>
         </div>
-        <button className="ts-btn-primary" onClick={() => onNavigate("agency-vehicles", null)}>
-          <span style={{ fontSize: "1rem", lineHeight: 1 }}>＋</span> Add Vehicle
+        <button
+          onClick={() => onNavigate("agency-vehicles", null)}
+          style={{
+            background: "#7c3aed", color: "#fff", border: "none",
+            borderRadius: 8, padding: "8px 18px", fontSize: ".82rem",
+            fontWeight: 600, cursor: "pointer",
+          }}
+        >
+          + Add Vehicle
         </button>
       </div>
 

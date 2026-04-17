@@ -1,12 +1,8 @@
-import DirectionsCarRoundedIcon  from "@mui/icons-material/DirectionsCarRounded";
-import CheckCircleRoundedIcon    from "@mui/icons-material/CheckCircleRounded";
-import HourglassEmptyRoundedIcon from "@mui/icons-material/HourglassEmptyRounded";
-import BuildRoundedIcon          from "@mui/icons-material/BuildRounded";
-import SyncRoundedIcon           from "@mui/icons-material/SyncRounded";
+import { Car, CheckCircle, Clock, RefreshCw, Wrench } from "lucide-react";
 
-function StatCard({ label, value, icon, iconBg, iconColor }: {
+function StatCard({ label, value, Icon, iconBg, iconColor }: {
   label: string; value: number;
-  icon: React.ReactNode; iconBg: string; iconColor: string;
+  Icon: React.ElementType; iconBg: string; iconColor: string;
 }) {
   return (
     <div style={{
@@ -20,18 +16,14 @@ function StatCard({ label, value, icon, iconBg, iconColor }: {
           margin: 0, fontSize: ".78rem", color: "var(--text-muted)",
           fontWeight: 500, marginBottom: ".3rem",
           textTransform: "uppercase", letterSpacing: ".05em",
-        }}>
-          {label}
-        </p>
-        <p style={{ margin: 0, fontSize: "1.65rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>
-          {value}
-        </p>
+        }}>{label}</p>
+        <p style={{ margin: 0, fontSize: "1.65rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>{value}</p>
       </div>
       <div style={{
         width: 42, height: 42, borderRadius: "50%", background: iconBg,
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}>
-        <span style={{ color: iconColor, display: "flex" }}>{icon}</span>
+        <Icon size={18} color={iconColor} strokeWidth={1.75} />
       </div>
     </div>
   );
@@ -43,19 +35,19 @@ export default function StatCards({ total, available, pending, maintenance, onTr
   return (
     <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
       <StatCard label="Total Vehicles" value={total}
-        icon={<DirectionsCarRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={Car}
         iconBg="var(--driver-bg)" iconColor="var(--driver-fg)" />
       <StatCard label="Available" value={available}
-        icon={<CheckCircleRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={CheckCircle}
         iconBg="var(--active-bg)" iconColor="var(--active-fg)" />
       <StatCard label="Pending" value={pending}
-        icon={<HourglassEmptyRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={Clock}
         iconBg="var(--pending-bg)" iconColor="var(--pending-fg)" />
       <StatCard label="On Trip" value={onTrip}
-        icon={<SyncRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={RefreshCw}
         iconBg="var(--rider-bg)" iconColor="var(--rider-fg)" />
       <StatCard label="Maintenance" value={maintenance}
-        icon={<BuildRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={Wrench}
         iconBg="var(--blocked-bg)" iconColor="var(--blocked-fg)" />
     </div>
   );

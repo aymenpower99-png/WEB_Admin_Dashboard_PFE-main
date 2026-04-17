@@ -21,48 +21,55 @@ export const T = {
 };
 
 export const overlay: React.CSSProperties = {
-  position: "fixed", inset: 0, background: T.bgOverlay,
+  position: "fixed", inset: 0, background: "rgba(0,0,0,.45)",
   display: "flex", alignItems: "center", justifyContent: "center",
-  zIndex: 1000, padding: "1rem", backdropFilter: "blur(4px)",
+  zIndex: 1000, padding: "1rem", backdropFilter: "blur(8px)",
 };
 
 export const modalBase: React.CSSProperties = {
   background: T.bgModal, borderRadius: T.rModal,
-  boxShadow: "0 20px 60px rgba(0,0,0,.18)",
+  boxShadow: "0 24px 60px rgba(0,0,0,.14), 0 4px 16px rgba(0,0,0,.06)",
   width: "100%", maxWidth: "480px",
   display: "flex", flexDirection: "column",
   maxHeight: "90vh", overflow: "hidden",
+  border: `1.5px solid ${T.border}`,
+  fontFamily: "'DM Sans', system-ui, sans-serif",
 };
 
 export const modalHeader: React.CSSProperties = {
   display: "flex", alignItems: "flex-start", justifyContent: "space-between",
-  padding: "1.25rem 1.5rem 1rem",
-  borderBottom: `1px solid ${T.border}`,
+  padding: "1.2rem 1.5rem",
+  borderBottom: `1.5px solid ${T.border}`,
+  background: T.bgInner,
 };
 
 export const modalBody: React.CSSProperties = {
-  padding: "1.25rem 1.5rem",
-  display: "flex", flexDirection: "column", gap: "1rem",
+  padding: "1.4rem 1.5rem",
+  display: "flex", flexDirection: "column", gap: "1.05rem",
   overflowY: "auto",
 };
 
 export const modalFooter: React.CSSProperties = {
   display: "flex", alignItems: "center", justifyContent: "flex-end", gap: ".75rem",
   padding: "1rem 1.5rem",
-  borderTop: `1px solid ${T.border}`,
+  borderTop: `1.5px solid ${T.border}`,
+  background: T.bgInner,
 };
 
 export const btnClose: React.CSSProperties = {
-  width: 28, height: 28, borderRadius: "50%",
-  border: `1px solid ${T.border}`, background: "transparent",
+  width: 32, height: 32, borderRadius: "8px",
+  border: `1.5px solid ${T.border}`, background: T.bgInner,
   display: "flex", alignItems: "center", justifyContent: "center",
   cursor: "pointer", color: T.textSub, flexShrink: 0,
+  transition: "background 150ms ease",
 };
 
 export const btnPrimary: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: ".4rem",
-  background: T.violet, color: "#fff", border: "none", borderRadius: "8px",
-  padding: ".55rem 1.25rem", fontSize: ".82rem", fontWeight: 600, cursor: "pointer",
+  background: "linear-gradient(135deg, #a855f7, #7c22ce)", color: "#fff",
+  border: "none", borderRadius: "10px",
+  padding: ".55rem 1.25rem", fontSize: ".82rem", fontWeight: 700, cursor: "pointer",
+  boxShadow: "0 4px 16px rgba(168,85,247,0.18)",
 };
 
 export const btnPrimaryDisabled: React.CSSProperties = {
@@ -71,8 +78,9 @@ export const btnPrimaryDisabled: React.CSSProperties = {
 
 export const btnGhost: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: ".4rem",
-  background: "transparent", color: T.textSub, border: "none", borderRadius: "8px",
-  padding: ".55rem .9rem", fontSize: ".82rem", fontWeight: 500, cursor: "pointer",
+  background: "transparent", color: T.textSub,
+  border: `1.5px solid ${T.border}`, borderRadius: "10px",
+  padding: ".55rem 1rem", fontSize: ".82rem", fontWeight: 600, cursor: "pointer",
 };
 
 export const cardInner: React.CSSProperties = {

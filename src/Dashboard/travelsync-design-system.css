@@ -12,7 +12,7 @@
   /* Brand gradient */
   --brand-from:        #a855f7;
   --brand-to:          #7c3aed;
-  --brand-logo:        #9d73ff;
+  --brand-logo:        #9d73ff; 
   --brand-soft:        rgba(124,58,237,0.06);
   --brand-soft-hover:  rgba(124,58,237,0.10);
 
@@ -50,9 +50,9 @@
   --r-card:            1.5rem;
   --r-inner:           0.75rem;
   --r-pill:            9999px;
-  --r-modal:           1rem;
+  --r-modal:           1.25rem;
   --shadow-card:       0 1px 3px rgba(0,0,0,.07),0 1px 2px -1px rgba(0,0,0,.07);
-  --shadow-modal:      0 25px 50px -12px rgba(0,0,0,.25);
+  --shadow-modal:      0 24px 60px rgba(0,0,0,.14), 0 4px 16px rgba(0,0,0,.06);
   --nav-h:             64px;
   --sidebar-w:         290px;
   --t-fast:            150ms ease;
@@ -209,29 +209,35 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 
 /* ─── 9. BUTTONS ────────────────────────────────────────────────────── */
 .ts-btn-primary {
-  display: inline-flex; align-items: center; gap: .375rem;
-  padding: .375rem 1rem; border-radius: var(--r-pill);
-  font-size: .75rem; font-weight: 600; color: #fff;
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .55rem 1.25rem; border-radius: 10px;
+  font-size: .82rem; font-weight: 700; color: #fff;
   background: linear-gradient(135deg, var(--brand-from), var(--brand-to));
-  border: none; cursor: pointer; transition: opacity var(--t-fast);
+  border: none; cursor: pointer; transition: all .2s;
+  box-shadow: 0 4px 16px rgba(168,85,247,0.18);
+  font-family: var(--font);
 }
 .ts-btn-primary:hover { opacity: .9; }
-.ts-btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+.ts-btn-primary:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
 
 .ts-btn-ghost {
-  display: inline-flex; align-items: center; gap: .375rem;
-  padding: .375rem 1rem; border-radius: var(--r-pill);
-  font-size: .75rem; font-weight: 500; color: var(--text-body);
-  background: var(--bg-card); border: 1px solid var(--border);
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .55rem 1rem; border-radius: 10px;
+  font-size: .82rem; font-weight: 600; color: var(--text-body);
+  background: transparent; border: 1.5px solid var(--border);
   cursor: pointer; transition: background var(--t-fast);
+  font-family: var(--font);
 }
 .ts-btn-ghost:hover { background: var(--bg-inner); }
 
 .ts-btn-danger {
-  padding: .375rem 1rem; border-radius: var(--r-pill);
-  font-size: .75rem; font-weight: 500; color: #fff;
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .55rem 1.25rem; border-radius: 10px;
+  font-size: .82rem; font-weight: 700; color: #fff;
   background: #ef4444; border: none; cursor: pointer;
   transition: background var(--t-fast);
+  box-shadow: 0 4px 16px rgba(239,68,68,0.18);
+  font-family: var(--font);
 }
 .ts-btn-danger:hover { background: #dc2626; }
 
@@ -387,16 +393,18 @@ body { font-family: var(--font); background: var(--bg-page); color: var(--text-h
 .ts-selector-card.ts-sel { border-color: #7c3aed; color: #7c3aed; background: var(--brand-soft); }
 
 /* ─── 11. MODALS ─────────────────────────────────────────────────────── */
-.ts-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); animation: tsOverlayIn .2s ease; }
-.ts-modal { position: relative; width: 100%; max-width: 32rem; border-radius: var(--r-modal); background: var(--bg-card); border: 1px solid var(--border); box-shadow: var(--shadow-modal); overflow: hidden; animation: tsModalIn .2s ease; }
+.ts-overlay { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0,0,0,.45); backdrop-filter: blur(8px); animation: tsOverlayIn .2s ease; }
+.ts-modal { position: relative; width: 100%; max-width: 32rem; border-radius: var(--r-modal); background: var(--bg-card); border: 1.5px solid var(--border); box-shadow: var(--shadow-modal); overflow: hidden; animation: tsModalIn .2s ease; font-family: var(--font); }
 .ts-modal-sm { max-width: 24rem; }
 .ts-modal-lg { max-width: 48rem; }
 .ts-modal-scroll { max-height: 92vh; overflow-y: auto; }
-.ts-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; background: var(--bg-card); }
-.ts-modal-body   { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
-.ts-modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border); position: sticky; bottom: 0; background: var(--bg-card); }
-.ts-modal-close  { width: 1.75rem; height: 1.75rem; display: flex; align-items: center; justify-content: center; border-radius: var(--r-pill); border: none; background: transparent; font-size: .875rem; color: var(--text-faint); cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
-.ts-modal-close:hover { background: var(--bg-inner); color: var(--text-h); }
+.ts-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.5rem; border-bottom: 1.5px solid var(--border); position: sticky; top: 0; z-index: 10; background: var(--bg-inner); }
+.ts-modal-header h2, .ts-modal-header .ts-page-title { font-weight: 700; font-size: .95rem; color: var(--text-h); letter-spacing: -.01em; margin: 0; }
+.ts-modal-header .ts-page-subtitle { font-size: .7rem; color: var(--text-faint); margin: 1px 0 0; }
+.ts-modal-body   { padding: 1.4rem 1.5rem; display: flex; flex-direction: column; gap: 1.05rem; }
+.ts-modal-footer { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; padding: 1rem 1.5rem; border-top: 1.5px solid var(--border); position: sticky; bottom: 0; background: var(--bg-inner); }
+.ts-modal-close  { width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg-inner); font-size: .8rem; color: var(--text-faint); cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
+.ts-modal-close:hover { background: var(--bg-thead); color: var(--text-h); }
 /* Alert box styles for modals */
 .ts-alert-error { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25); border-radius: .5rem; padding: .5rem .875rem; color: #ef4444; font-size: .8rem; }
 .ts-alert-success { background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.25); border-radius: .5rem; padding: .5rem .875rem; color: #10b981; font-size: .8rem; }

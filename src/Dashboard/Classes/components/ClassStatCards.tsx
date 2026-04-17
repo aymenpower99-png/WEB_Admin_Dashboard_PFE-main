@@ -1,13 +1,8 @@
-import CategoryRoundedIcon   from "@mui/icons-material/CategoryRounded";
-import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
-import WifiRoundedIcon        from "@mui/icons-material/WifiRounded";
-import AcUnitRoundedIcon      from "@mui/icons-material/AcUnitRounded";
+import { LayoutGrid, CheckCircle, Wifi, Snowflake } from "lucide-react";
 
-function StatCard({
-  label, value, icon, iconBg, iconColor,
-}: {
+function StatCard({ label, value, Icon, iconBg, iconColor }: {
   label: string; value: number;
-  icon: React.ReactNode; iconBg: string; iconColor: string;
+  Icon: React.ElementType; iconBg: string; iconColor: string;
 }) {
   return (
     <div style={{
@@ -21,18 +16,14 @@ function StatCard({
           margin: 0, fontSize: ".78rem", color: "var(--text-muted)",
           fontWeight: 500, marginBottom: ".3rem",
           textTransform: "uppercase", letterSpacing: ".05em",
-        }}>
-          {label}
-        </p>
-        <p style={{ margin: 0, fontSize: "1.65rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>
-          {value}
-        </p>
+        }}>{label}</p>
+        <p style={{ margin: 0, fontSize: "1.65rem", fontWeight: 800, color: "var(--text-h)", lineHeight: 1 }}>{value}</p>
       </div>
       <div style={{
         width: 42, height: 42, borderRadius: "50%", background: iconBg,
         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
       }}>
-        <span style={{ color: iconColor, display: "flex" }}>{icon}</span>
+        <Icon size={18} color={iconColor} strokeWidth={1.75} />
       </div>
     </div>
   );
@@ -46,16 +37,16 @@ export default function ClassStatCards({
   return (
     <div style={{ display: "flex", gap: ".85rem", flexWrap: "wrap" }}>
       <StatCard label="Total Classes" value={total}
-        icon={<CategoryRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={LayoutGrid}
         iconBg="var(--driver-bg)" iconColor="var(--driver-fg)" />
       <StatCard label="Active" value={active}
-        icon={<CheckCircleRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={CheckCircle}
         iconBg="var(--active-bg)" iconColor="var(--active-fg)" />
       <StatCard label="WiFi Enabled" value={withWifi}
-        icon={<WifiRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={Wifi}
         iconBg="var(--rider-bg)" iconColor="var(--rider-fg)" />
       <StatCard label="A/C Enabled" value={withAc}
-        icon={<AcUnitRoundedIcon style={{ fontSize: 22 }} />}
+        Icon={Snowflake}
         iconBg="var(--pending-bg)" iconColor="var(--pending-fg)" />
     </div>
   );
