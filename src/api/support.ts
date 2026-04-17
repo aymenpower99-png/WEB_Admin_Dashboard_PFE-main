@@ -70,4 +70,7 @@ export const supportApi = {
 
   assign: (id: string): Promise<BackendTicket> =>
     apiClient.post(`/admin/support/tickets/${id}/assign`).then((r) => r.data),
+
+  remove: (id: string): Promise<{ message: string }> =>
+    apiClient.delete(`/admin/support/tickets/${id}`).then((r) => r.data),
 };

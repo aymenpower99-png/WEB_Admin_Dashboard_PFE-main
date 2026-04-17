@@ -9,7 +9,7 @@ interface HelpCenterProps {
 }
 
 export default function HelpCenter({ dark }: HelpCenterProps) {
-  const { tickets, loading, error, changeStatus, sendMessage, loadTicketMessages } = useTickets();
+  const { tickets, loading, error, changeStatus, sendMessage, deleteTicket, loadTicketMessages } = useTickets();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Auto-select first ticket once loaded
@@ -80,6 +80,10 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
           ticket={selectedTicket}
           onStatusChange={(id, status: TicketStatus) => changeStatus(id, status)}
           onSendMessage={(id, content) => sendMessage(id, content)}
+          onDelete={(id) => {
+            deleteTicket(id);
+            setSelectedId(null);
+          }}
           dark={dark}
         />
       </div>

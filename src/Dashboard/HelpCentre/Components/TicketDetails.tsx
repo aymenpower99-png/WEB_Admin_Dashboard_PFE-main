@@ -9,13 +9,15 @@ interface TicketDetailsProps {
   ticket: Ticket;
   onStatusChange: (id: string, status: TicketStatus) => void;
   onSendMessage: (id: string, content: string) => void;
+  onDelete: (id: string) => void;
   dark: boolean;
 }
 
 type Page = 1 | 2 | 3;
 
-export default function TicketDetails({ ticket, onStatusChange, onSendMessage, dark }: TicketDetailsProps) {
+export default function TicketDetails({ ticket, onStatusChange, onSendMessage, onDelete, dark }: TicketDetailsProps) {
   const [page, setPage] = useState<Page>(1);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const card    = dark ? "bg-gray-900" : "bg-white";
   const divider = dark ? "border-gray-800" : "border-gray-200";
@@ -79,6 +81,31 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, d
               </svg>
               Resolved
             </span>
+          )}
+          {/* Delete button */}
+          {!confirmDelete ? (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-xl transition-all shrink-0"
+              style={{ background: dark ? "#3f1c1c" : "#fef2f2", color: "#ef4444", border: "1px solid #fca5a5" }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>
+              </svg>
+              Delete
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className={`text-xs font-medium ${dark ? "text-gray-300" : "text-gray-600"}`}>Confirm?</span>
+              <button
+                onClick={() => { onDelete(ticket.id); setConfirmDelete(false); }}
+                className="px-3 py-2 text-xs font-bold text-white rounded-xl bg-red-600 hover:bg-red-700 transition-colors"
+              >Yes, Delete</button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className={`px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${dark ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >Cancel</button>
+            </div>
           )}
         </div>
       </div>

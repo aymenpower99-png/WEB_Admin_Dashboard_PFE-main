@@ -23,6 +23,9 @@ export const workAreasApi = {
   create: (payload: { country: string; ville: string }): Promise<WorkAreaItem> =>
     apiClient.post("/work-areas", payload).then(r => r.data),
 
+  update: (id: string, payload: { country?: string; ville?: string }): Promise<WorkAreaItem> =>
+    apiClient.patch(`/work-areas/${id}`, payload).then(r => r.data),
+
   remove: (id: string): Promise<{ message: string }> =>
     apiClient.delete(`/work-areas/${id}`).then(r => r.data),
 

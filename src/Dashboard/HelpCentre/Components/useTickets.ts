@@ -263,12 +263,22 @@ export function useTickets() {
     []
   );
 
+  // Delete ticket (hard delete)
+  const deleteTicket = useCallback(
+    async (id: string) => {
+      await supportApi.remove(id);
+      setTickets((prev) => prev.filter((t) => t.id !== id));
+    },
+    []
+  );
+
   return {
     tickets,
     loading,
     error,
     changeStatus,
     sendMessage,
+    deleteTicket,
     loadTicketMessages,
     refetch: fetchTickets,
   };
