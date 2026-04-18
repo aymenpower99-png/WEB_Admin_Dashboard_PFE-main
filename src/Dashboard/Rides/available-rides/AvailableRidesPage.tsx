@@ -44,6 +44,12 @@ export default function AvailableRidesPage() {
 
   useEffect(fetchRides, []);
 
+  // Auto-refresh every 12s so rides that get cancelled/assigned disappear without manual reload
+  useEffect(() => {
+    const id = setInterval(fetchRides, 12000);
+    return () => clearInterval(id);
+  }, []);
+
   /* ── Derived data ────────────────────────────────────────────────── */
   const filtered = useMemo(() => {
     let list = allRides;

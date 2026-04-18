@@ -8,6 +8,8 @@ import RadioButtonCheckedRoundedIcon from "@mui/icons-material/RadioButtonChecke
 import FmdGoodRoundedIcon from "@mui/icons-material/FmdGoodRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
+import WarningAmberRoundedIcon from "@mui/icons-material/WarningAmberRounded";
+import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import type { BackendRide } from "../../../api/rides";
 import {
   passengerName,
@@ -327,6 +329,120 @@ function FareCard({
   );
 }
 
+/* ─── Dispatch Report ────────────────────────────────────────────────── */
+function DispatchReport({ ride }: { ride: BackendRide }) {
+  const snap = ride.dispatchSnapshot;
+  if (!snap) return null;
+
+  const statusColor = (s: string) => {
+    if (s === "ACCEPTED") return "#10b981";
+    if (s === "REJECTED") return "#ef4444";
+    if (s === "EXPIRED")  return "#f59e0b";
+    return "#6b7280";
+  };
+
+  const noDrivers = snap.totalOffers === 0;
+
+  return (
+    <div style={{ ...cardInner, padding: "1rem 1.25rem", borderColor: "rgba(239,68,68,.25)", background: "rgba(239,68,68,.04)" }}>
+      <p style={{ fontSize: ".65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "#ef4444", margin: "0 0 .6rem" }}>
+        Dispatch Report
+      </p>
+
+      {/* Summary row */}
+      <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", marginBottom: ".6rem" }}>
+        {[
+          { label: "Attempts", value: `${snap.attempts} / 3` },
+          { label: "Offers Sent", value: `${snap.totalOffers}` },
+          { label: "Result", value: snap.result === "ASSIGNED" ? "Driver Found" : "No Driver" },
+        ].map((s) => (
+          <div key={s.label} style={{ flex: "1 1 70px", background: T.bgModal, borderRadius: "8px", border: `1px solid ${T.border}`, padding: ".45rem .6rem", textAlign: "center" }}>
+            <p style={{ fontSize: ".6rem", color: T.textFaint, margin: "0 0 .15rem", textTransform: "uppercase", letterSpacing: ".05em" }}>{s.label}</p>
+            <p style={{ fontSize: ".78rem", fontWeight: 700, color: T.textH, margin: 0 }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Diagnosis */}
+      {noDrivers ? (
+        <div style={{ background: "rgba(239,68,68,.08)", borderRadius: "8px", padding: ".6rem .75rem", display: "flex", gap: ".5rem", alignItems: "flex-start" }}>
+          <span style={{ fontSize: "1rem", lineHeight: 1 }}>🚫</span>
+          <div>
+            <p style={{ fontSize: ".76rem", fontWeight: 700, color: "#ef4444", margin: "0 0 .15rem" }}>No eligible drivers found in search area</p>
+            <p style={{ fontSize: ".7rem", color: T.textSub, margin: 0 }}>
+              All 3 dispatch attempts (10 km → 15 km → 20 km radius) found zero online drivers matching the vehicle class. No notifications were sent.
+            </p>
+          </div>
+        </div>
+      ) : snap.offers.length > 0 ? (
+        <div>
+          <p style={{ fontSize: ".65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: T.textFaint, margin: "0 0 .4rem" }}>
+            Offer Responses
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: ".25rem" }}>
+            {snap.offers.map((o, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: ".35rem .6rem", background: T.bgModal, borderRadius: "8px", border: `1px solid ${T.border}` }}>
+                <span style={{ fontSize: ".72rem", color: T.textSub }}>Driver #{o.driverId.slice(0, 6).toUpperCase()}</span>
+                <div style={{ display: "flex", gap: ".4rem", alignItems: "center" }}>
+                  {o.distKm != null && <span style={{ fontSize: ".68rem", color: T.textFaint }}>{o.distKm.toFixed(1)} km away</span>}
+                  <span style={{ fontSize: ".65rem", fontWeight: 700, padding: ".1rem .45rem", borderRadius: "99px", background: `${statusColor(o.status)}22`, color: statusColor(o.status) }}>
+                    {o.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ─── Activity Log timeline ──────────────────────────────────────────── */
+function RideActivityLog({ ride }: { ride: BackendRide }) {
+  const fmtTs = (ts: string) =>
+    new Date(ts).toLocaleString("fr-FR", {
+      day: "2-digit", month: "2-digit",
+      hour: "2-digit", minute: "2-digit",
+    });
+
+  const events: { ts: string | null; label: string; color: string }[] = [
+    { ts: ride.createdAt,       label: "Ride Created",                                            color: "#a855f7" },
+    { ts: ride.confirmedAt,     label: "Confirmed — Dispatch Started",                             color: "#a855f7" },
+    { ts: ride.enrouteAt,       label: "Driver En Route to Pickup",                               color: "#3b82f6" },
+    { ts: ride.arrivedAt,       label: "Driver Arrived at Pickup",                                color: "#3b82f6" },
+    { ts: ride.tripStartedAt,   label: "Trip Started",                                            color: "#10b981" },
+    { ts: ride.completedAt,     label: "Trip Completed",                                          color: "#10b981" },
+    { ts: ride.cancelledAt,     label: ride.cancellationReason ? `Cancelled — ${ride.cancellationReason}` : "Cancelled", color: "#ef4444" },
+  ].filter((e) => e.ts != null) as { ts: string; label: string; color: string }[];
+
+  if (events.length === 0) return null;
+
+  return (
+    <div style={{ ...cardInner, padding: "1rem 1.25rem" }}>
+      <p style={{ fontSize: ".65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: T.textFaint, margin: "0 0 .75rem" }}>
+        Activity Log
+      </p>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {events.map((ev, i) => (
+          <div key={i} style={{ display: "flex", gap: ".75rem", alignItems: "flex-start" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: ev.color, marginTop: ".15rem", boxShadow: `0 0 0 3px ${ev.color}22`, flexShrink: 0 }} />
+              {i < events.length - 1 && (
+                <div style={{ width: 2, height: 22, background: T.border, borderRadius: 1, marginTop: 2 }} />
+              )}
+            </div>
+            <div style={{ paddingBottom: i < events.length - 1 ? ".35rem" : 0 }}>
+              <p style={{ fontSize: ".78rem", fontWeight: 600, color: T.textH, margin: "0 0 .1rem" }}>{ev.label}</p>
+              <p style={{ fontSize: ".68rem", color: T.textFaint, margin: 0 }}>{fmtTs(ev.ts)}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════════════════════
    PAST RIDE DETAILS MODAL
    ════════════════════════════════════════════════════════════════════════════ */
@@ -547,6 +663,12 @@ export function PastRideDetailsModal({
               </span>
             </div>
           )}
+
+          {/* Activity Log */}
+          <RideActivityLog ride={ride} />
+
+          {/* Dispatch Report (CANCELLED rides only) */}
+          {ride.status === "CANCELLED" && <DispatchReport ride={ride} />}
         </div>
 
         {/* Footer */}
@@ -560,5 +682,111 @@ export function PastRideDetailsModal({
         </div>
       </div>
     </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   DELETE CONFIRM MODAL
+   ════════════════════════════════════════════════════════════════════════════ */
+export function DeleteConfirmModal({
+  ride,
+  onClose,
+  onConfirm,
+  deleting,
+}: {
+  ride: BackendRide;
+  onClose: () => void;
+  onConfirm: () => void;
+  deleting: boolean;
+}) {
+  return (
+    <>
+      <style>{`@keyframes prm-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <div
+        style={overlay}
+        onClick={(e) => { if (e.target === e.currentTarget && !deleting) onClose(); }}
+      >
+        <div style={{ ...modalBase, maxWidth: 420 }}>
+          {/* Header */}
+          <div style={modalHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: ".65rem" }}>
+              <div style={{ width: 36, height: 36, borderRadius: "10px", background: "rgba(239,68,68,.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <WarningAmberRoundedIcon style={{ fontSize: 18, color: "#ef4444" }} />
+              </div>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: ".95rem", color: T.textH, margin: 0 }}>Delete Ride</p>
+                <p style={{ fontSize: ".7rem", color: T.textSub, margin: "1px 0 0" }}>This action cannot be undone</p>
+              </div>
+            </div>
+            <button style={btnClose} onClick={onClose} disabled={deleting}>
+              <CloseRoundedIcon style={{ fontSize: 15 }} />
+            </button>
+          </div>
+
+          {/* Body */}
+          <div style={{ ...modalBody, gap: ".75rem" }}>
+            <p style={{ fontSize: ".85rem", color: T.textSub, margin: 0 }}>
+              Are you sure you want to{" "}
+              <strong style={{ color: "#ef4444" }}>permanently delete</strong> this
+              ride? All associated data will be lost and this cannot be reversed.
+            </p>
+
+            {/* Ride summary */}
+            <div style={{ ...cardInner, padding: ".875rem 1rem" }}>
+              <p style={{ fontSize: ".65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: T.textFaint, margin: "0 0 .4rem" }}>
+                Ride to delete
+              </p>
+              <p style={{ fontSize: ".82rem", fontWeight: 700, color: T.textH, margin: "0 0 .2rem" }}>
+                {passengerName(ride)}
+              </p>
+              <p style={{ fontSize: ".75rem", color: T.textSub, margin: "0 0 .15rem", display: "flex", alignItems: "center", gap: ".3rem" }}>
+                <RadioButtonCheckedRoundedIcon style={{ fontSize: 11, color: T.violet }} />
+                {ride.pickupAddress}
+              </p>
+              <p style={{ fontSize: ".75rem", color: T.textSub, margin: "0 0 .2rem", display: "flex", alignItems: "center", gap: ".3rem" }}>
+                <FmdGoodRoundedIcon style={{ fontSize: 11, color: T.violet }} />
+                {ride.dropoffAddress}
+              </p>
+              <p style={{ fontSize: ".7rem", color: T.textFaint, margin: 0 }}>
+                {fmtDate(ride.scheduledAt)} at {fmtTime(ride.scheduledAt)}
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ ...modalFooter, justifyContent: "space-between" }}>
+            <button style={btnGhost} onClick={onClose} disabled={deleting}>
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={deleting}
+              style={{
+                ...btnPrimary,
+                background: deleting ? "rgba(239,68,68,.35)" : "#ef4444",
+                boxShadow: deleting ? "none" : "0 4px 16px rgba(239,68,68,.2)",
+                cursor: deleting ? "not-allowed" : "pointer",
+                opacity: deleting ? 0.6 : 1,
+              }}
+            >
+              {deleting ? (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "prm-spin 1s linear infinite" }}>
+                    <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".3" />
+                    <path d="M21 12a9 9 0 01-9 9" />
+                  </svg>
+                  Deleting…
+                </>
+              ) : (
+                <>
+                  <DeleteForeverRoundedIcon style={{ fontSize: 15 }} />
+                  Delete Permanently
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

@@ -23,7 +23,7 @@ import RidePagination from "../shared/RidePagination";
 import RideRouteCell from "../shared/RideRouteCell";
 
 import PastRidesKpi from "./components/PastRidesKpi";
-import { PastRideDetailsModal } from "./PastRidesModals";
+import { PastRideDetailsModal, DeleteConfirmModal } from "./PastRidesModals";
 
 type FilterKey = "all" | "COMPLETED" | "CANCELLED";
 
@@ -41,6 +41,7 @@ export default function PastRidesPage() {
   const [page, setPage] = useState(1);
   const [detailModal, setDetailModal] = useState<BackendRide | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BackendRide | null>(null);
 
   const fetchRides = useCallback(async () => {
     try {
@@ -56,13 +57,14 @@ export default function PastRidesPage() {
     fetchRides();
   }, [fetchRides]);
 
-  const handleHardDelete = async (ride: BackendRide) => {
-    if (
-      !window.confirm(
-        `Permanently delete this ride?\n${ride.pickupAddress} → ${ride.dropoffAddress}\n\nThis cannot be undone.`,
-      )
-    )
-      return;
+  const handleHardDelete = (ride: BackendRide) => {
+    setDeleteTarget(ride);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    const ride = deleteTarget;
+    setDeleteTarget(null);
     setDeleting(ride.id);
     try {
       await ridesApi.hardDelete(ride.id);
@@ -101,6 +103,14 @@ export default function PastRidesPage() {
         <PastRideDetailsModal
           ride={detailModal}
           onClose={() => setDetailModal(null)}
+        />
+      )}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          ride={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={handleConfirmDelete}
+          deleting={!!deleting}
         />
       )}
 

@@ -279,6 +279,46 @@ function SchedulePicker({
   );
 }
 
+// ─── Dispatch Report (inline for CreateRideModal) ────────────────────────────
+function DispatchReportInline({ ride }: { ride: BackendRide }) {
+  const snap = ride.dispatchSnapshot;
+  if (!snap) return null;
+  const statusColor = (s: string) => s === "ACCEPTED" ? "#10b981" : s === "REJECTED" ? "#ef4444" : "#f59e0b";
+  const noDrivers = snap.totalOffers === 0;
+  return (
+    <div style={{ background: "rgba(239,68,68,.06)", borderRadius: T.rSm, border: "1px solid rgba(239,68,68,.25)", padding: ".875rem 1rem" }}>
+      <p style={{ fontSize: ".65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: "#ef4444", margin: "0 0 .55rem" }}>
+        Dispatch Report
+      </p>
+      <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", marginBottom: ".6rem" }}>
+        {[{ label: "Attempts", value: `${snap.attempts} / 3` }, { label: "Offers", value: `${snap.totalOffers}` }, { label: "Result", value: snap.result === "ASSIGNED" ? "Assigned" : "No Driver" }].map(s => (
+          <div key={s.label} style={{ flex: "1 1 60px", background: T.bgInner, borderRadius: "8px", border: `1px solid ${T.border}`, padding: ".4rem .5rem", textAlign: "center" }}>
+            <p style={{ fontSize: ".58rem", color: T.textFaint, margin: "0 0 .1rem", textTransform: "uppercase" }}>{s.label}</p>
+            <p style={{ fontSize: ".78rem", fontWeight: 700, color: T.textH, margin: 0 }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+      {noDrivers ? (
+        <p style={{ fontSize: ".72rem", color: T.textSub, margin: 0 }}>
+          🚫 No eligible drivers were online in the service area. All 3 attempts (10→15→20 km) returned 0 candidates.
+        </p>
+      ) : snap.offers.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: ".2rem" }}>
+          {snap.offers.map((o, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: ".3rem .6rem", background: T.bgInner, borderRadius: "6px", border: `1px solid ${T.border}` }}>
+              <span style={{ fontSize: ".7rem", color: T.textSub }}>Driver #{o.driverId.slice(0, 6).toUpperCase()}</span>
+              <div style={{ display: "flex", gap: ".35rem", alignItems: "center" }}>
+                {o.distKm != null && <span style={{ fontSize: ".66rem", color: T.textFaint }}>{o.distKm.toFixed(1)} km</span>}
+                <span style={{ fontSize: ".62rem", fontWeight: 700, padding: ".08rem .4rem", borderRadius: "99px", background: `${statusColor(o.status)}22`, color: statusColor(o.status) }}>{o.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 // ─── Main Modal ─────────────────────────────────────────────────────────────────
 export function CreateRideModal({
   onClose, onCreate,
@@ -290,6 +330,45 @@ export function CreateRideModal({
   const [classes, setClasses]       = useState<VehicleClass[]>([]);
   const [loading, setLoading]       = useState(false);
   const [errors, setErrors]         = useState<Record<string, string>>({});
+  const [phase, setPhase]           = useState<"form" | "success">("form");
+  const [logs, setLogs]             = useState<{ time: string; msg: string; kind: "ok" | "error" }[]>([]);
+  const [createdRide, setCreatedRide] = useState<BackendRide | null>(null);
+  const [pollStatus, setPollStatus] = useState<"polling" | "cancelled" | "searching" | "assigned" | null>(null);
+
+  // Poll ride status after creation to detect quick cancellations
+  useEffect(() => {
+    if (phase !== "success" || !createdRide) return;
+    let stopped = false;
+    setPollStatus("polling");
+
+    const poll = async () => {
+      for (let i = 0; i < 12; i++) { // 12 × 5s = 60s max
+        if (stopped) return;
+        await new Promise(r => setTimeout(r, 5000));
+        if (stopped) return;
+        try {
+          const fresh = await ridesApi.getOne(createdRide.id);
+          setCreatedRide(fresh);
+          if (fresh.status === "CANCELLED") {
+            const time = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            const reason = fresh.cancellationReason ?? "Unknown reason";
+            setLogs(prev => [...prev, { time, msg: `⚠️ Ride cancelled — ${reason}`, kind: "error" }]);
+            setPollStatus("cancelled");
+            return;
+          }
+          if (fresh.status === "ASSIGNED") {
+            const time = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            setLogs(prev => [...prev, { time, msg: "✅ Driver assigned successfully!", kind: "ok" }]);
+            setPollStatus("assigned");
+            return;
+          }
+        } catch { /* ignore poll errors */ }
+      }
+      setPollStatus("searching"); // timed out but still searching
+    };
+    poll();
+    return () => { stopped = true; };
+  }, [phase, createdRide?.id]);
 
   const [passengerId, setPassengerId]         = useState("");
   const [classId, setClassId]                 = useState("");
@@ -328,6 +407,11 @@ export function CreateRideModal({
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     setLoading(true);
+    setLogs([]);
+    const pushLog = (msg: string, kind: "ok" | "error") => {
+      const time = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      setLogs(prev => [...prev, { time, msg, kind }]);
+    };
     try {
       const payload: CreateRidePayload = {
         passenger_id: passengerId,
@@ -337,10 +421,23 @@ export function CreateRideModal({
         scheduled_at: `${scheduledDate}T${scheduledTime}:00`,
       };
       const newRide = await ridesApi.create(payload);
+      pushLog(`Ride created — ID #${newRide.id.slice(0, 8).toUpperCase()}`, "ok");
       // Auto-confirm: transitions PENDING → SEARCHING_DRIVER and triggers dispatch
       const confirmed = await ridesApi.confirm(newRide.id);
+      pushLog("Ride confirmed — dispatch is now searching for a driver", "ok");
+      const isImmediate = (() => {
+        const diff = new Date(confirmed.scheduledAt).getTime() - Date.now();
+        return diff <= 60 * 60 * 1000;
+      })();
+      pushLog(
+        isImmediate
+          ? "Ride is within 60 min — dispatch started immediately"
+          : "Ride is scheduled — dispatch will auto-trigger 30 min before ride time",
+        "ok",
+      );
+      setCreatedRide(confirmed);
+      setPhase("success");
       onCreate(confirmed);
-      onClose();
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to create ride");
     } finally {
@@ -364,6 +461,7 @@ export function CreateRideModal({
         .crm-input:focus { border-color: ${T.accent} !important; box-shadow: 0 0 0 3px ${T.accentGlow} !important; }
         .crm-spinner-btn:hover { background: ${T.surface} !important; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes cm-pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(1.3); } }
       `}</style>
 
       <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -417,6 +515,68 @@ export function CreateRideModal({
           {/* ── Body ── */}
           <div className="crm-scroll" style={{ overflowY: "auto", padding: "1.4rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.25rem", flex: 1 }}>
 
+            {/* ── Success view ── */}
+            {phase === "success" && createdRide ? (
+              <>
+                {/* Success banner */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: ".5rem", padding: "1rem", background: "rgba(16,185,129,.08)", borderRadius: T.rSm, border: "1px solid rgba(16,185,129,.2)" }}>
+                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(16,185,129,.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <p style={{ fontWeight: 700, fontSize: ".92rem", color: "#10b981", margin: 0 }}>Ride Created Successfully</p>
+                  <p style={{ fontSize: ".72rem", color: T.textSub, margin: 0 }}>ID #{createdRide.id.slice(0, 8).toUpperCase()}</p>
+                </div>
+
+                {/* Route summary */}
+                <div style={{ background: T.bgInner, borderRadius: T.rSm, border: `1px solid ${T.border}`, padding: ".875rem 1rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: ".4rem", marginBottom: ".35rem" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: T.accent }} />
+                    <span style={{ fontSize: ".78rem", color: T.textSub }}>{createdRide.pickupAddress}</span>
+                  </div>
+                  <div style={{ width: 2, height: 14, background: T.border, marginLeft: "3px", borderRadius: 1, marginBottom: ".35rem" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: ".4rem" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "2px", background: T.accent }} />
+                    <span style={{ fontSize: ".78rem", color: T.textSub }}>{createdRide.dropoffAddress}</span>
+                  </div>
+                </div>
+
+                {/* Activity log */}
+                <div style={{ background: T.bgInner, borderRadius: T.rSm, border: `1px solid ${T.border}`, padding: ".875rem 1rem" }}>
+                  <p style={{ fontSize: ".65rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: T.textFaint, margin: "0 0 .65rem" }}>
+                    System Activity
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {logs.map((log, i) => (
+                      <div key={i} style={{ display: "flex", gap: ".65rem", alignItems: "flex-start" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: log.kind === "ok" ? "#10b981" : T.red, marginTop: ".2rem", boxShadow: `0 0 0 2px ${log.kind === "ok" ? "rgba(16,185,129,.2)" : "rgba(239,68,68,.2)"}` }} />
+                          {i < logs.length - 1 && <div style={{ width: 1, height: 18, background: T.border, marginTop: 2 }} />}
+                        </div>
+                        <div style={{ paddingBottom: i < logs.length - 1 ? ".3rem" : 0 }}>
+                          <p style={{ fontSize: ".76rem", fontWeight: 600, color: T.textH, margin: "0 0 .05rem" }}>{log.msg}</p>
+                          <p style={{ fontSize: ".66rem", color: T.textFaint, margin: 0 }}>{log.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Polling indicator */}
+                    {pollStatus === "polling" && (
+                      <div style={{ display: "flex", gap: ".65rem", alignItems: "flex-start", marginTop: logs.length ? ".1rem" : 0 }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: T.accent, marginTop: ".2rem", animation: "cm-pulse 1.2s ease-in-out infinite", boxShadow: `0 0 0 2px ${T.accentGlow}` }} />
+                        </div>
+                        <p style={{ fontSize: ".76rem", color: T.textSub, margin: ".1rem 0 0" }}>Monitoring dispatch status…</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dispatch report if ride was cancelled */}
+                {pollStatus === "cancelled" && createdRide?.dispatchSnapshot && (
+                  <DispatchReportInline ride={createdRide} />
+                )}
+              </>
+            ) : (
+            <>
             {/* ── Schedule ── */}
             <div>
               <label style={labelStyle}>Schedule</label>
@@ -626,6 +786,8 @@ export function CreateRideModal({
                 {errors.dropoff && <span style={{ color: T.red, fontSize: ".68rem" }}>{errors.dropoff}</span>}
               </div>
             </div>
+            </>
+            )}
 
           </div>
 
@@ -636,61 +798,79 @@ export function CreateRideModal({
             display: "flex", alignItems: "center", justifyContent: "space-between",
             background: T.surface, flexShrink: 0,
           }}>
-            {selectedPassenger ? (
-              <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
-                <div style={{
-                  width: 24, height: 24, borderRadius: "6px",
+            {phase === "success" ? (
+              <>
+                <p style={{ fontSize: ".72rem", color: T.textFaint, margin: 0 }}>Ride is now active in the system</p>
+                <button onClick={onClose} style={{
+                  padding: ".55rem 1.25rem", borderRadius: "10px",
+                  border: "none",
                   background: `linear-gradient(135deg, ${T.accent}, #7c22ce)`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: ".55rem", fontWeight: 700, color: "#fff",
+                  color: "#fff", fontSize: ".82rem", fontWeight: 700,
+                  cursor: "pointer", fontFamily: "inherit",
+                  boxShadow: `0 4px 16px ${T.accentGlow}`,
                 }}>
-                  {(selectedPassenger.firstName?.[0] ?? "").toUpperCase()}{(selectedPassenger.lastName?.[0] ?? "").toUpperCase()}
-                </div>
-                <span style={{ fontSize: ".72rem", color: T.textSub }}>
-                  {selectedPassenger.firstName} {selectedPassenger.lastName}
-                </span>
-              </div>
-            ) : <div />}
+                  Done
+                </button>
+              </>
+            ) : (
+              <>
+                {selectedPassenger ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
+                    <div style={{
+                      width: 24, height: 24, borderRadius: "6px",
+                      background: `linear-gradient(135deg, ${T.accent}, #7c22ce)`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: ".55rem", fontWeight: 700, color: "#fff",
+                    }}>
+                      {(selectedPassenger.firstName?.[0] ?? "").toUpperCase()}{(selectedPassenger.lastName?.[0] ?? "").toUpperCase()}
+                    </div>
+                    <span style={{ fontSize: ".72rem", color: T.textSub }}>
+                      {selectedPassenger.firstName} {selectedPassenger.lastName}
+                    </span>
+                  </div>
+                ) : <div />}
 
-            <div style={{ display: "flex", gap: ".5rem" }}>
-              <button className="crm-btn-ghost" onClick={onClose} style={{
-                padding: ".55rem 1rem", borderRadius: "10px",
-                border: `1.5px solid ${T.border}`, background: "transparent",
-                color: T.textSub, fontSize: ".82rem", fontWeight: 600,
-                cursor: "pointer", fontFamily: "inherit", transition: "background .15s",
-              }}>
-                Cancel
-              </button>
-              <button onClick={handleCreate} disabled={loading} style={{
-                padding: ".55rem 1.25rem", borderRadius: "10px",
-                border: "none",
-                background: loading ? "rgba(168,85,247,0.35)" : `linear-gradient(135deg, ${T.accent}, #7c22ce)`,
-                color: loading ? "rgba(255,255,255,0.6)" : "#fff",
-                fontSize: ".82rem", fontWeight: 700,
-                cursor: loading ? "not-allowed" : "pointer",
-                fontFamily: "inherit",
-                boxShadow: loading ? "none" : `0 4px 16px ${T.accentGlow}`,
-                transition: "all .2s", display: "flex", alignItems: "center", gap: ".4rem",
-              }}>
-                {loading ? (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "spin 1s linear infinite" }}>
-                      <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".3"/>
-                      <path d="M21 12a9 9 0 01-9 9"/>
-                    </svg>
-                    Creating…
-                  </>
-                ) : (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="12" y1="5" x2="12" y2="19"/>
-                      <line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    Create Ride
-                  </>
-                )}
-              </button>
-            </div>
+                <div style={{ display: "flex", gap: ".5rem" }}>
+                  <button className="crm-btn-ghost" onClick={onClose} style={{
+                    padding: ".55rem 1rem", borderRadius: "10px",
+                    border: `1.5px solid ${T.border}`, background: "transparent",
+                    color: T.textSub, fontSize: ".82rem", fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit", transition: "background .15s",
+                  }}>
+                    Cancel
+                  </button>
+                  <button onClick={handleCreate} disabled={loading} style={{
+                    padding: ".55rem 1.25rem", borderRadius: "10px",
+                    border: "none",
+                    background: loading ? "rgba(168,85,247,0.35)" : `linear-gradient(135deg, ${T.accent}, #7c22ce)`,
+                    color: loading ? "rgba(255,255,255,0.6)" : "#fff",
+                    fontSize: ".82rem", fontWeight: 700,
+                    cursor: loading ? "not-allowed" : "pointer",
+                    fontFamily: "inherit",
+                    boxShadow: loading ? "none" : `0 4px 16px ${T.accentGlow}`,
+                    transition: "all .2s", display: "flex", alignItems: "center", gap: ".4rem",
+                  }}>
+                    {loading ? (
+                      <>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: "spin 1s linear infinite" }}>
+                          <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity=".3"/>
+                          <path d="M21 12a9 9 0 01-9 9"/>
+                        </svg>
+                        Creating…
+                      </>
+                    ) : (
+                      <>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <line x1="12" y1="5" x2="12" y2="19"/>
+                          <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Create Ride
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
         </div>

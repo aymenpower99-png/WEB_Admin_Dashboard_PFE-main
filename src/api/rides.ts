@@ -79,6 +79,12 @@ export interface BackendRide {
   completedAt: string | null;
   cancelledAt: string | null;
   cancellationReason: string | null;
+  dispatchSnapshot: {
+    attempts: number;
+    totalOffers: number;
+    offers: Array<{ driverId: string; status: string; score?: number; distKm?: number }>;
+    result: "ASSIGNED" | "NO_DRIVER_FOUND";
+  } | null;
 
   createdAt: string;
   updatedAt: string;
