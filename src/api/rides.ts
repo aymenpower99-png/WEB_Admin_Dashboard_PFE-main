@@ -129,6 +129,9 @@ export const ridesApi = {
   cancel: (id: string, payload?: CancelRidePayload): Promise<BackendRide> =>
     apiClient.patch(`/rides/${id}/cancel`, payload ?? {}).then((r) => r.data),
 
+  hardDelete: (id: string): Promise<void> =>
+    apiClient.delete(`/rides/${id}`).then(() => undefined),
+
   triggerDispatch: (rideId: string): Promise<{ message: string }> =>
     apiClient.post(`/dispatch/ride/${rideId}`).then((r) => r.data),
 };

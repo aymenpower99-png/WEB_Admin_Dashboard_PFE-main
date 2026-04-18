@@ -30,6 +30,15 @@ export const IconCancel = () => (
   </svg>
 );
 
+export const IconDelete = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6l-1 14H6L5 6"/>
+    <path d="M10 11v6M14 11v6"/>
+    <path d="M9 6V4h6v2"/>
+  </svg>
+);
+
 /* ─── Reusable button (same hover pattern as Drivers) ──────────────────── */
 export function ActionButton({
   title, onClick, hoverStyle, children, loading,
@@ -52,4 +61,5 @@ export const HOVER = {
   dispatch: { background: "#ede9fe", color: "#7c3aed", borderColor: "#c4b5fd" } as React.CSSProperties,
   view:     { background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" } as React.CSSProperties,
   cancel:   { background: "#fef2f2", color: "#dc2626", borderColor: "#fecaca" } as React.CSSProperties,
+  delete:   { background: "#fef2f2", color: "#dc2626", borderColor: "#fca5a5" } as React.CSSProperties,
 };

@@ -337,7 +337,9 @@ export function CreateRideModal({
         scheduled_at: `${scheduledDate}T${scheduledTime}:00`,
       };
       const newRide = await ridesApi.create(payload);
-      onCreate(newRide);
+      // Auto-confirm: transitions PENDING → SEARCHING_DRIVER and triggers dispatch
+      const confirmed = await ridesApi.confirm(newRide.id);
+      onCreate(confirmed);
       onClose();
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to create ride");

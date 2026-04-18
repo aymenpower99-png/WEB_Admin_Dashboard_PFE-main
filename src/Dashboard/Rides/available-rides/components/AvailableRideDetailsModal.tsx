@@ -61,7 +61,7 @@ export function AvailableRideDetailsModal({
             { label: "Duration", value: ride.durationMin ? `${ride.durationMin} min` : "—", icon: <AccessTimeRoundedIcon style={{ fontSize: 14, color: T.violet }} /> },
           ]} />
 
-          <FareCard fare={ride.priceFinal} />
+          <FareCard fare={ride.priceFinal} fareEstimate={ride.priceEstimate} />
         </div>
 
         <div style={modalFooter}>

@@ -80,7 +80,7 @@ export function DispatchRideModal({
             { label: "Duration", value: ride.durationMin ? `${ride.durationMin} min` : "—", icon: <AccessTimeRoundedIcon style={{ fontSize: 14, color: T.violet }} /> },
           ]} />
 
-          <FareCard fare={ride.priceFinal} />
+          <FareCard fare={ride.priceFinal} fareEstimate={ride.priceEstimate} />
 
           {needsConfirm && (
             <div style={{ ...cardInner, padding: ".75rem 1rem", background: "#fef3c7", border: "1px solid #fde68a" }}>

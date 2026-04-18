@@ -7,6 +7,7 @@ import { mapBackendVehicle } from "../types";
 import type { Vehicle } from "../types";
 
 const TRANSITIONS: Partial<Record<Vehicle["status"], Vehicle["status"][]>> = {
+  Pending:     ["Available"],
   Available:   ["Maintenance"],
   Maintenance: ["Available"],
 };
@@ -20,13 +21,13 @@ const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
 };
 
 const LOCKED_MESSAGE: Partial<Record<Vehicle["status"], string>> = {
-  Pending: "This vehicle is Pending — it becomes Available automatically once it has photos and an assigned driver.",
   On_Trip: "This vehicle is currently On Trip — status is managed by the trip system.",
 };
 
-async function callBackendTransition(vehicleId: string, to: Vehicle["status"]): Promise<any> {
+async function callBackendTransition(vehicleId: string, from: Vehicle["status"], to: Vehicle["status"]): Promise<any> {
   if (to === "Maintenance") return apiClient.post(`/vehicles/${vehicleId}/maintenance`);
-  if (to === "Available")   return apiClient.post(`/vehicles/${vehicleId}/maintenance/complete`);
+  if (to === "Available" && from === "Pending")     return apiClient.post(`/vehicles/${vehicleId}/activate`);
+  if (to === "Available" && from === "Maintenance") return apiClient.post(`/vehicles/${vehicleId}/maintenance/complete`);
   return apiClient.patch(`/vehicles/${vehicleId}`, { status: to });
 }
 
@@ -49,7 +50,7 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
     if (!selected || isLocked) return;
     setSaving(true); setErr(null);
     try {
-      const res = await callBackendTransition(vehicle.id, selected as Vehicle["status"]);
+      const res = await callBackendTransition(vehicle.id, vehicle.status, selected as Vehicle["status"]);
       onUpdated(mapBackendVehicle(res.data));
     } catch (e: any) {
       const msg = e?.response?.data?.message ?? e?.message ?? "Failed to update status.";

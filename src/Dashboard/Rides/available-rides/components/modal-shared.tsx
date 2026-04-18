@@ -129,14 +129,22 @@ export function StatsGrid({ stats }: { stats: { label: string; value: string; ic
   );
 }
 
-export function FareCard({ fare }: { fare: number | null }) {
+export function FareCard({ fare, fareEstimate }: { fare: number | null; fareEstimate?: number | null }) {
   return (
     <div style={{
       background: T.violetGrad, borderRadius: T.rInner, border: `1px solid ${T.violetBorder}`,
-      padding: "1rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "1rem 1.25rem",
     }}>
-      <p style={{ fontSize: ".68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: T.violet, margin: 0 }}>Total Fare</p>
-      <span style={{ fontSize: "1.5rem", fontWeight: 800, color: T.violet }}>{fare != null ? `${fare} TND` : "—"}</span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <p style={{ fontSize: ".68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", color: T.violet, margin: 0 }}>Prix Facture</p>
+        <span style={{ fontSize: "1.5rem", fontWeight: 800, color: T.violet }}>{fare != null ? `${fare} TND` : "—"}</span>
+      </div>
+      {fareEstimate != null && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: ".45rem" }}>
+          <p style={{ fontSize: ".65rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: ".05em", color: T.textFaint, margin: 0 }}>Prix ML (exact)</p>
+          <span style={{ fontSize: ".85rem", fontWeight: 600, color: T.textSub }}>{fareEstimate} TND</span>
+        </div>
+      )}
     </div>
   );
 }
