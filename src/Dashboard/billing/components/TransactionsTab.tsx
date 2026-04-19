@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { billingApi, type TransactionRecord, type TransactionType } from "../../../api/billing";
+import { billingApi, type TransactionRecord, type TransactionType, formatId } from "../../../api/billing";
 import {
   ROWS, ROW_H, TH, TD,
   PAYMENT_STATUS_STYLE, PAYMENT_STATUS_ICON, PAYMENT_STATUS_LABEL,
@@ -91,7 +91,7 @@ export default function TransactionsTab() {
               <>
                 {filtered.map(t => (
                   <tr key={t.id} className="ts-tr" style={{ height: ROW_H }}>
-                    <td style={TD}><span className="ts-td-h font-mono font-semibold" style={{ fontSize: ".78rem" }}>{t.id.slice(0, 8)}…</span></td>
+                    <td style={TD}><span className="ts-td-h font-mono font-semibold" style={{ fontSize: ".78rem" }}>{formatId("TXN", t.id)}</span></td>
                     <td style={TD}><span style={{ fontSize: ".82rem", color: "var(--text-muted)" }}>{new Date(t.createdAt).toLocaleDateString()}</span></td>
                     <td style={TD}><span style={{ fontSize: ".82rem", fontWeight: 600, color: TYPE_COLOR[t.transactionType] ?? "var(--text-h)" }}>{PAYMENT_STATUS_LABEL[t.transactionType] ?? t.transactionType}</span></td>
                     <td style={TD}><span style={{ fontSize: ".82rem", fontWeight: 700, color: t.amount < 0 ? "#ef4444" : "var(--text-h)" }}>{t.amount < 0 ? `-${Math.abs(t.amount).toFixed(2)}` : `${t.amount.toFixed(2)}`} TND</span></td>

@@ -19,6 +19,7 @@ export const TH: React.CSSProperties = {
   textAlign: "left",
   borderBottom: "1px solid var(--border)",
   whiteSpace: "nowrap",
+  background: "var(--bg-thead)",
 };
 
 export const TD: React.CSSProperties = {

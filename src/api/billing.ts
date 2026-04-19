@@ -5,10 +5,10 @@ import apiClient from "./apiClient";
 ══════════════════════════════════════════════════ */
 
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
-export type PaymentMethod = "CARD" | "CASH" | "WALLET";
+export type PaymentMethod = "CARD" | "CASH";
 export type TransactionType = "RIDE_PAYMENT" | "REFUND" | "ADJUSTMENT";
 export type TransactionStatus = "SUCCESS" | "FAILED";
-export type EarningStatus = "PENDING" | "CALCULATED" | "PAID";
+export type EarningStatus = "PENDING" | "CALCULATED" | "LOCKED" | "PAID";
 
 export interface TripPaymentRecord {
   id: string;
@@ -49,9 +49,21 @@ export interface TransactionRecord {
   createdAt: string;
 }
 
+export interface CommissionTierRecord {
+  id: string;
+  name: string;
+  requiredRides: number;
+  bonusAmount: number;
+  sortOrder: number;
+  isActive: boolean;
+}
+
 export interface DriverEarningRecord {
   id: string;
   driverId: string;
+  driverProfileId?: string | null;
+  driverName?: string;
+  driverEmail?: string | null;
   month: string;
   fixedSalary: number;
   totalBonuses: number;
@@ -60,6 +72,10 @@ export interface DriverEarningRecord {
   completedTrips: number;
   avgRating: number;
   cancellationCount: number;
+  attendance: number;
+  missedDays: number;
+  deductionAmount: number;
+  commissionBreakdown: { tierId: string; tierName: string; requiredRides: number; bonusAmount: number; reached: boolean }[] | null;
   earningStatus: EarningStatus;
   calculatedAt: string | null;
 }
@@ -97,6 +113,14 @@ export interface CompanyProfit {
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
+}
+
+/* ══════════════════════════════════════════════════
+   Helpers
+══════════════════════════════════════════════════ */
+
+export function formatId(prefix: string, uuid: string): string {
+  return `${prefix}-${uuid.slice(0, 8).toUpperCase()}`;
 }
 
 /* ══════════════════════════════════════════════════
@@ -139,13 +163,6 @@ export const billingApi = {
       .then((r) => r.data);
   },
 
-  /* ── Wallet ── */
-  payWithWallet(tripPaymentId: string) {
-    return apiClient
-      .patch<TripPaymentRecord>(`/billing/payments/${tripPaymentId}/pay-wallet`)
-      .then((r) => r.data);
-  },
-
   /* ── Refund ── */
   processRefund(tripPaymentId: string, reason?: string) {
     return apiClient
@@ -181,6 +198,31 @@ export const billingApi = {
     return apiClient.get<ClassRevenue[]>("/billing/revenue/by-class").then((r) => r.data);
   },
 
+  /* ── Commission Tiers ── */
+  getTiers() {
+    return apiClient
+      .get<CommissionTierRecord[]>("/billing/commission-tiers")
+      .then((r) => r.data);
+  },
+
+  createTier(data: { name: string; requiredRides: number; bonusAmount: number; sortOrder?: number }) {
+    return apiClient
+      .post<CommissionTierRecord>("/billing/commission-tiers", data)
+      .then((r) => r.data);
+  },
+
+  updateTier(id: string, data: Partial<{ name: string; requiredRides: number; bonusAmount: number; sortOrder: number; isActive: boolean }>) {
+    return apiClient
+      .patch<CommissionTierRecord>(`/billing/commission-tiers/${id}`, data)
+      .then((r) => r.data);
+  },
+
+  deleteTier(id: string) {
+    return apiClient
+      .delete(`/billing/commission-tiers/${id}`)
+      .then((r) => r.data);
+  },
+
   /* ── Driver Earnings ── */
   getDriverEarnings(params?: { month?: string; driverId?: string; page?: number; limit?: number }) {
     return apiClient
@@ -188,11 +230,9 @@ export const billingApi = {
       .then((r) => r.data);
   },
 
-  calculateEarnings(month?: string) {
+  lockMonth(month: string) {
     return apiClient
-      .post<DriverEarningRecord[]>("/billing/driver-earnings/calculate", null, {
-        params: { month },
-      })
+      .post<{ locked: number }>("/billing/driver-earnings/lock", { month })
       .then((r) => r.data);
   },
 

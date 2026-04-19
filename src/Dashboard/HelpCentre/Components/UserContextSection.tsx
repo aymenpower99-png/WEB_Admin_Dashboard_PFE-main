@@ -10,6 +10,11 @@ function formatTicketId(id: string) {
   return `TKT-${id.slice(0, 8).toUpperCase()}`;
 }
 
+function formatTripId(id: string) {
+  if (!id || id === "—") return "—";
+  return `TRP-${id.slice(0, 8).toUpperCase()}`;
+}
+
 function Avatar({ name }: { name: string }) {
   const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   const palettes = [
@@ -152,28 +157,55 @@ export default function UserContextSection({ ticket, dark }: UserContextSectionP
       </Card>
 
       {/* ── TRIP DETAILS ── */}
-      {(ticket.trip.tripId !== "—" || ticket.trip.pickupAddress) && (
-        <Card title="🚗 Trip Details" dark={dark}>
-          <InfoRow dark={dark} label="Trip ID" value={ticket.trip.tripId}
-            icon={<span className="text-sm">🆔</span>} />
+      {ticket.trip.tripId !== "—" && (
+        <Card title="Trip Details" dark={dark}>
+          <InfoRow dark={dark} label="Trip ID" value={formatTripId(ticket.trip.tripId)} accent
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18" />
+              </svg>
+            }
+          />
           {ticket.trip.pickupAddress && (
             <InfoRow dark={dark} label="Pickup" value={ticket.trip.pickupAddress}
-              icon={<span className="text-sm">📍</span>} />
+              icon={
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M20 10c0 6-8 13-8 13s-8-7-8-13a8 8 0 0 1 16 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              }
+            />
           )}
           {ticket.trip.dropOffAddress && (
             <InfoRow dark={dark} label="Drop-off" value={ticket.trip.dropOffAddress}
-              icon={<span className="text-sm">🏁</span>} />
+              icon={
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                  <line x1="4" x2="4" y1="22" y2="15" />
+                </svg>
+              }
+            />
           )}
           {ticket.trip.passengerName && (
             <InfoRow dark={dark} label="Passenger" value={ticket.trip.passengerName}
-              icon={<span className="text-sm">👤</span>} />
+              icon={
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              }
+            />
           )}
           <InfoRow dark={dark} label="Date" value={ticket.trip.date}
-            icon={<span className="text-sm">📅</span>} />
-          <InfoRow dark={dark} label="Status" value={ticket.trip.status}
-            icon={<span className="text-sm">📊</span>} />
-          <InfoRow dark={dark} label="Route" value={ticket.trip.route}
-            icon={<span className="text-sm">🗺️</span>} />
+            icon={
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                <line x1="16" x2="16" y1="2" y2="6" />
+                <line x1="8" x2="8" y1="2" y2="6" />
+                <line x1="3" x2="21" y1="10" y2="10" />
+              </svg>
+            }
+          />
         </Card>
       )}
     </div>

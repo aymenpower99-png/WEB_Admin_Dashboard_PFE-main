@@ -267,6 +267,7 @@ export default function CompleteDriverProfileModal({ userId, userName, onClose, 
   const [dialCode,    setDialCode]    = useState("+216");
   const [phoneDigits, setPhoneDigits] = useState("");
   const [language,    setLanguage]    = useState<Language | "">("");
+  const [salary,      setSalary]      = useState("");
   const [error,       setError]       = useState("");
   const [saving,      setSaving]      = useState(false);
 
@@ -279,6 +280,7 @@ export default function CompleteDriverProfileModal({ userId, userName, onClose, 
         userId,
         ...(fullPhone ? { phone: fullPhone } : {}),
         ...(language  ? { language }         : {}),
+        ...(salary.trim() ? { fixedMonthlySalary: Number(salary) } : {}),
       });
       onSuccess();
       onClose();
@@ -362,6 +364,30 @@ export default function CompleteDriverProfileModal({ userId, userName, onClose, 
           <div style={{ display: "flex", flexDirection: "column", gap: ".35rem", position: "relative", zIndex: 10 }}>
             <label className="ts-label">Driver Language</label>
             <LangDropdown value={language} onChange={setLanguage} />
+          </div>
+
+          {/* ── Fixed Monthly Salary ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: ".35rem" }}>
+            <label className="ts-label">Fixed Monthly Salary (TND)</label>
+            <input
+              type="number"
+              placeholder="e.g. 800"
+              min="0"
+              value={salary}
+              onChange={e => setSalary(e.target.value)}
+              style={{
+                height: "2.25rem",
+                fontSize: ".85rem",
+                fontFamily: "var(--font)",
+                background: "var(--bg-card)",
+                color: "var(--text-h)",
+                border: "1px solid var(--border)",
+                borderRadius: ".4rem",
+                padding: "0 .75rem",
+                outline: "none",
+                boxSizing: "border-box" as const,
+              }}
+            />
           </div>
 
         </div>

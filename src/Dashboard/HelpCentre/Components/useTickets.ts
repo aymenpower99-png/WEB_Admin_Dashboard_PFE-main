@@ -127,7 +127,13 @@ function adaptTicket(t: BackendTicket): Ticket {
     },
     trip: {
       tripId: t.rideId ?? "—",
-      date: t.metadata?.rideTime ?? t.metadata?.createdAt ?? "—",
+      date: t.metadata?.rideTime
+        ? new Date(t.metadata.rideTime).toLocaleString("en-GB", {
+            day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+          })
+        : new Date(t.createdAt).toLocaleString("en-GB", {
+            day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+          }),
       route: t.metadata?.pickupAddress && t.metadata?.dropOffAddress
         ? `${t.metadata.pickupAddress} → ${t.metadata.dropOffAddress}`
         : "—",

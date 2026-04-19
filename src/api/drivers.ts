@@ -45,6 +45,7 @@ export interface UpdateDriverPayload {
   driverLicenseBackUrl?: string;
   availabilityStatus?: DriverAvailabilityStatus;
   vehicleId?: string;
+  fixedMonthlySalary?: number;
 }
 
 export const driversApi = {

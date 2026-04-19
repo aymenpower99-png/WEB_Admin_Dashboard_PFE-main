@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import NearMeRoundedIcon from "@mui/icons-material/NearMeRounded";
 import PlaceRoundedIcon from "@mui/icons-material/PlaceRounded";
-import { billingApi, type TripPaymentRecord } from "../../../api/billing";
+import { billingApi, type TripPaymentRecord, formatId } from "../../../api/billing";
 import {
   ROWS, ROW_H, TH, TD,
   PAYMENT_STATUS_STYLE, PAYMENT_STATUS_ICON, PAYMENT_STATUS_LABEL,
@@ -91,7 +91,7 @@ export default function TripPaymentsTab({ onRefresh }: { onRefresh: () => void }
               <>
                 {payments.map(p => (
                   <tr key={p.id} className="ts-tr" style={{ height: ROW_H }}>
-                    <td style={TD}><span className="ts-td-h font-mono font-semibold" style={{ fontSize: ".78rem" }}>{p.rideId.slice(0, 8)}…</span></td>
+                    <td style={TD}><span className="ts-td-h font-mono font-semibold" style={{ fontSize: ".78rem" }}>{formatId("TRP", p.rideId)}</span></td>
                     <td style={TD}>
                       <div style={{ display: "flex", alignItems: "center", gap: ".4rem" }}>
                         <NearMeRoundedIcon style={{ fontSize: 13, color: "#7c3aed", flexShrink: 0 }} />
