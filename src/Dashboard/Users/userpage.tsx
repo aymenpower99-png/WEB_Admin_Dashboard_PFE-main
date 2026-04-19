@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import "../travelsync-design-system.css";
 import { usersApi, type AdminUser } from "../../api/users";
 
@@ -82,7 +83,10 @@ export default function UsersPage({ dark = false, onSelectUser }: UsersPageProps
       await usersApi.deleteUser(u.id);
       setUsers(p => p.filter(x => x.id !== u.id));
       setModal(null); setDeleteTarget(null);
-    } catch { /* ignore */ } finally { setActionLoading(null); }
+      toast.success("User deleted successfully");
+    } catch {
+      toast.error("Failed to delete user");
+    } finally { setActionLoading(null); }
   }
 
   return (

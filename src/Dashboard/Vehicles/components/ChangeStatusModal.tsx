@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SyncRoundedIcon  from "@mui/icons-material/SyncRounded";
 import LockRoundedIcon  from "@mui/icons-material/LockRounded";
@@ -51,10 +52,12 @@ export default function ChangeStatusModal({ vehicle, onClose, onUpdated }: {
     setSaving(true); setErr(null);
     try {
       const res = await callBackendTransition(vehicle.id, vehicle.status, selected as Vehicle["status"]);
+      toast.success("Vehicle status updated");
       onUpdated(mapBackendVehicle(res.data));
     } catch (e: any) {
       const msg = e?.response?.data?.message ?? e?.message ?? "Failed to update status.";
       setErr(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to update vehicle status");
     } finally {
       setSaving(false);
     }

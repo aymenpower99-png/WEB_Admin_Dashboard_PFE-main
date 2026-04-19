@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { toast } from "sonner";
 import {
   supportApi,
   type BackendTicket,
@@ -124,7 +125,18 @@ function adaptTicket(t: BackendTicket): Ticket {
       email: t.author?.email ?? "",
       phone: t.author?.phone ?? "",
     },
-    trip:    { tripId: "—", date: "—", route: "—", price: "—", status: "—" },
+    trip: {
+      tripId: t.rideId ?? "—",
+      date: t.metadata?.rideTime ?? t.metadata?.createdAt ?? "—",
+      route: t.metadata?.pickupAddress && t.metadata?.dropOffAddress
+        ? `${t.metadata.pickupAddress} → ${t.metadata.dropOffAddress}`
+        : "—",
+      price: t.metadata?.price ?? "—",
+      status: t.metadata?.rideStatus ?? "—",
+      pickupAddress: t.metadata?.pickupAddress,
+      dropOffAddress: t.metadata?.dropOffAddress,
+      passengerName: t.metadata?.passengerName,
+    },
     payment: { method: "—", transactionStatus: "—" },
     notes:   [],
     messages,
@@ -197,11 +209,13 @@ export function useTickets() {
       );
       try {
         await supportApi.updateStatus(id, mapStatusToBackend(status));
+        toast.success(`Ticket status changed to ${status}`);
         // Re-fetch to sync real resolvedAt etc
         const updated = await supportApi.getOne(id);
         loadedMessages.current.add(id);
         setTickets((prev) => prev.map((t) => (t.id === id ? adaptTicket(updated) : t)));
       } catch {
+        toast.error("Failed to update ticket status");
         fetchTickets();
       }
     },
@@ -241,11 +255,13 @@ export function useTickets() {
 
       try {
         await supportApi.reply(id, content);
+        toast.success("Message sent");
         // Re-fetch real ticket with real message IDs + updated status
         const updated = await supportApi.getOne(id);
         loadedMessages.current.add(id);
         setTickets((prev) => prev.map((t) => (t.id === id ? adaptTicket(updated) : t)));
       } catch {
+        toast.error("Failed to send message");
         // Rollback optimistic message
         setTickets((prev) =>
           prev.map((t) =>
@@ -267,6 +283,7 @@ export function useTickets() {
   const deleteTicket = useCallback(
     async (id: string) => {
       await supportApi.remove(id);
+      toast.success("Ticket deleted");
       setTickets((prev) => prev.filter((t) => t.id !== id));
     },
     []

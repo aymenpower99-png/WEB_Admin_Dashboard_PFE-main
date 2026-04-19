@@ -150,6 +150,32 @@ export default function UserContextSection({ ticket, dark }: UserContextSectionP
           </div>
         </div>
       </Card>
+
+      {/* ── TRIP DETAILS ── */}
+      {(ticket.trip.tripId !== "—" || ticket.trip.pickupAddress) && (
+        <Card title="🚗 Trip Details" dark={dark}>
+          <InfoRow dark={dark} label="Trip ID" value={ticket.trip.tripId}
+            icon={<span className="text-sm">🆔</span>} />
+          {ticket.trip.pickupAddress && (
+            <InfoRow dark={dark} label="Pickup" value={ticket.trip.pickupAddress}
+              icon={<span className="text-sm">📍</span>} />
+          )}
+          {ticket.trip.dropOffAddress && (
+            <InfoRow dark={dark} label="Drop-off" value={ticket.trip.dropOffAddress}
+              icon={<span className="text-sm">🏁</span>} />
+          )}
+          {ticket.trip.passengerName && (
+            <InfoRow dark={dark} label="Passenger" value={ticket.trip.passengerName}
+              icon={<span className="text-sm">👤</span>} />
+          )}
+          <InfoRow dark={dark} label="Date" value={ticket.trip.date}
+            icon={<span className="text-sm">📅</span>} />
+          <InfoRow dark={dark} label="Status" value={ticket.trip.status}
+            icon={<span className="text-sm">📊</span>} />
+          <InfoRow dark={dark} label="Route" value={ticket.trip.route}
+            icon={<span className="text-sm">🗺️</span>} />
+        </Card>
+      )}
     </div>
   );
 }

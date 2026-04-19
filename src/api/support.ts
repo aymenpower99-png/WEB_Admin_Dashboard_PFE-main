@@ -40,6 +40,8 @@ export interface BackendTicket {
   assignedAdminId: string | null;
   assignedAdmin?: { id: string; firstName: string; lastName: string } | null;
   messages?: BackendMessage[];
+  rideId?: string | null;
+  metadata?: Record<string, any> | null;
   resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;

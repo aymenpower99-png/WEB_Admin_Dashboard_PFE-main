@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { usersApi, type AdminUser, type UpdateUserPayload } from "../../../api/users";
 import "../../travelsync-design-system.css";
 import tunisiaFlag from "../../../assets/tunisia.png";
@@ -119,10 +120,12 @@ export default function EditModal({ user, onClose, onSave }: Props) {
         phone,
       };
       const result = await usersApi.update(user.id, payload);
+      toast.success("User updated successfully");
       onSave(result); onClose();
     } catch (err: unknown) {
       const msg = (err as any)?.response?.data?.message ?? "Failed to update user.";
       setErrors({ form: msg });
+      toast.error("Failed to update user");
     } finally { setSaving(false); }
   }
 

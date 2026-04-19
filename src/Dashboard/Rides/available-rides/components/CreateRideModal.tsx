@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import MapboxAutocomplete from "./MapboxAutocomplete";
@@ -438,8 +439,9 @@ export function CreateRideModal({
       setCreatedRide(confirmed);
       setPhase("success");
       onCreate(confirmed);
+      toast.success("Ride created");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to create ride");
+      toast.error(err?.response?.data?.message || "Failed to create ride");
     } finally {
       setLoading(false);
     }

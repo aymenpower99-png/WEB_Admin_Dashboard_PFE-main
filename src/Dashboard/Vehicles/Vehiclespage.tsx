@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import "../travelsync-design-system.css";
 import apiClient from "../../api/apiClient";
 import { mapBackendVehicle, INITIAL_VEHICLES } from "./types";
@@ -111,7 +112,10 @@ export default function VehiclesPage({ vehicles, setVehicles, onNavigate }: Vehi
       await apiClient.delete(`/vehicles/${removeTarget.id}`);
       setVehicles(p => p.filter(v => v.id !== removeTarget.id));
       setRemoveTarget(null);
-    } catch { } finally { setRemoveLoading(false); }
+      toast.success("Vehicle removed");
+    } catch {
+      toast.error("Failed to remove vehicle");
+    } finally { setRemoveLoading(false); }
   }
 
   return (

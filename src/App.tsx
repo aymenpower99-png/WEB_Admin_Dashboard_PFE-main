@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginWithIntro from "./auth/LoginWithIntro";
@@ -28,6 +29,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Toaster richColors position="top-right" />
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />

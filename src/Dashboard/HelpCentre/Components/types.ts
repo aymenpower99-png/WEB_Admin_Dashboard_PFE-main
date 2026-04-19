@@ -46,6 +46,9 @@ export interface Ticket {
     route: string;
     price: string;
     status: string;
+    pickupAddress?: string;
+    dropOffAddress?: string;
+    passengerName?: string;
   };
   payment: {
     method: string;

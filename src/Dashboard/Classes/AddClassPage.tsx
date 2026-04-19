@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import AddRoundedIcon       from "@mui/icons-material/AddRounded";
 import SaveRoundedIcon      from "@mui/icons-material/SaveRounded";
@@ -95,10 +96,12 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
         await classesApi.create(payload);
       }
 
+      toast.success("Class saved successfully");
       onNavigate("classes");
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? "Failed to save class.";
       setApiError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to save class");
     } finally {
       setSaving(false);
     }

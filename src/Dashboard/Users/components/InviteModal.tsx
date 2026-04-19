@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { usersApi, type InviteUserPayload } from "../../../api/users";
 import "../../travelsync-design-system.css";
 import tunisiaFlag from "../../../assets/tunisia.png";
@@ -134,10 +135,12 @@ export default function InviteModal({ onClose, onSuccess }: Props) {
       };
       const res = await usersApi.invite(payload);
       setSuccess(res.message ?? `Invitation sent to ${form.email}.`);
+      toast.success("User invited successfully");
       setTimeout(() => { onSuccess(); onClose(); }, 1800);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Failed to send invitation.";
       setErrors({ form: msg });
+      toast.error("Failed to invite user");
     } finally { setSaving(false); }
   }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import "../travelsync-design-system.css";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { classesApi } from "../../api/classes";
@@ -79,8 +80,9 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
       await classesApi.remove(deleteTarget.id);
       setClasses((p) => p.filter((c) => c.id !== deleteTarget.id));
       setDeleteTarget(null);
+      toast.success("Class deleted");
     } catch {
-      alert("Could not delete class. Make sure no vehicles are linked to it.");
+      toast.error("Failed to delete class");
     } finally {
       setDeleteLoading(false);
     }
