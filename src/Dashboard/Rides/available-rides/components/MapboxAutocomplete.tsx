@@ -80,7 +80,7 @@ export default function MapboxAutocomplete({
       return;
     }
     try {
-      const url = `${GEOCODE_URL}/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&types=poi,address,place&limit=5&proximity=${proximity[0]},${proximity[1]}&language=en`;
+      const url = `${GEOCODE_URL}/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&types=poi,address&country=tn&limit=5&proximity=${proximity[0]},${proximity[1]}&language=en`;
       const res = await fetch(url);
       if (!res.ok) return;
       const data = await res.json();

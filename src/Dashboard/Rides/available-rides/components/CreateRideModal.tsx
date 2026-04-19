@@ -375,6 +375,8 @@ export function CreateRideModal({
   const [classId, setClassId]                 = useState("");
   const [pickupAddress, setPickupAddress]     = useState("");
   const [dropoffAddress, setDropoffAddress]   = useState("");
+  const [pickupCoords, setPickupCoords]       = useState<{lat: number; lng: number} | null>(null);
+  const [dropoffCoords, setDropoffCoords]     = useState<{lat: number; lng: number} | null>(null);
   const [scheduledDate, setScheduledDate]     = useState("");
   const [scheduledTime, setScheduledTime]     = useState("");
   const [passengerSearch, setPassengerSearch] = useState("");
@@ -398,7 +400,9 @@ export function CreateRideModal({
     if (!passengerId)           e.passenger = "Select a passenger";
     if (!classId)               e.classId   = "Select a class";
     if (!pickupAddress.trim())  e.pickup    = "Required";
+    else if (!pickupCoords)     e.pickup    = "Select a location from the dropdown";
     if (!dropoffAddress.trim()) e.dropoff   = "Required";
+    else if (!dropoffCoords)    e.dropoff   = "Select a location from the dropdown";
     if (!scheduledDate)         e.date      = "Required";
     if (!scheduledTime)         e.time      = "Required";
     return e;
@@ -419,6 +423,10 @@ export function CreateRideModal({
         class_id: classId,
         pickup_address: pickupAddress,
         dropoff_address: dropoffAddress,
+        pickup_lat: pickupCoords?.lat,
+        pickup_lon: pickupCoords?.lng,
+        dropoff_lat: dropoffCoords?.lat,
+        dropoff_lon: dropoffCoords?.lng,
         scheduled_at: `${scheduledDate}T${scheduledTime}:00`,
       };
       const newRide = await ridesApi.create(payload);
@@ -729,7 +737,8 @@ export function CreateRideModal({
                   }} />
                   <MapboxAutocomplete
                     value={pickupAddress}
-                    onChange={v => { setPickupAddress(v); setErrors(ev => ({ ...ev, pickup: "" })); }}
+                    onChange={v => { setPickupAddress(v); setPickupCoords(null); setErrors(ev => ({ ...ev, pickup: "" })); }}
+                    onSelect={place => { setPickupAddress(place.fullAddress); setPickupCoords({ lat: place.lat, lng: place.lng }); setErrors(ev => ({ ...ev, pickup: "" })); }}
                     placeholder="Pickup address"
                     inputClassName="crm-input"
                     inputStyle={{
@@ -766,7 +775,8 @@ export function CreateRideModal({
                   }} />
                   <MapboxAutocomplete
                     value={dropoffAddress}
-                    onChange={v => { setDropoffAddress(v); setErrors(ev => ({ ...ev, dropoff: "" })); }}
+                    onChange={v => { setDropoffAddress(v); setDropoffCoords(null); setErrors(ev => ({ ...ev, dropoff: "" })); }}
+                    onSelect={place => { setDropoffAddress(place.fullAddress); setDropoffCoords({ lat: place.lat, lng: place.lng }); setErrors(ev => ({ ...ev, dropoff: "" })); }}
                     placeholder="Drop-off address"
                     inputClassName="crm-input"
                     inputStyle={{
