@@ -6,9 +6,6 @@ import apiClient from "./apiClient";
 
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
 export type PaymentMethod = "CARD" | "CASH";
-export type TransactionType = "RIDE_PAYMENT" | "REFUND" | "ADJUSTMENT";
-export type TransactionStatus = "SUCCESS" | "FAILED";
-export type EarningStatus = "PENDING" | "CALCULATED" | "LOCKED" | "PAID";
 
 export interface TripPaymentRecord {
   id: string;
@@ -36,19 +33,6 @@ export interface TripPaymentRecord {
   };
 }
 
-export interface TransactionRecord {
-  id: string;
-  transactionType: TransactionType;
-  transactionStatus: TransactionStatus;
-  amount: number;
-  currency: string;
-  rideId: string | null;
-  tripPaymentId: string | null;
-  stripeChargeId: string | null;
-  description: string | null;
-  createdAt: string;
-}
-
 export interface CommissionTierRecord {
   id: string;
   name: string;
@@ -59,25 +43,14 @@ export interface CommissionTierRecord {
 }
 
 export interface DriverEarningRecord {
-  id: string;
+  driverProfileId: string;
   driverId: string;
-  driverProfileId?: string | null;
-  driverName?: string;
+  driverName: string;
   driverEmail?: string | null;
-  month: string;
+  completedTrips: number;
   fixedSalary: number;
   totalBonuses: number;
-  totalPenalties: number;
   netEarnings: number;
-  completedTrips: number;
-  avgRating: number;
-  cancellationCount: number;
-  attendance: number;
-  missedDays: number;
-  deductionAmount: number;
-  commissionBreakdown: { tierId: string; tierName: string; requiredRides: number; bonusAmount: number; reached: boolean }[] | null;
-  earningStatus: EarningStatus;
-  calculatedAt: string | null;
 }
 
 export interface RevenueStats {
@@ -163,20 +136,6 @@ export const billingApi = {
       .then((r) => r.data);
   },
 
-  /* ── Refund ── */
-  processRefund(tripPaymentId: string, reason?: string) {
-    return apiClient
-      .post<TransactionRecord>(`/billing/payments/${tripPaymentId}/refund`, { reason })
-      .then((r) => r.data);
-  },
-
-  /* ── Transactions ── */
-  getTransactions(params?: { type?: TransactionType; page?: number; limit?: number }) {
-    return apiClient
-      .get<PaginatedResponse<TransactionRecord>>("/billing/transactions", { params })
-      .then((r) => r.data);
-  },
-
   /* ── Revenue Stats ── */
   getRevenueStats() {
     return apiClient.get<RevenueStats>("/billing/revenue/stats").then((r) => r.data);
@@ -227,12 +186,6 @@ export const billingApi = {
   getDriverEarnings(params?: { month?: string; driverId?: string; page?: number; limit?: number }) {
     return apiClient
       .get<PaginatedResponse<DriverEarningRecord>>("/billing/driver-earnings", { params })
-      .then((r) => r.data);
-  },
-
-  lockMonth(month: string) {
-    return apiClient
-      .post<{ locked: number }>("/billing/driver-earnings/lock", { month })
       .then((r) => r.data);
   },
 

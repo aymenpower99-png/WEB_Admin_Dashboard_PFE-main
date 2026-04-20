@@ -39,12 +39,7 @@ export default function TripPaymentsTab({ onRefresh }: { onRefresh: () => void }
     setActionLoading(null);
   };
 
-  const handleRefund = async (id: string) => {
-    if (!window.confirm("Are you sure you want to refund this payment?")) return;
-    setActionLoading(id);
-    try { await billingApi.processRefund(id, "Admin refund"); await fetchPayments(); onRefresh(); } catch { /* silent */ }
-    setActionLoading(null);
-  };
+
 
   return (
     <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
@@ -125,10 +120,7 @@ export default function TripPaymentsTab({ onRefresh }: { onRefresh: () => void }
                           </button>
                         )}
                         {p.paymentStatus === "PAID" && (
-                          <button className="ts-btn-ghost" style={{ padding: "0.22rem 0.6rem", fontSize: "0.65rem", color: "#ef4444", borderColor: "#ef4444" }}
-                            onClick={() => handleRefund(p.id)} disabled={actionLoading === p.id}>
-                            {actionLoading === p.id ? "…" : "Refund"}
-                          </button>
+                          <span style={{ fontSize: "0.7rem", color: "#10b981", fontWeight: 600 }}>✓ Paid</span>
                         )}
                         {(p.paymentStatus === "REFUNDED" || p.paymentStatus === "FAILED") && (
                           <span style={{ fontSize: "0.7rem", color: "var(--text-faint)" }}>—</span>

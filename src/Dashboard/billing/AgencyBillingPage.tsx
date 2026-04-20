@@ -12,7 +12,6 @@ import {
   type RevenueStats, type DailyRevenue, type MonthlyRevenue, type ClassRevenue,
 } from "../../api/billing";
 import { FilterPill, ChartTooltip } from "./components/billing-shared";
-import TransactionsTab from "./components/TransactionsTab";
 import DriverEarningsTab from "./components/DriverEarningsTab";
 import TripPaymentsTab from "./components/TripPaymentsTab";
 
@@ -47,7 +46,7 @@ export default function AgencyBillingPage() {
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
 
-  const tabs = ["Trip Payments", "Transactions", "Driver Earnings"];
+  const tabs = ["Trip Payments", "Driver Earnings"];
 
   const summaryCards = [
     { label: "Total Revenue (This Month)", value: stats ? `${stats.totalEarnings.toLocaleString()} TND` : "—", icon: <TrendingUpRoundedIcon style={{ fontSize: 18, color: "#10b981" }} />, iconBg: "rgba(16,185,129,0.12)" },
@@ -116,8 +115,7 @@ export default function AgencyBillingPage() {
 
         <div style={{ marginTop: "1rem" }}>
           {activeTab === 0 && <TripPaymentsTab onRefresh={fetchDashboard} />}
-          {activeTab === 1 && <TransactionsTab />}
-          {activeTab === 2 && <DriverEarningsTab />}
+          {activeTab === 1 && <DriverEarningsTab />}
         </div>
       </div>
 
