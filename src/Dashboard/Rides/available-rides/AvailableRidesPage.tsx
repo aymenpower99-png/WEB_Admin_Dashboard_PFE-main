@@ -14,10 +14,11 @@ import AvailableRidesKpi from "./components/AvailableRidesKpi";
 import { DispatchRideModal, AvailableRideDetailsModal, CreateRideModal } from "./AvailableRidesModals";
 
 /* ─── Filter tabs ────────────────────────────────────────────────────── */
-type FilterKey = "all" | "PENDING" | "SEARCHING_DRIVER";
+type FilterKey = "all" | "PENDING" | "SCHEDULED" | "SEARCHING_DRIVER";
 const FILTER_TABS: { key: FilterKey; label: string }[] = [
   { key: "all",              label: "All" },
   { key: "PENDING",          label: "Pending" },
+  { key: "SCHEDULED",        label: "Scheduled" },
   { key: "SEARCHING_DRIVER", label: "Searching" },
 ];
 
@@ -34,26 +35,34 @@ export default function AvailableRidesPage() {
   const [createModal, setCreateModal]     = useState(false);
 
   /* ── Fetch ───────────────────────────────────────────────────────── */
-  const fetchRides = () => {
-    setLoading(true);
+  const fetchRides = (silent = false) => {
+    if (!silent) setLoading(true);
     ridesApi.getAll()
       .then(raw => setAllRides(filterAvailable(raw)))
-      .catch(() => setAllRides([]))
-      .finally(() => setLoading(false));
+      .catch(() => { if (!silent) setAllRides([]); })
+      .finally(() => { if (!silent) setLoading(false); });
   };
 
-  useEffect(fetchRides, []);
+  useEffect(() => { fetchRides(false); }, []);
 
-  // Auto-refresh every 12s so rides that get cancelled/assigned disappear without manual reload
+  // Silent background refresh — updates data without replacing the table with a spinner
   useEffect(() => {
-    const id = setInterval(fetchRides, 12000);
+    const id = setInterval(() => fetchRides(true), 12000);
     return () => clearInterval(id);
   }, []);
 
   /* ── Derived data ────────────────────────────────────────────────── */
   const filtered = useMemo(() => {
     let list = allRides;
-    if (filter !== "all") list = list.filter(r => r.status === filter);
+    if (filter === "PENDING") {
+      // Unconfirmed pending only (not yet scheduled)
+      list = list.filter(r => r.status === "PENDING" && !r.confirmedAt);
+    } else if (filter === "SCHEDULED") {
+      // Confirmed future rides waiting for the 30-min dispatch window
+      list = list.filter(r => r.status === "PENDING" && !!r.confirmedAt);
+    } else if (filter !== "all") {
+      list = list.filter(r => r.status === filter);
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(r =>
@@ -192,7 +201,7 @@ export default function AvailableRidesPage() {
                             <RideRouteCell pickup={r.pickupAddress} dropoff={r.dropoffAddress} />
                           </td>
                           <td style={TD}>{r.vehicleClass?.name ?? "—"}</td>
-                          <td style={TD}><RideStatusBadge status={r.status} /></td>
+                          <td style={TD}><RideStatusBadge status={r.status === "PENDING" && r.confirmedAt ? "SCHEDULED" : r.status} /></td>
                           <td style={{ ...TD, fontWeight: 800, color: "var(--text-h)" }}>
                             {r.priceFinal ? `${r.priceFinal} TND` : "—"}
                           </td>
@@ -201,7 +210,7 @@ export default function AvailableRidesPage() {
                               <ActionButton title="View" onClick={() => setDetailModal(r)} hoverStyle={HOVER.view}>
                                 <IconEye />
                               </ActionButton>
-                              {r.status === "SEARCHING_DRIVER" && (
+                              {(r.status === "SEARCHING_DRIVER" || (r.status === "PENDING" && r.confirmedAt)) && (
                                 <ActionButton title="Force Dispatch" onClick={() => setDispatchModal(r)} hoverStyle={HOVER.dispatch}>
                                   <IconDispatch />
                                 </ActionButton>

@@ -334,11 +334,19 @@ export function CreateRideModal({
   const [phase, setPhase]           = useState<"form" | "success">("form");
   const [logs, setLogs]             = useState<{ time: string; msg: string; kind: "ok" | "error" }[]>([]);
   const [createdRide, setCreatedRide] = useState<BackendRide | null>(null);
-  const [pollStatus, setPollStatus] = useState<"polling" | "cancelled" | "searching" | "assigned" | null>(null);
+  const [pollStatus, setPollStatus] = useState<"polling" | "scheduled" | "cancelled" | "searching" | "assigned" | null>(null);
+  const [isImmediateRide, setIsImmediateRide] = useState(false);
 
-  // Poll ride status after creation to detect quick cancellations
+  // Poll ride status after creation to detect quick cancellations (immediate rides only)
   useEffect(() => {
     if (phase !== "success" || !createdRide) return;
+
+    // Future scheduled rides don't dispatch yet — no need to poll
+    if (!isImmediateRide) {
+      setPollStatus("scheduled");
+      return;
+    }
+
     let stopped = false;
     setPollStatus("polling");
 
@@ -369,7 +377,7 @@ export function CreateRideModal({
     };
     poll();
     return () => { stopped = true; };
-  }, [phase, createdRide?.id]);
+  }, [phase, createdRide?.id, isImmediateRide]);
 
   const [passengerId, setPassengerId]         = useState("");
   const [classId, setClassId]                 = useState("");
@@ -431,19 +439,20 @@ export function CreateRideModal({
       };
       const newRide = await ridesApi.create(payload);
       pushLog(`Ride created — ID #${newRide.id.slice(0, 8).toUpperCase()}`, "ok");
-      // Auto-confirm: transitions PENDING → SEARCHING_DRIVER and triggers dispatch
+      // Auto-confirm: transitions PENDING → SEARCHING_DRIVER (immediate) or stays PENDING (future)
       const confirmed = await ridesApi.confirm(newRide.id);
-      pushLog("Ride confirmed — dispatch is now searching for a driver", "ok");
-      const isImmediate = (() => {
-        const diff = new Date(confirmed.scheduledAt).getTime() - Date.now();
-        return diff <= 60 * 60 * 1000;
-      })();
+      const diff = new Date(confirmed.scheduledAt).getTime() - Date.now();
+      const immediate = diff <= 60 * 60 * 1000;
+      setIsImmediateRide(immediate);
       pushLog(
-        isImmediate
-          ? "Ride is within 60 min — dispatch started immediately"
-          : "Ride is scheduled — dispatch will auto-trigger 30 min before ride time",
+        immediate
+          ? "Ride confirmed — searching for a driver now…"
+          : `Ride confirmed — scheduled for ${new Date(confirmed.scheduledAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`,
         "ok",
       );
+      if (!immediate) {
+        pushLog("Dispatch will start automatically 30 min before the ride time", "ok");
+      }
       setCreatedRide(confirmed);
       setPhase("success");
       onCreate(confirmed);
@@ -568,7 +577,7 @@ export function CreateRideModal({
                         </div>
                       </div>
                     ))}
-                    {/* Polling indicator */}
+                    {/* Polling indicator (immediate rides only) */}
                     {pollStatus === "polling" && (
                       <div style={{ display: "flex", gap: ".65rem", alignItems: "flex-start", marginTop: logs.length ? ".1rem" : 0 }}>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
@@ -583,6 +592,36 @@ export function CreateRideModal({
                 {/* Dispatch report if ride was cancelled */}
                 {pollStatus === "cancelled" && createdRide?.dispatchSnapshot && (
                   <DispatchReportInline ride={createdRide} />
+                )}
+
+                {/* Scheduled future ride info panel */}
+                {pollStatus === "scheduled" && createdRide && (
+                  <div style={{
+                    background: "rgba(20,184,166,0.08)", borderRadius: T.rSm,
+                    border: "1px solid rgba(20,184,166,0.25)", padding: ".875rem 1rem",
+                    display: "flex", alignItems: "flex-start", gap: ".75rem",
+                  }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "8px", flexShrink: 0,
+                      background: "rgba(20,184,166,0.15)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p style={{ margin: "0 0 .2rem", fontWeight: 700, fontSize: ".82rem", color: "#0d9488" }}>Ride Scheduled</p>
+                      <p style={{ margin: "0 0 .15rem", fontSize: ".74rem", color: T.textSub }}>
+                        {new Date(createdRide.scheduledAt).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })}
+                      </p>
+                      <p style={{ margin: 0, fontSize: ".7rem", color: T.textFaint }}>
+                        Driver search will start automatically 30 min before the ride.
+                      </p>
+                    </div>
+                  </div>
                 )}
               </>
             ) : (

@@ -1,4 +1,4 @@
-import { Car, Clock, Search } from "lucide-react";
+import { Car, Clock, Search, CalendarClock } from "lucide-react";
 
 import type { BackendRide } from "../../../../api/rides";
 
@@ -33,7 +33,8 @@ function StatCard({ label, value, Icon, iconBg, iconColor }: {
 
 export default function AvailableRidesKpi({ rides }: { rides: BackendRide[] }) {
   const total     = rides.length;
-  const pending   = rides.filter(r => r.status === "PENDING").length;
+  const pending   = rides.filter(r => r.status === "PENDING" && !r.confirmedAt).length;
+  const scheduled = rides.filter(r => r.status === "PENDING" && !!r.confirmedAt).length;
   const searching = rides.filter(r => r.status === "SEARCHING_DRIVER").length;
 
   return (
@@ -47,6 +48,11 @@ export default function AvailableRidesKpi({ rides }: { rides: BackendRide[] }) {
         label="Pending" value={pending}
         Icon={Clock}
         iconBg="#fef9c3" iconColor="#854d0e"
+      />
+      <StatCard
+        label="Scheduled" value={scheduled}
+        Icon={CalendarClock}
+        iconBg="rgba(20,184,166,0.12)" iconColor="#0d9488"
       />
       <StatCard
         label="Searching" value={searching}
