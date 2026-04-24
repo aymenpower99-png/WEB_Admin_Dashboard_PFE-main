@@ -1,3 +1,3 @@
 export { DispatchRideModal } from "./components/DispatchRideModal";
 export { AvailableRideDetailsModal } from "./components/AvailableRideDetailsModal";
-export { CreateRideModal } from "./components/CreateRideModal";
+export { CreateRideModal } from "./components/create_modal";
