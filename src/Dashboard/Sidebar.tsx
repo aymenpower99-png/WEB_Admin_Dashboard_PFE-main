@@ -8,8 +8,9 @@ import DirectionsCarRoundedIcon  from "@mui/icons-material/DirectionsCarRounded"
 import PersonRoundedIcon         from "@mui/icons-material/PersonRounded";
 import MapRoundedIcon            from "@mui/icons-material/MapRounded";
 import CategoryRoundedIcon       from "@mui/icons-material/CategoryRounded";
-import HelpCenterRoundedIcon     from "@mui/icons-material/HelpCenterRounded";
-import SupportAgentRoundedIcon   from "@mui/icons-material/SupportAgentRounded";
+import HelpCenterRoundedIcon        from "@mui/icons-material/HelpCenterRounded";
+import SupportAgentRoundedIcon      from "@mui/icons-material/SupportAgentRounded";
+import WorkspacePremiumRoundedIcon  from "@mui/icons-material/WorkspacePremiumRounded";
 import "./travelsync-design-system.css";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -23,6 +24,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   category:        <CategoryRoundedIcon        style={{ fontSize: 20 }} />,
   help_center:     <HelpCenterRoundedIcon      style={{ fontSize: 20 }} />,
   support_agent:   <SupportAgentRoundedIcon    style={{ fontSize: 20 }} />,
+  workspace_premium: <WorkspacePremiumRoundedIcon style={{ fontSize: 20 }} />,
 };
 
 interface NavItem {
@@ -95,6 +97,12 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "AGENCY",
     items: [{ label: "Work Area", icon: "map", page: "work-area" }],
+  },
+  {
+    section: "LOYALTY",
+    items: [
+      { label: "Membership Levels", icon: "workspace_premium", page: "membership-levels" },
+    ],
   },
   {
     section: "SUPPORT",

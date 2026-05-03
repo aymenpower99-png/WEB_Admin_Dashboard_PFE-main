@@ -24,6 +24,7 @@ import AvailableRidesPage from "../Dashboard/Rides/available-rides/AvailableRide
 import UpcomingRidesPage  from "../Dashboard/Rides/upcoming-rides/UpcomingRidesPage";
 import PastRidesPage      from "../Dashboard/Rides/past-rides/PastRidesPage";
 import WorkAreasPage      from "../Dashboard/WorkArea/WorkAreasPage";
+import MembershipLevelsPage from "../Dashboard/Membership/MembershipLevelsPage";
 
 import type { Vehicle }      from "../Dashboard/Vehicles/Vehiclespage";
 import type { VehicleClass } from "../api/classes";
@@ -37,6 +38,7 @@ const PAGE_ORDER = [
   "trips", "available-rides", "upcoming-rides", "past-rides",
   "payments", "agency-billing",
   "work-area",
+  "membership-levels",
   "help", "help-center", "settings", "security",
 ];
 
@@ -233,6 +235,7 @@ export default function Shell({
 
               {/* ── Other ── */}
               <Route path="work-area" element={<WorkAreasPage />} />
+              <Route path="membership-levels" element={<MembershipLevelsPage />} />
               <Route path="help"         element={<HelpCenter dark={dark} />} />
               <Route path="help-center"  element={<HelpCenterAdmin dark={dark} />} />
               <Route path="settings"  element={<Settings dark={dark} onToggleDark={onToggleDark} />} />
