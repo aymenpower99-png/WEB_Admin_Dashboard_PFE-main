@@ -11,6 +11,7 @@ import CategoryRoundedIcon       from "@mui/icons-material/CategoryRounded";
 import HelpCenterRoundedIcon        from "@mui/icons-material/HelpCenterRounded";
 import SupportAgentRoundedIcon      from "@mui/icons-material/SupportAgentRounded";
 import WorkspacePremiumRoundedIcon  from "@mui/icons-material/WorkspacePremiumRounded";
+import PercentRoundedIcon           from "@mui/icons-material/PercentRounded";
 import "./travelsync-design-system.css";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -25,6 +26,7 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   help_center:     <HelpCenterRoundedIcon      style={{ fontSize: 20 }} />,
   support_agent:   <SupportAgentRoundedIcon    style={{ fontSize: 20 }} />,
   workspace_premium: <WorkspacePremiumRoundedIcon style={{ fontSize: 20 }} />,
+  percent:         <PercentRoundedIcon         style={{ fontSize: 20 }} />,
 };
 
 interface NavItem {
@@ -102,6 +104,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
     section: "LOYALTY",
     items: [
       { label: "Membership Levels", icon: "workspace_premium", page: "membership-levels" },
+      { label: "Commission Tiers",  icon: "percent",           page: "commission-tiers"  },
     ],
   },
   {

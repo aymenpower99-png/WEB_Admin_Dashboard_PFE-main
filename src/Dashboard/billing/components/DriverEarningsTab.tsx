@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   billingApi,
   type DriverEarningRecord,
-  type CommissionTierRecord,
   formatId,
 } from "../../../api/billing";
 import { driversApi } from "../../../api/drivers";
@@ -33,12 +32,6 @@ export default function DriverEarningsTab() {
   const [data, setData] = useState<DriverEarningRecord[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  /* Tier modal state */
-  const [showTierModal, setShowTierModal] = useState(false);
-  const [tiers, setTiers] = useState<CommissionTierRecord[]>([]);
-  const [tierLoading, setTierLoading] = useState(false);
-  const [newTier, setNewTier] = useState({ name: "", requiredRides: "", bonusAmount: "" });
 
   /* Salary edit state */
   const [editingSalary, setEditingSalary] = useState<string | null>(null);
@@ -79,35 +72,7 @@ export default function DriverEarningsTab() {
     setSalaryLoading(false);
   };
 
-  /* ── Tier CRUD ── */
-  const fetchTiers = async () => {
-    setTierLoading(true);
-    try { setTiers(await billingApi.getTiers()); } catch { /* silent */ }
-    setTierLoading(false);
-  };
-
-  const handleAddTier = async () => {
-    if (!newTier.name || !newTier.requiredRides || !newTier.bonusAmount) return;
-    try {
-      await billingApi.createTier({
-        name: newTier.name,
-        requiredRides: Number(newTier.requiredRides),
-        bonusAmount: Number(newTier.bonusAmount),
-      });
-      setNewTier({ name: "", requiredRides: "", bonusAmount: "" });
-      await fetchTiers();
-    } catch { /* silent */ }
-  };
-
-  const handleDeleteTier = async (id: string) => {
-    if (!window.confirm("Delete this tier?")) return;
-    try { await billingApi.deleteTier(id); await fetchTiers(); } catch { /* silent */ }
-  };
-
-  const openTierModal = () => {
-    setShowTierModal(true);
-    fetchTiers();
-  };
+  /* ── Tier CRUD removed — managed in Commission Tiers page ── */
 
   const monthOptions = getMonthOptions();
 
@@ -131,13 +96,6 @@ export default function DriverEarningsTab() {
             >
               {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
-            <button
-              className="ts-btn-primary"
-              style={{ padding: "0.3rem 0.7rem", fontSize: "0.7rem" }}
-              onClick={openTierModal}
-            >
-              + Commission Tiers
-            </button>
           </div>
         </div>
 
@@ -228,81 +186,6 @@ export default function DriverEarningsTab() {
 
         <Pagination page={page} totalPages={totalPages} onPrev={() => setPage(p => Math.max(1, p - 1))} onNext={() => setPage(p => Math.min(totalPages, p + 1))} setPage={setPage} />
       </div>
-
-      {/* ── Commission Tiers Modal ── */}
-      {showTierModal && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex",
-          alignItems: "center", justifyContent: "center", zIndex: 9999,
-        }} onClick={() => setShowTierModal(false)}>
-          <div style={{
-            background: "var(--bg-card)", borderRadius: "1rem", padding: "1.5rem", width: "95%",
-            maxWidth: 500, maxHeight: "80vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
-          }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-              <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "var(--text-h)" }}>Commission Tiers</h3>
-              <button onClick={() => setShowTierModal(false)} style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "var(--text-faint)" }}>✕</button>
-            </div>
-
-            {/* Add new tier form */}
-            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-              <input
-                placeholder="Name (e.g. Bronze)"
-                value={newTier.name}
-                onChange={(e) => setNewTier({ ...newTier, name: e.target.value })}
-                style={{ flex: 1, minWidth: 100, fontSize: "0.75rem", padding: "0.4rem 0.6rem", border: "1px solid var(--border)", borderRadius: 6, background: "var(--bg-card)", color: "var(--text-h)" }}
-              />
-              <input
-                placeholder="Rides"
-                type="number"
-                value={newTier.requiredRides}
-                onChange={(e) => setNewTier({ ...newTier, requiredRides: e.target.value })}
-                style={{ width: 70, fontSize: "0.75rem", padding: "0.4rem 0.6rem", border: "1px solid var(--border)", borderRadius: 6, background: "var(--bg-card)", color: "var(--text-h)" }}
-              />
-              <input
-                placeholder="Bonus DT"
-                type="number"
-                value={newTier.bonusAmount}
-                onChange={(e) => setNewTier({ ...newTier, bonusAmount: e.target.value })}
-                style={{ width: 80, fontSize: "0.75rem", padding: "0.4rem 0.6rem", border: "1px solid var(--border)", borderRadius: 6, background: "var(--bg-card)", color: "var(--text-h)" }}
-              />
-              <button className="ts-btn-primary" style={{ padding: "0.4rem 0.8rem", fontSize: "0.72rem" }} onClick={handleAddTier}>
-                + Add
-              </button>
-            </div>
-
-            {/* Tier list */}
-            {tierLoading ? (
-              <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: "0.8rem" }}>Loading...</p>
-            ) : tiers.length === 0 ? (
-              <p style={{ textAlign: "center", color: "var(--text-faint)", fontSize: "0.8rem" }}>No tiers configured</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {tiers.map((t) => (
-                  <div key={t.id} style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "0.6rem 0.8rem", background: "var(--bg-main)", borderRadius: 8, border: "1px solid var(--border)",
-                  }}>
-                    <div>
-                      <span style={{ fontWeight: 700, fontSize: "0.8rem", color: "var(--text-h)" }}>{t.name}</span>
-                      <span style={{ marginLeft: 8, fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                        ≥{t.requiredRides} rides → +{t.bonusAmount} DT
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteTier(t.id)}
-                      style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.85rem", fontWeight: 700 }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }
-
