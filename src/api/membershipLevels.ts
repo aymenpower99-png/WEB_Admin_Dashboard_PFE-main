@@ -5,7 +5,7 @@ export interface MembershipLevel {
   name: string;
   requiredPoints: number;
   discountPercentage: number;
-  order: number;
+  level: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -15,7 +15,7 @@ export interface CreateMembershipLevelPayload {
   name: string;
   requiredPoints: number;
   discountPercentage: number;
-  order: number;
+  level: number;
   isActive?: boolean;
 }
 

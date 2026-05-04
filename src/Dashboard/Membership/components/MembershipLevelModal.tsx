@@ -22,7 +22,7 @@ export default function MembershipLevelModal({ mode, level, onClose, onSaved }: 
   const [name,       setName]       = useState(level?.name              ?? "");
   const [points,     setPoints]     = useState(String(level?.requiredPoints    ?? ""));
   const [discount,   setDiscount]   = useState(String(level?.discountPercentage ?? ""));
-  const [order,      setOrder]      = useState(String(level?.order              ?? ""));
+  const [levelNum,   setLevelNum]   = useState(String(level?.level              ?? "1"));
   const [isActive,   setIsActive]   = useState(level?.isActive ?? true);
   const [saving,     setSaving]     = useState(false);
   const [error,      setError]      = useState<string | null>(null);
@@ -37,12 +37,10 @@ export default function MembershipLevelModal({ mode, level, onClose, onSaved }: 
     setError(null);
     const reqPoints = Number(points);
     const disc      = Number(discount);
-    const ord       = Number(order);
 
     if (!name.trim())           return setError("Name is required.");
     if (isNaN(reqPoints) || reqPoints < 0) return setError("Required points must be a non-negative number.");
     if (isNaN(disc) || disc < 0 || disc > 100) return setError("Discount must be between 0 and 100.");
-    if (isNaN(ord)  || ord < 1)  return setError("Order must be a positive number.");
 
     setSaving(true);
     try {
@@ -50,7 +48,7 @@ export default function MembershipLevelModal({ mode, level, onClose, onSaved }: 
         name: name.trim(),
         requiredPoints: reqPoints,
         discountPercentage: disc,
-        order: ord,
+        level: Number(levelNum),
         isActive,
       };
       const result = mode === "create"
@@ -115,15 +113,18 @@ export default function MembershipLevelModal({ mode, level, onClose, onSaved }: 
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={LABEL}>Display Order</label>
-              <input
+              <label style={LABEL}>Level (1–10)</label>
+              <select
                 className="ts-input"
-                type="number" min="1"
-                placeholder="e.g. 1"
-                value={order}
-                onChange={e => setOrder(e.target.value)}
+                value={levelNum}
+                onChange={e => setLevelNum(e.target.value)}
                 disabled={saving}
-              />
+                style={{ cursor: "pointer" }}
+              >
+                {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
             </div>
           </div>
 

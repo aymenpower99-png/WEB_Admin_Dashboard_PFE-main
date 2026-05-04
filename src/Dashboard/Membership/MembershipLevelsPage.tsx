@@ -147,7 +147,7 @@ export default function MembershipLevelsPage() {
                     <th style={TH}>Name</th>
                     <th style={TH}>Required Points</th>
                     <th style={TH}>Discount %</th>
-                    <th style={TH}>Order</th>
+                    <th style={TH}>Level</th>
                     <th style={TH}>Status</th>
                     <th style={TH}>Actions</th>
                   </tr>
@@ -172,7 +172,7 @@ export default function MembershipLevelsPage() {
                           {Number(l.discountPercentage).toFixed(1)}%
                         </td>
                         <td style={{ ...TD, color: "var(--text-muted)", fontWeight: 700 }}>
-                          #{l.order}
+                          Level {l.level}
                         </td>
                         <td style={TD}>
                           <MembershipStatusBadge isActive={l.isActive} />

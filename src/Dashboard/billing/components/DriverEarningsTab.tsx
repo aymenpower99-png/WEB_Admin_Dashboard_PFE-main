@@ -118,7 +118,6 @@ export default function DriverEarningsTab() {
         <div className="ts-toolbar" style={{ flexWrap: "wrap", gap: "0.75rem" }}>
           <div className="flex items-center gap-2">
             <p style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--text-h)" }}>Driver Earnings</p>
-            <span className="ts-chip">{total} drivers</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
             <select
