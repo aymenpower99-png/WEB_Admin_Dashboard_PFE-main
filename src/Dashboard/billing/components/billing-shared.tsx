@@ -4,6 +4,7 @@ import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import HourglassTopRoundedIcon from "@mui/icons-material/HourglassTopRounded";
 import CancelRoundedIcon from "@mui/icons-material/CancelRounded";
+import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 
 /* ─── Table constants ──────────────────────────────────────────────────────── */
 export const ROWS = 5;
@@ -38,7 +39,7 @@ export const PAYMENT_STATUS_STYLE: Record<string, string> = {
   PAID:     "ts-pill ts-pill-completed",
   PENDING:  "ts-pill ts-pill-pending",
   FAILED:   "ts-pill ts-pill-failed",
-  REFUNDED: "ts-pill ts-pill-failed",
+  REFUNDED: "ts-pill ts-pill-refunded",
   SUCCESS:  "ts-pill ts-pill-completed",
 };
 
@@ -46,7 +47,7 @@ export const PAYMENT_STATUS_ICON: Record<string, React.ReactNode> = {
   PAID:     <CheckCircleRoundedIcon style={{ fontSize: 13, marginRight: ".2rem" }} />,
   PENDING:  <HourglassTopRoundedIcon style={{ fontSize: 13, marginRight: ".2rem" }} />,
   FAILED:   <CancelRoundedIcon style={{ fontSize: 13, marginRight: ".2rem" }} />,
-  REFUNDED: <CancelRoundedIcon style={{ fontSize: 13, marginRight: ".2rem" }} />,
+  REFUNDED: <ReplayRoundedIcon style={{ fontSize: 13, marginRight: ".2rem" }} />,
   SUCCESS:  <CheckCircleRoundedIcon style={{ fontSize: 13, marginRight: ".2rem" }} />,
 };
 

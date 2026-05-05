@@ -17,6 +17,7 @@ export interface TripPaymentRecord {
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod | null;
   stripePaymentIntentId: string | null;
+  stripeRefundId: string | null;
   paidAt: string | null;
   createdAt: string;
   updatedAt: string;

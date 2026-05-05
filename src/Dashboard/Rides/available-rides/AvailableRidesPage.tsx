@@ -55,11 +55,11 @@ export default function AvailableRidesPage() {
   const filtered = useMemo(() => {
     let list = allRides;
     if (filter === "PENDING") {
-      // Unconfirmed pending only (not yet scheduled)
-      list = list.filter(r => r.status === "PENDING" && !r.confirmedAt);
+      // Unconfirmed pending — not yet paid or dispatched
+      list = list.filter(r => r.status === "PENDING");
     } else if (filter === "SCHEDULED") {
-      // Confirmed future rides waiting for the 30-min dispatch window
-      list = list.filter(r => r.status === "PENDING" && !!r.confirmedAt);
+      // Backend sends status=SCHEDULED directly for confirmed future rides
+      list = list.filter(r => r.status === "SCHEDULED");
     } else if (filter !== "all") {
       list = list.filter(r => r.status === filter);
     }
