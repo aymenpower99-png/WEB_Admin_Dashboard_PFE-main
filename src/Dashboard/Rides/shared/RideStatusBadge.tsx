@@ -1,8 +1,7 @@
 import type { RideStatus } from "../../../api/rides";
 import { statusLabel } from "../../../api/rides";
 
-// "SCHEDULED" is a display-only variant (PENDING + confirmedAt set)
-export type DisplayStatus = RideStatus | "SCHEDULED";
+export type DisplayStatus = RideStatus;
 
 const BADGE_BASE: React.CSSProperties = {
   display: "inline-flex",
@@ -74,8 +73,13 @@ const CFG: Record<string, React.CSSProperties> = {
   },
 };
 
-export function RideStatusBadge({ status }: { status: DisplayStatus | string }) {
+export function RideStatusBadge({
+  status,
+}: {
+  status: DisplayStatus | string;
+}) {
   const style = CFG[status] ?? CFG.PENDING;
-  const label = status === "SCHEDULED" ? "Scheduled" : statusLabel(status as RideStatus);
+  const label =
+    status === "SCHEDULED" ? "Scheduled" : statusLabel(status as RideStatus);
   return <span style={style}>{label}</span>;
 }

@@ -3,6 +3,7 @@ import apiClient from "./apiClient";
 /* ─── Ride Status Enum ─────────────────────────────────────────────────────── */
 export type RideStatus =
   | "PENDING"
+  | "SCHEDULED"
   | "SEARCHING_DRIVER"
   | "ASSIGNED"
   | "EN_ROUTE_TO_PICKUP"
@@ -82,7 +83,12 @@ export interface BackendRide {
   dispatchSnapshot: {
     attempts: number;
     totalOffers: number;
-    offers: Array<{ driverId: string; status: string; score?: number; distKm?: number }>;
+    offers: Array<{
+      driverId: string;
+      status: string;
+      score?: number;
+      distKm?: number;
+    }>;
     result: "ASSIGNED" | "NO_DRIVER_FOUND";
   } | null;
 
@@ -114,8 +120,17 @@ export interface CancelRidePayload {
 }
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
-const AVAILABLE_STATUSES: RideStatus[] = ["PENDING", "SEARCHING_DRIVER"];
-const UPCOMING_STATUSES: RideStatus[] = ["ASSIGNED", "EN_ROUTE_TO_PICKUP", "ARRIVED", "IN_TRIP"];
+const AVAILABLE_STATUSES: RideStatus[] = [
+  "PENDING",
+  "SCHEDULED",
+  "SEARCHING_DRIVER",
+];
+const UPCOMING_STATUSES: RideStatus[] = [
+  "ASSIGNED",
+  "EN_ROUTE_TO_PICKUP",
+  "ARRIVED",
+  "IN_TRIP",
+];
 const PAST_STATUSES: RideStatus[] = ["COMPLETED", "CANCELLED"];
 
 /* ─── API ──────────────────────────────────────────────────────────────────── */
@@ -202,6 +217,7 @@ export function vehicleLabel(ride: BackendRide): string {
 export function statusLabel(status: RideStatus): string {
   const map: Record<RideStatus, string> = {
     PENDING: "Pending",
+    SCHEDULED: "Scheduled",
     SEARCHING_DRIVER: "Searching",
     ASSIGNED: "Assigned",
     EN_ROUTE_TO_PICKUP: "En Route",
