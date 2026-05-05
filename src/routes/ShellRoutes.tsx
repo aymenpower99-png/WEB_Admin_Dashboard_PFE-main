@@ -27,8 +27,11 @@ import WorkAreasPage      from "../Dashboard/WorkArea/WorkAreasPage";
 import MembershipLevelsPage from "../Dashboard/Membership/MembershipLevelsPage";
 import CommissionTiersPage  from "../Dashboard/Commissions/CommissionTiersPage";
 
-import type { Vehicle }      from "../Dashboard/Vehicles/Vehiclespage";
 import type { VehicleClass } from "../api/classes";
+import AddArticlePage     from "../Dashboard/HelpCenter/AddArticlePage";
+import type { HelpArticleRaw } from "../api/helpCenter";
+
+import type { Vehicle }      from "../Dashboard/Vehicles/Vehiclespage";
 
 // ── Page order drives the slide direction ─────────────────────────────────
 const PAGE_ORDER = [
@@ -40,7 +43,8 @@ const PAGE_ORDER = [
   "payments", "agency-billing",
   "work-area",
   "membership-levels", "commission-tiers",
-  "help", "help-center", "settings", "security",
+  "help", "help-center", "help-center-add", "help-center-edit",
+  "settings", "security",
 ];
 
 function PlaceholderPage({ title, icon, description }: {
@@ -81,6 +85,7 @@ export default function Shell({
 
   const [editClass,     setEditClass]     = useState<VehicleClass | null>(null);
   const [detailClassId, setDetailClassId] = useState<string>("");
+  const [editArticle,   setEditArticle]   = useState<HelpArticleRaw | null>(null);
 
   const toKey      = (path: string) => path.replace(/^\/dashboard\/?/, "") || "dashboard";
   const activePage = toKey(location.pathname);
@@ -96,6 +101,12 @@ export default function Shell({
     }
     if (page === "classes-add") {
       setEditClass((prefill as VehicleClass | null) ?? null);
+    }
+    if (page === "help-center-edit") {
+      setEditArticle((prefill as HelpArticleRaw | null) ?? null);
+    }
+    if (page === "help-center-add") {
+      setEditArticle(null);
     }
     if (page === "class-detail") {
       // prefill can be a plain class UUID string OR a VehicleClass object
@@ -239,7 +250,9 @@ export default function Shell({
               <Route path="membership-levels" element={<MembershipLevelsPage />} />
               <Route path="commission-tiers"  element={<CommissionTiersPage />} />
               <Route path="help"         element={<HelpCenter dark={dark} />} />
-              <Route path="help-center"  element={<HelpCenterAdmin dark={dark} />} />
+              <Route path="help-center"  element={<HelpCenterAdmin dark={dark} onNavigate={navigate} />} />
+              <Route path="help-center-add"  element={<AddArticlePage prefill={null} onNavigate={navigate} />} />
+              <Route path="help-center-edit" element={<AddArticlePage prefill={editArticle} onNavigate={navigate} />} />
               <Route path="settings"  element={<Settings dark={dark} onToggleDark={onToggleDark} />} />
               <Route path="security"  element={
                 <PlaceholderPage title="Security" icon="🛡️"

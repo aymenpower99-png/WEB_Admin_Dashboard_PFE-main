@@ -1,5 +1,17 @@
 import apiClient from "./apiClient";
 
+export interface ArticleStepRaw {
+  order: number;
+  title: Record<string, string>;
+  description: Record<string, string>;
+}
+
+export interface StepInput {
+  order: number;
+  title: string;       // English only
+  description: string; // English only
+}
+
 export interface HelpArticleRaw {
   id: string;
   title: Record<string, string>;
@@ -9,6 +21,7 @@ export interface HelpArticleRaw {
   status: "auto" | "reviewed" | "disabled";
   isActive: boolean;
   sortOrder: number;
+  steps: ArticleStepRaw[];
   createdAt: string;
   updatedAt: string;
 }
@@ -18,7 +31,9 @@ export interface CreateArticlePayload {
   description: string;
   categoryKey: string;
   categoryLabel?: string;
+  status?: "auto" | "reviewed" | "disabled";
   sortOrder?: number;
+  steps?: StepInput[];
 }
 
 export interface UpdateArticlePayload {
@@ -29,6 +44,7 @@ export interface UpdateArticlePayload {
   status?: "auto" | "reviewed" | "disabled";
   isActive?: boolean;
   sortOrder?: number;
+  steps?: StepInput[];
 }
 
 export const helpCenterApi = {

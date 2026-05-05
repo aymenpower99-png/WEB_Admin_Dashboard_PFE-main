@@ -87,9 +87,6 @@ export default function CommissionTiersPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: ".75rem" }}>
         <div>
           <h1 className="ts-page-title" style={{ marginBottom: ".2rem" }}>Commission Tiers</h1>
-          <p className="ts-muted" style={{ fontSize: ".85rem" }}>
-            Configure driver bonus tiers based on completed rides.
-          </p>
         </div>
         <button className="ts-btn-primary" style={{ fontSize: ".82rem" }} onClick={() => setShowCreate(true)}>
           + Add Tier
@@ -123,9 +120,7 @@ export default function CommissionTiersPage() {
       <div className="ts-table-wrap" style={{ display: "flex", flexDirection: "column" }}>
         {/* Toolbar */}
         <div className="ts-toolbar">
-          <p style={{ fontSize: ".875rem", fontWeight: 700, color: "var(--text-h)" }}>
-            Commission Tiers
-          </p>
+
           <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
             <div style={{ position: "relative" }}>
               <SearchRoundedIcon style={{

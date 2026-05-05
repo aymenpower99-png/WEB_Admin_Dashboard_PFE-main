@@ -3,24 +3,24 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { helpCenterApi, type HelpArticleRaw } from "../../api/helpCenter";
 import HelpStatsBar from "./components/HelpStatsBar";
 import ArticleTable from "./components/ArticleTable";
-import ArticleModal from "./components/ArticleModal";
 import { HELP_CATEGORIES } from "./components/helpCenterConstants";
 
 const PAGE_SIZE = 5;
 
-interface Props { dark: boolean; }
+interface Props {
+  dark: boolean;
+  onNavigate: (page: string, data?: any) => void;
+}
 
 const FILTER_TABS = [
   { key: "all", label: "All" },
   ...HELP_CATEGORIES.map(c => ({ key: c.key, label: c.label })),
 ];
 
-export default function HelpCenterAdmin({ dark }: Props) {
+export default function HelpCenterAdmin({ dark, onNavigate }: Props) {
   const [articles, setArticles] = useState<HelpArticleRaw[]>([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
-  const [showModal, setShowModal]     = useState(false);
-  const [editArticle, setEditArticle] = useState<HelpArticleRaw | null>(null);
   const [filter, setFilter]     = useState("all");
   const [search, setSearch]     = useState("");
   const [page, setPage]         = useState(1);
@@ -63,7 +63,7 @@ export default function HelpCenterAdmin({ dark }: Props) {
       <div className="ts-page-header">
         <div><h1 className="ts-page-title">Help Center</h1></div>
         <button
-          onClick={() => { setEditArticle(null); setShowModal(true); }}
+          onClick={() => onNavigate("help-center-add")}
           style={{
             background: "#7c3aed", color: "#fff", border: "none",
             borderRadius: 8, padding: "8px 18px", fontSize: ".82rem",
@@ -110,19 +110,10 @@ export default function HelpCenterAdmin({ dark }: Props) {
         page={safePage}
         totalPages={totalPages}
         onPageChange={setPage}
-        onEdit={a => { setEditArticle(a); setShowModal(true); }}
+        onEdit={a => onNavigate("help-center-edit", a)}
         onDelete={handleDelete}
         onToggleStatus={handleToggleStatus}
       />
-
-      {showModal && (
-        <ArticleModal
-          dark={dark}
-          article={editArticle}
-          onClose={() => { setShowModal(false); setEditArticle(null); }}
-          onSaved={loadArticles}
-        />
-      )}
     </div>
   );
 }
