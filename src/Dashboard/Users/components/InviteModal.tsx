@@ -130,7 +130,7 @@ export default function InviteModal({ onClose, onSuccess }: Props) {
         firstName: form.firstName,
         lastName:  form.lastName,
         email:     form.email,
-        phone:     form.phoneDigits.trim(), // digits only — backend stores without prefix
+        phone:     form.dialCode + form.phoneDigits.trim(), // full E.164: +21620123456
         role:      form.role,
       };
       const res = await usersApi.invite(payload);
