@@ -16,7 +16,9 @@ import ClassesPage        from "../Dashboard/Classes/ClassesPage";
 import AddClassPage       from "../Dashboard/Classes/AddClassPage";
 import ClassDetailPage    from "../Dashboard/Classes/ClassDetailPage";
 import TripsPage          from "../Dashboard/BookingsPage";
-import AgencyPaymentsData from "../Dashboard/billing/AgencyBillingPage";
+import AgencyBillingOverviewPage      from "../Dashboard/billing/overview/AgencyBillingOverviewPage";
+import AgencyBillingTripPaymentsPage  from "../Dashboard/billing/trip-payments/AgencyBillingTripPaymentsPage";
+import AgencyBillingDriverEarningsPage from "../Dashboard/billing/driver-earnings/AgencyBillingDriverEarningsPage";
 import HelpCenter         from "../Dashboard/HelpCentre/HelpCenter";
 import HelpCenterAdmin    from "../Dashboard/HelpCenter/HelpCenterAdmin";
 import Settings           from "../Dashboard/settings/Settings";
@@ -40,6 +42,7 @@ const PAGE_ORDER = [
   "classes", "classes-add", "class-detail",
   "vehicles", "agency-vehicles",
   "trips", "available-rides", "upcoming-rides", "past-rides",
+  "agency-billing-overview", "agency-billing-payments", "agency-billing-earnings",
   "payments", "agency-billing",
   "work-area",
   "membership-levels", "commission-tiers",
@@ -239,11 +242,10 @@ export default function Shell({
               <Route path="past-rides"      element={<PastRidesPage />} />
 
               {/* ── Billing ── */}
-              <Route path="payments"      element={<AgencyPaymentsData />} />
-              <Route path="agency-billing" element={
-                <PlaceholderPage title="Agency Billing" icon="💳"
-                  description="View and manage agency billing records." />
-              } />
+              <Route path="agency-billing-overview" element={<AgencyBillingOverviewPage />} />
+              <Route path="agency-billing-payments" element={<AgencyBillingTripPaymentsPage />} />
+              <Route path="agency-billing-earnings" element={<AgencyBillingDriverEarningsPage />} />
+              <Route path="payments"      element={<AgencyBillingOverviewPage />} />
 
               {/* ── Other ── */}
               <Route path="work-area" element={<WorkAreasPage />} />

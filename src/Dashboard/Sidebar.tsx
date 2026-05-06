@@ -93,7 +93,16 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "BILLING",
     items: [
-      { label: "Agency Billing", icon: "payments", page: "payments" },
+      {
+        label: "Agency Billing",
+        icon: "payments",
+        page: "billing-parent",
+        children: [
+          { label: "Overview",        page: "agency-billing-overview"  },
+          { label: "Trip Payments",   page: "agency-billing-payments"  },
+          { label: "Driver Earnings", page: "agency-billing-earnings"  },
+        ],
+      },
     ],
   },
   {
