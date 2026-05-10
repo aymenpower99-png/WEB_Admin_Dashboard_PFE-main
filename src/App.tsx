@@ -14,10 +14,12 @@ import "./App.css";
 import "./Dashboard/travelsync-design-system.css";
 
 export default function App() {
-  const [dark, setDark] = useState(() => localStorage.getItem("dark") === "true");
+  const [dark, setDark] = useState(
+    () => localStorage.getItem("dark") === "true",
+  );
 
   // ── Vehicles
-  const [vehicles,    setVehicles]    = useState<Vehicle[]>(INITIAL_VEHICLES);
+  const [vehicles, setVehicles] = useState<Vehicle[]>(INITIAL_VEHICLES);
   const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null);
 
   function toggleDark() {

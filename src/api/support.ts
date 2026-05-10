@@ -18,8 +18,9 @@ export interface BackendMessage {
   body: string;
   senderId: string;
   ticketId: string;
-  sender?: { id: string; firstName: string; lastName: string; email: string };
+  sender?: { id: string; firstName: string; lastName: string; email: string; role?: string };
   createdAt: string;
+  updatedAt?: string | null;
 }
 
 export interface BackendTicket {
@@ -75,4 +76,10 @@ export const supportApi = {
 
   remove: (id: string): Promise<{ message: string }> =>
     apiClient.delete(`/admin/support/tickets/${id}`).then((r) => r.data),
+
+  editMessage: (ticketId: string, messageId: string, body: string): Promise<BackendMessage> =>
+    apiClient.patch(`/admin/support/tickets/${ticketId}/messages/${messageId}`, { body }).then((r) => r.data),
+
+  deleteMessage: (ticketId: string, messageId: string): Promise<{ success: boolean; messageId: string }> =>
+    apiClient.delete(`/admin/support/tickets/${ticketId}/messages/${messageId}`).then((r) => r.data),
 };

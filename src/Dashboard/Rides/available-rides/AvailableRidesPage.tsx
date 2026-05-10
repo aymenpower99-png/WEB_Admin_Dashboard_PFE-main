@@ -70,7 +70,7 @@ export default function AvailableRidesPage() {
 
   /* ── Derived data ────────────────────────────────────────────────── */
   const filtered = useMemo(() => {
-    let list = allRides;
+    let list = allRides || [];
     if (filter === "PENDING") {
       // Unconfirmed pending — not yet paid or dispatched
       list = list.filter((r) => r.status === "PENDING");

@@ -38,9 +38,8 @@ const PROVIDER_STYLE: Record<string, React.CSSProperties> = {
 
 const PROVIDER_LABEL: Record<string, string> = {
   manual:   "Manual",
-  google:   "🔴 Google",
-  apple:    "🍎 Apple",
-  facebook: "🔵 Facebook",
+  google:   " Google",
+
 };
 
 export function ProviderBadge({ provider }: { provider: string }) {

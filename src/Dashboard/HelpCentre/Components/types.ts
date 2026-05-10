@@ -12,9 +12,11 @@ export interface InternalNote {
 export interface Message {
   id: string;
   sender: string;
+  senderId?: string;
   senderType: "user" | "admin";
   content: string;
   timestamp: string;
+  updatedAt?: string;
 }
 
 export interface ActivityEvent {

@@ -36,7 +36,7 @@ function fmt(date: string) {
   return new Date(date).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-// ── Adapt backend ticket → frontend Ticket ─────────────────────────────────────
+  // ── Adapt backend ticket → frontend Ticket ─────────────────────────────────────
 function adaptTicket(t: BackendTicket): Ticket {
   const authorName = t.author
     ? `${t.author.firstName} ${t.author.lastName}`.trim() || "Unknown"
@@ -48,9 +48,11 @@ function adaptTicket(t: BackendTicket): Ticket {
     sender: m.sender
       ? `${m.sender.firstName} ${m.sender.lastName}`.trim() || "User"
       : m.senderId === t.authorId ? authorName : "Admin",
+    senderId: m.senderId,
     senderType: m.senderId === t.authorId ? "user" : "admin",
     content: m.body,
     timestamp: fmt(m.createdAt),
+    updatedAt: m.updatedAt ? fmt(m.updatedAt) : undefined,
   }));
 
   // ── Category ──────────────────────────────────────────────────────────────
@@ -295,6 +297,45 @@ export function useTickets() {
     []
   );
 
+  // Edit a message
+  const editMessage = useCallback(
+    async (ticketId: string, messageId: string, content: string) => {
+      try {
+        const updated = await supportApi.editMessage(ticketId, messageId, content);
+        toast.success("Message updated");
+        // Refresh ticket to sync real data
+        const full = await supportApi.getOne(ticketId);
+        loadedMessages.current.add(ticketId);
+        setTickets((prev) => prev.map((t) => (t.id === ticketId ? adaptTicket(full) : t)));
+        return updated;
+      } catch {
+        toast.error("Failed to update message");
+        throw new Error("Failed to update message");
+      }
+    },
+    []
+  );
+
+  // Delete a message
+  const deleteMessage = useCallback(
+    async (ticketId: string, messageId: string) => {
+      try {
+        await supportApi.deleteMessage(ticketId, messageId);
+        toast.success("Message deleted");
+        setTickets((prev) =>
+          prev.map((t) =>
+            t.id === ticketId
+              ? { ...t, messages: t.messages.filter((m) => m.id !== messageId) }
+              : t
+          )
+        );
+      } catch {
+        toast.error("Failed to delete message");
+      }
+    },
+    []
+  );
+
   return {
     tickets,
     loading,
@@ -302,6 +343,8 @@ export function useTickets() {
     changeStatus,
     sendMessage,
     deleteTicket,
+    editMessage,
+    deleteMessage,
     loadTicketMessages,
     refetch: fetchTickets,
   };

@@ -10,12 +10,14 @@ interface TicketDetailsProps {
   onStatusChange: (id: string, status: TicketStatus) => void;
   onSendMessage: (id: string, content: string) => void;
   onDelete: (id: string) => void;
+  onEditMessage: (ticketId: string, messageId: string, content: string) => void;
+  onDeleteMessage: (ticketId: string, messageId: string) => void;
   dark: boolean;
 }
 
 type Page = 1 | 2 | 3;
 
-export default function TicketDetails({ ticket, onStatusChange, onSendMessage, onDelete, dark }: TicketDetailsProps) {
+export default function TicketDetails({ ticket, onStatusChange, onSendMessage, onDelete, onEditMessage, onDeleteMessage, dark }: TicketDetailsProps) {
   const [page, setPage] = useState<Page>(1);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -147,7 +149,10 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, o
         <div className="flex-1 flex flex-col min-h-0">
           <ConversationTab
             messages={ticket.messages}
+            ticketStatus={ticket.status}
             onSend={(content) => onSendMessage(ticket.id, content)}
+            onEditMessage={(messageId, content) => onEditMessage(ticket.id, messageId, content)}
+            onDeleteMessage={(messageId) => onDeleteMessage(ticket.id, messageId)}
             dark={dark}
           />
         </div>

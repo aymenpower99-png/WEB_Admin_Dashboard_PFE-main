@@ -82,7 +82,7 @@ export default function PastRidesPage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return allRides.filter((r) => {
+    return (allRides || []).filter((r) => {
       const matchStatus = filter === "all" || r.status === filter;
       const matchSearch =
         !q ||
