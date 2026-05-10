@@ -6,8 +6,7 @@ import logoDark  from "../assets/dark.png";
 import Sidebar            from "../Dashboard/Sidebar";
 import TravelSyncTopNav   from "../Dashboard/TopNavProps";
 
-import AdminDashboard     from "../Dashboard/Overview/AdminDashboard";
-import AgencyDashboard    from "../Dashboard/Overview/AgencyDashboard";
+import AdminDashboard from "../Dashboard/Overview/AdminDashboard";
 import UsersPage          from "../Dashboard/Users/userpage";
 import DriversPage        from "../Dashboard/Drivers/DriversPage";
 import VehiclesPage       from "../Dashboard/Vehicles/Vehiclespage";
@@ -37,7 +36,7 @@ import type { Vehicle }      from "../Dashboard/Vehicles/Vehiclespage";
 
 // ── Page order drives the slide direction ─────────────────────────────────
 const PAGE_ORDER = [
-  "dashboard", "agency-dashboard",
+  "dashboard",
   "users", "drivers",
   "classes", "classes-add", "class-detail",
   "vehicles", "agency-vehicles",
@@ -209,8 +208,7 @@ export default function Shell({
               <Route index element={<Navigate to="dashboard" replace />} />
 
               {/* ── Overview ── */}
-              <Route path="dashboard"        element={<AdminDashboard />} />
-              <Route path="agency-dashboard" element={<AgencyDashboard dark={dark} />} />
+              <Route path="dashboard" element={<AdminDashboard dark={dark} />} />
 
               {/* ── Users ── */}
               <Route path="users"   element={<UsersPage dark={dark} />} />

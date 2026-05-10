@@ -40,8 +40,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
   {
     section: "OVERVIEW",
     items: [
-      { label: "Dashboard",        icon: "dashboard", page: "dashboard"        },
-      { label: "Agency Dashboard", icon: "dashboard", page: "agency-dashboard" },
+      { label: "Dashboard", icon: "dashboard", page: "dashboard" },
     ],
   },
   {
