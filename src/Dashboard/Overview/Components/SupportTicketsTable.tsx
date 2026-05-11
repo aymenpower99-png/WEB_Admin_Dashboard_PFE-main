@@ -25,7 +25,7 @@ const TH: React.CSSProperties = {
 
 const TD: React.CSSProperties = {
   padding: "0 1rem",
-  height: 88,
+  height: 72,
   fontSize: ".875rem",
   fontWeight: 600,
   color: "var(--text-body)",
@@ -51,9 +51,9 @@ export default function SupportTicketsTable({ tickets, dark }: SupportTicketsTab
 
       <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
         <colgroup>
-          <col style={{ width: "32%" }} />
-          <col style={{ width: "44%" }} />
-          <col style={{ width: "24%" }} />
+          <col style={{ width: "30%" }} />
+          <col style={{ width: "40%" }} />
+          <col style={{ width: "30%" }} />
         </colgroup>
 
         <thead>
@@ -66,14 +66,14 @@ export default function SupportTicketsTable({ tickets, dark }: SupportTicketsTab
 
         <tbody>
           {paged.length === 0 ? (
-            <tr style={{ height: 88 }}>
+            <tr style={{ height: 72 }}>
               <td colSpan={3} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
                 No tickets found.
               </td>
             </tr>
           ) : (
             paged.map((t) => (
-              <tr key={t.id} style={{ height: 88 }}>
+              <tr key={t.id} style={{ height: 72 }}>
                 <td style={TD}>
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
                     {t.user}
@@ -93,7 +93,9 @@ export default function SupportTicketsTable({ tickets, dark }: SupportTicketsTab
         </tbody>
       </table>
 
-      <Pagination page={page} totalPages={totalPages} onPrev={() => setPage(p => Math.max(1, p - 1))} onNext={() => setPage(p => Math.min(totalPages, p + 1))} />
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} onPrev={() => setPage(p => Math.max(1, p - 1))} onNext={() => setPage(p => Math.min(totalPages, p + 1))} />
+      )}
     </div>
   );
 }

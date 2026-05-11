@@ -25,7 +25,7 @@ const TH: React.CSSProperties = {
 
 const TD: React.CSSProperties = {
   padding: "0 1rem",
-  height: 88,
+  height: 72,
   fontSize: ".875rem",
   fontWeight: 600,
   color: "var(--text-body)",
@@ -51,10 +51,10 @@ export default function RecentUsersTable({ users, dark }: RecentUsersTableProps)
 
       <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
         <colgroup>
-          <col style={{ width: "32%" }} />
-          <col style={{ width: "22%" }} />
-          <col style={{ width: "22%" }} />
-          <col style={{ width: "24%" }} />
+          <col style={{ width: "40%" }} />
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "20%" }} />
+          <col style={{ width: "20%" }} />
         </colgroup>
 
         <thead>
@@ -68,14 +68,14 @@ export default function RecentUsersTable({ users, dark }: RecentUsersTableProps)
 
         <tbody>
           {paged.length === 0 ? (
-            <tr style={{ height: 88 }}>
+            <tr style={{ height: 72 }}>
               <td colSpan={4} style={{ ...TD, textAlign: "center", color: "var(--text-faint)" }}>
                 No users found.
               </td>
             </tr>
           ) : (
             paged.map((u) => (
-              <tr key={u.id} style={{ height: 88 }}>
+              <tr key={u.id} style={{ height: 72 }}>
                 <td style={TD}>
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
                     {u.name}
@@ -95,7 +95,9 @@ export default function RecentUsersTable({ users, dark }: RecentUsersTableProps)
         </tbody>
       </table>
 
-      <Pagination page={page} totalPages={totalPages} onPrev={() => setPage(p => Math.max(1, p - 1))} onNext={() => setPage(p => Math.min(totalPages, p + 1))} />
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} onPrev={() => setPage(p => Math.max(1, p - 1))} onNext={() => setPage(p => Math.min(totalPages, p + 1))} />
+      )}
     </div>
   );
 }
