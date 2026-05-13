@@ -1,6 +1,4 @@
 import { useState } from "react";
-import WifiRoundedIcon    from "@mui/icons-material/WifiRounded";
-import AcUnitRoundedIcon  from "@mui/icons-material/AcUnitRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import type { VehicleClass } from "../../../api/classes";
 
@@ -124,20 +122,20 @@ export default function ClassTableRow({
         <div style={{ display: "flex", gap: ".3rem", flexWrap: "wrap", alignItems: "center" }}>
           {cls.wifi && (
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 3,
+              display: "inline-flex", alignItems: "center",
               padding: "2px 8px", borderRadius: "9999px", fontSize: ".72rem",
               fontWeight: 600, background: "var(--rider-bg)", color: "var(--rider-fg)",
             }}>
-              <WifiRoundedIcon style={{ fontSize: 12 }} /> WiFi
+              WiFi
             </span>
           )}
           {cls.ac && (
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 3,
+              display: "inline-flex", alignItems: "center",
               padding: "2px 8px", borderRadius: "9999px", fontSize: ".72rem",
               fontWeight: 600, background: "var(--pending-bg)", color: "var(--pending-fg)",
             }}>
-              <AcUnitRoundedIcon style={{ fontSize: 12 }} /> A/C
+              A/C
             </span>
           )}
           {cls.water && (
@@ -145,7 +143,7 @@ export default function ClassTableRow({
               padding: "2px 8px", borderRadius: "9999px", fontSize: ".72rem",
               fontWeight: 600, background: "var(--active-bg)", color: "var(--active-fg)",
             }}>
-              💧 Water
+              Water
             </span>
           )}
           {cls.meetAndGreet && (
@@ -153,7 +151,7 @@ export default function ClassTableRow({
               padding: "2px 8px", borderRadius: "9999px", fontSize: ".72rem",
               fontWeight: 600, background: "var(--driver-bg)", color: "var(--driver-fg)",
             }}>
-              🤝 Meet &amp; Greet
+              Meet &amp; Greet
             </span>
           )}
           {!cls.wifi && !cls.ac && !cls.water && !cls.meetAndGreet && (
@@ -167,7 +165,6 @@ export default function ClassTableRow({
         <span style={{ fontWeight: 800, fontSize: ".85rem", color: "var(--text-h)" }}>
           {cls.freeWaitingTime}
         </span>
-        <span style={{ fontSize: ".72rem", color: "var(--text-faint)", marginLeft: 2 }}>min</span>
       </td>
 
       {/* VEHICLES COUNT */}

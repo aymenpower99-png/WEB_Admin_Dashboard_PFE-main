@@ -213,7 +213,7 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
                   <th style={TH_CENTER}>Seats</th>
                   <th style={TH_CENTER}>Bags</th>
                   <th style={TH}>Features</th>
-                  <th style={TH_CENTER}>Wait</th>
+                  <th style={TH_CENTER}>WAIT (min)</th>
                   <th style={TH_CENTER}>Vehicles</th>
                   <th style={TH}>Status</th>
                   <th style={TH}>Actions</th>

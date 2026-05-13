@@ -1,21 +1,17 @@
 import { useState } from "react";
-import logoLight from "../assets/light.png";
-import logoDark  from "../assets/dark.png";
+import logoLight from "../assets/moviroo light_dark_big.png";
+import logoDark from "../assets/moviroo dark_light_big.png";
 
 type Step = "email" | "sent";
 
-export default function ForgotPassword({
-  onBack,
-}: {
-  onBack: () => void;
-}) {
-  const [email,   setEmail]   = useState("");
+export default function ForgotPassword({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
-  const [error,   setError]   = useState<string | null>(null);
-  const [step,    setStep]    = useState<Step>("email");
-  const [dark,    setDark]    = useState(
-    () => localStorage.getItem("dark") === "true"
+  const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<Step>("email");
+  const [dark, setDark] = useState(
+    () => localStorage.getItem("dark") === "true",
   );
 
   const toggleDark = () => setDark((d) => !d);
@@ -27,9 +23,9 @@ export default function ForgotPassword({
     setLoading(true);
     try {
       const res = await fetch("/api/auth/forgot-password", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -50,9 +46,9 @@ export default function ForgotPassword({
     setResending(true);
     try {
       const res = await fetch("/api/auth/forgot-password", {
-        method:  "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -79,7 +75,11 @@ export default function ForgotPassword({
       <div className="login-left">
         <div className="login-brand">
           <div className="login-logo-wrap">
-            <img src={dark ? logoDark : logoLight} alt="Moviroo logo" className="login-logo-img" />
+            <img
+              src={dark ? logoDark : logoLight}
+              alt="Moviroo logo"
+              className="login-logo-img"
+            />
           </div>
           <div>
             <div className="login-brand-name ts-h">Moviroo</div>
@@ -93,18 +93,23 @@ export default function ForgotPassword({
             <span>ACCOUNT RECOVERY</span>
           </div>
           <h1 className="login-headline ts-h">
-            Reset Your<span className="login-headline-accent"> Access</span> Securely.
+            Reset Your<span className="login-headline-accent"> Access</span>{" "}
+            Securely.
           </h1>
           <p className="login-subheadline ts-muted">
-            Enter your registered email and we'll send you a secure link to restore access to your operations console.
+            Enter your registered email and we'll send you a secure link to
+            restore access to your operations console.
           </p>
           <div className="ts-card login-kpi-strip">
             {[
-              { value: "256-bit", label: "Encryption"  },
-              { value: "30 min",  label: "Link Expiry" },
-              { value: "1-time",  label: "Use Only"    },
+              { value: "256-bit", label: "Encryption" },
+              { value: "30 min", label: "Link Expiry" },
+              { value: "1-time", label: "Use Only" },
             ].map((s, i) => (
-              <div key={s.label} className={`login-kpi-cell${i < 2 ? " login-kpi-cell--bordered" : ""}`}>
+              <div
+                key={s.label}
+                className={`login-kpi-cell${i < 2 ? " login-kpi-cell--bordered" : ""}`}
+              >
                 <div className="ts-stat-value">{s.value}</div>
                 <div className="ts-stat-label">{s.label}</div>
               </div>
@@ -141,11 +146,23 @@ export default function ForgotPassword({
             <form onSubmit={handleSubmit} className="login-form">
               {/* Email */}
               <div>
-                <label className="ts-label" htmlFor="forgot-email">Email Address</label>
+                <label className="ts-label" htmlFor="forgot-email">
+                  Email Address
+                </label>
                 <div className="login-input-wrap">
                   <span className="login-input-icon" aria-hidden>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect x="2" y="4" width="20" height="16" rx="2" />
+                      <path d="m2 7 10 7 10-7" />
                     </svg>
                   </span>
                   <input
@@ -162,15 +179,17 @@ export default function ForgotPassword({
 
               {/* Error banner */}
               {error && (
-                <div style={{
-                  background: "rgba(239,68,68,0.08)",
-                  border: "1px solid rgba(239,68,68,0.35)",
-                  borderRadius: "8px",
-                  padding: "10px 14px",
-                  color: "#ef4444",
-                  fontSize: ".875rem",
-                  textAlign: "center",
-                }}>
+                <div
+                  style={{
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.35)",
+                    borderRadius: "8px",
+                    padding: "10px 14px",
+                    color: "#ef4444",
+                    fontSize: ".875rem",
+                    textAlign: "center",
+                  }}
+                >
                   {error}
                 </div>
               )}
@@ -199,36 +218,55 @@ export default function ForgotPassword({
           /* ── Step 2: Email sent confirmation ── */
           <>
             <div className="login-form-header">
-              <div style={{
-                width: 56, height: 56, borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--brand-from), var(--brand-to))",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                marginBottom: "1rem",
-              }}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9l20-7z"/>
+              <div
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  background:
+                    "linear-gradient(135deg, var(--brand-from), var(--brand-to))",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: "1rem",
+                }}
+              >
+                <svg
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fff"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 2 11 13" />
+                  <path d="M22 2 15 22 11 13 2 9l20-7z" />
                 </svg>
               </div>
               <h2 className="login-form-title ts-h">Check your inbox</h2>
               <p className="ts-muted" style={{ fontSize: ".875rem" }}>
                 We've sent a password reset link to{" "}
-                <strong style={{ color: "var(--text-h)" }}>{email}</strong>.
-                The link expires in 30 minutes.
+                <strong style={{ color: "var(--text-h)" }}>{email}</strong>. The
+                link expires in 30 minutes.
               </p>
             </div>
 
             {/* Error banner (shown if resend fails) */}
             {error && (
-              <div style={{
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.35)",
-                borderRadius: "8px",
-                padding: "10px 14px",
-                color: "#ef4444",
-                fontSize: ".875rem",
-                textAlign: "center",
-                marginBottom: ".75rem",
-              }}>
+              <div
+                style={{
+                  background: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.35)",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                  color: "#ef4444",
+                  fontSize: ".875rem",
+                  textAlign: "center",
+                  marginBottom: ".75rem",
+                }}
+              >
                 {error}
               </div>
             )}
@@ -247,7 +285,10 @@ export default function ForgotPassword({
               {/* Try a different email */}
               <button
                 type="button"
-                onClick={() => { setStep("email"); setError(null); }}
+                onClick={() => {
+                  setStep("email");
+                  setError(null);
+                }}
                 className="ts-btn-ghost login-submit-btn"
               >
                 Try a different email
@@ -267,9 +308,18 @@ export default function ForgotPassword({
         )}
 
         <div className="ts-card-inner login-security-note">
-          <span aria-hidden style={{ fontSize: "1rem", flexShrink: 0, marginTop: "2px" }}>🛡️</span>
-          <p className="ts-muted" style={{ fontSize: ".75rem", margin: 0, lineHeight: 1.6 }}>
-            Reset links are single-use and expire after 30 minutes. If you didn't request this, you can safely ignore it.
+          <span
+            aria-hidden
+            style={{ fontSize: "1rem", flexShrink: 0, marginTop: "2px" }}
+          >
+            🛡️
+          </span>
+          <p
+            className="ts-muted"
+            style={{ fontSize: ".75rem", margin: 0, lineHeight: 1.6 }}
+          >
+            Reset links are single-use and expire after 30 minutes. If you
+            didn't request this, you can safely ignore it.
           </p>
         </div>
       </div>

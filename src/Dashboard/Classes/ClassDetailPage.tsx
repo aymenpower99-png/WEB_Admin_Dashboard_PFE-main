@@ -147,15 +147,15 @@ export default function ClassDetailPage({ classId, onNavigate }: ClassDetailPage
       <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
 
         {/* ── LEFT: Class Overview ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 shrink-0 self-start" style={{ width: 380 }}>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-3 shrink-0 self-start" style={{ width: 400, minHeight: 450 }}>
           <div className="text-base font-bold text-gray-900">Class Overview</div>
 
           {detail.imageUrl ? (
-            <div className="w-full rounded-xl overflow-hidden border border-gray-100" style={{ height: 155 }}>
-              <img src={detail.imageUrl} alt={detail.name} className="w-full h-full object-cover" />
+            <div className="w-full rounded-xl overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center" style={{ minHeight: 240 }}>
+              <img src={detail.imageUrl} alt={detail.name} className="w-full h-full object-contain" style={{ maxHeight: 280 }} />
             </div>
           ) : (
-            <div className="w-full rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center" style={{ height: 155 }}>
+            <div className="w-full rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center" style={{ minHeight: 240 }}>
               <DirectionsCarRoundedIcon className="text-gray-300 !text-5xl" />
             </div>
           )}
