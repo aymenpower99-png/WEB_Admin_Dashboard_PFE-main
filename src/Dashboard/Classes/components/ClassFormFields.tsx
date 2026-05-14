@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import WifiRoundedIcon        from "@mui/icons-material/WifiRounded";
 import AcUnitRoundedIcon      from "@mui/icons-material/AcUnitRounded";
 import WaterDropRoundedIcon   from "@mui/icons-material/WaterDropRounded";
@@ -13,7 +13,6 @@ export type { ExtraFeatureItem };
 export interface ClassFormData {
   name: string;
   imageUrl: string;
-  imageFile: File | null;
   seats: number;
   bags: number;
   wifi: boolean;
@@ -29,7 +28,6 @@ export interface ClassFormData {
 export const DEFAULT_FORM: ClassFormData = {
   name: "",
   imageUrl: "",
-  imageFile: null,
   seats: 4,
   bags: 2,
   wifi: false,
@@ -146,14 +144,12 @@ export default function ClassFormFields({
   nameError,
 }: {
   form: ClassFormData;
-  onChange: (field: keyof ClassFormData, value: string | number | boolean | File | null | ExtraFeatureItem[]) => void;
+  onChange: (field: keyof ClassFormData, value: string | number | boolean | ExtraFeatureItem[]) => void;
   nameError?: string;
 }) {
-  const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(
-    form.imageUrl && !form.imageUrl.startsWith("blob:") ? form.imageUrl : null
+    form.imageUrl ? form.imageUrl : null
   );
-  const [fileName, setFileName] = useState<string>("No file chosen");
 
   // ── Inline-add state ─────────────────────────────────────────────────────
   const [newFeatureName, setNewFeatureName] = useState<string | null>(null);
@@ -164,14 +160,6 @@ export default function ClassFormFields({
   const [editingFeatureValue, setEditingFeatureValue] = useState("");
   const [editingServiceIdx, setEditingServiceIdx] = useState<number | null>(null);
   const [editingServiceValue, setEditingServiceValue] = useState("");
-
-  function handleFile(file: File) {
-    onChange("imageFile", file);
-    setFileName(file.name);
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    onChange("imageUrl", url);
-  }
 
   // ── Dynamic feature/service helpers ──────────────────────────────────────
   function commitFeature() {
@@ -226,81 +214,39 @@ export default function ClassFormFields({
       {/* ── Class Name ── */}
       <Field label="Class Name *" error={nameError ?? ""}>
         <input
+          className="ts-input"
           value={form.name}
           placeholder="e.g. Business Class"
           onChange={e => onChange("name", e.target.value)}
-          style={{
-            width: "100%", boxSizing: "border-box",
-            padding: ".55rem .75rem", borderRadius: ".4rem",
-            border: `1px solid ${nameError ? "#ef4444" : "var(--border)"}`,
-            background: "var(--bg-card)", color: "var(--text-h)",
-            fontSize: ".82rem", outline: "none", fontFamily: "var(--font)",
+          style={nameError ? { borderColor: "#ef4444" } : undefined}
+        />
+      </Field>
+
+      {/* ── Class Image URL ── */}
+      <Field label="Class Image URL" error="" hint="Paste a Cloudinary or direct image link">
+        <input
+          className="ts-input"
+          value={form.imageUrl}
+          placeholder="https://res.cloudinary.com/..."
+          onChange={e => {
+            onChange("imageUrl", e.target.value);
+            setPreview(e.target.value || null);
           }}
         />
       </Field>
 
-      {/* ── Class Image — native file input style ── */}
-      <div>
-        <SectionTitle>Class Image</SectionTitle>
-
-        {/* Hidden real input */}
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-        />
-
-        {/* ✅ Styled to look exactly like native "Choose File | No file chosen" */}
-        <div
-          onClick={() => fileRef.current?.click()}
-          style={{
-            display: "flex", alignItems: "stretch",
-            border: "1px solid var(--border)", borderRadius: ".4rem",
-            overflow: "hidden", cursor: "pointer",
-            background: "var(--bg-card)",
-            fontSize: ".82rem",
-          }}
-        >
-          {/* "Choose File" button part */}
-          <span style={{
-            padding: ".45rem .85rem",
-            background: "var(--bg-inner)",
-            borderRight: "1px solid var(--border)",
-            color: "var(--text-h)",
-            fontWeight: 500,
-            whiteSpace: "nowrap",
-            userSelect: "none",
-            display: "flex", alignItems: "center",
-          }}>
-            Choose File
-          </span>
-          {/* File name part */}
-          <span style={{
-            padding: ".45rem .75rem",
-            color: fileName === "No file chosen" ? "var(--text-faint)" : "var(--text-body)",
-            display: "flex", alignItems: "center",
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
-            {fileName}
-          </span>
+      {preview && (
+        <div style={{ marginTop: "-.5rem" }}>
+          <img
+            src={preview} alt="preview"
+            style={{
+              height: 80, borderRadius: ".4rem", objectFit: "cover",
+              border: "1px solid var(--border)", display: "block",
+            }}
+            onError={() => setPreview(null)}
+          />
         </div>
-
-        {/* Preview thumbnail */}
-        {preview && (
-          <div style={{ marginTop: ".5rem" }}>
-            <img
-              src={preview} alt="preview"
-              style={{
-                height: 80, borderRadius: ".4rem", objectFit: "cover",
-                border: "1px solid var(--border)", display: "block",
-              }}
-              onError={() => setPreview(null)}
-            />
-          </div>
-        )}
-      </div>
+      )}
 
       {/* ── Capacity ── */}
       <div>

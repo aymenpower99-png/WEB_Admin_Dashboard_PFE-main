@@ -974,6 +974,18 @@ body {
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
+/* ── Focus ring for bare form elements inside cards/modals ── */
+.ts-card input:focus:not([type="checkbox"]):not([type="file"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.ts-card textarea:focus,
+.ts-card select:focus,
+.ts-modal-body input:focus:not([type="checkbox"]):not([type="file"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.ts-modal-body textarea:focus,
+.ts-modal-body select:focus {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15) !important;
+  outline: none;
+}
+
 .ts-input::placeholder,
 .ts-textarea::placeholder {
   color: var(--text-faint);

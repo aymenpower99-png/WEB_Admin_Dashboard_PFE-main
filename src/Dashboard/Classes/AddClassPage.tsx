@@ -24,20 +24,19 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
 
   useEffect(() => {
     if (prefill) {
-      setForm({
-        name:            prefill.name,
-        imageUrl:        prefill.imageUrl ?? "",
-        imageFile:       null,
-        seats:           prefill.seats,
-        bags:            prefill.bags,
-        wifi:            prefill.wifi,
-        ac:              prefill.ac,
-        water:           prefill.water,
-        freeWaitingTime: prefill.freeWaitingTime,
-        doorToDoor:      prefill.doorToDoor,
-        meetAndGreet:    prefill.meetAndGreet,
-        extraFeatures:   prefill.extraFeatures ?? [],
-        extraServices:   prefill.extraServices ?? [],
+setForm({
+         name:            prefill.name,
+         imageUrl:        prefill.imageUrl ?? "",
+         seats:           prefill.seats,
+         bags:            prefill.bags,
+         wifi:            prefill.wifi,
+         ac:              prefill.ac,
+         water:           prefill.water,
+         freeWaitingTime: prefill.freeWaitingTime,
+         doorToDoor:      prefill.doorToDoor,
+         meetAndGreet:    prefill.meetAndGreet,
+         extraFeatures:   prefill.extraFeatures ?? [],
+         extraServices:   prefill.extraServices ?? [],
       });
     } else {
       setForm(DEFAULT_FORM);
@@ -48,7 +47,7 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
 
   function handleChange(
     field: keyof ClassFormData,
-    value: string | number | boolean | File | null | ExtraFeatureItem[],
+    value: string | number | boolean | ExtraFeatureItem[],
   ) {
     setForm(prev => ({ ...prev, [field]: value }));
     if (field === "name") setNameError("");
@@ -65,19 +64,9 @@ export default function AddClassPage({ prefill, onNavigate }: AddClassPageProps)
     setApiError(null);
 
     try {
-      let finalImageUrl = form.imageUrl;
-      if (form.imageFile) {
-        try {
-          const res = await classesApi.uploadImage(form.imageFile);
-          finalImageUrl = res.url;
-        } catch {
-          // fallback: no upload endpoint yet
-        }
-      }
-
       const payload = {
         name:            form.name.trim(),
-        imageUrl:        finalImageUrl || undefined,
+        imageUrl:        form.imageUrl || undefined,
         seats:           form.seats,
         bags:            form.bags,
         wifi:            form.wifi,
