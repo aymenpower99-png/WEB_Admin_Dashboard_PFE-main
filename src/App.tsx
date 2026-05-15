@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginWithIntro from "./auth/LoginWithIntro";
 import VerifyEmailChange from "./auth/VerifyEmailChange";
 import Shell from "./routes/ShellRoutes";
+import DataDashShell from "./DataDash/DataDashShell";
 
 import { INITIAL_VEHICLES } from "./Dashboard/Vehicles/Vehiclespage";
 import type { Vehicle } from "./Dashboard/Vehicles/Vehiclespage";
@@ -50,6 +51,15 @@ export default function App() {
                   editVehicle={editVehicle}
                   setEditVehicle={setEditVehicle}
                 />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <DataDashShell dark={dark} onToggleDark={toggleDark} />
               </ProtectedRoute>
             }
           />

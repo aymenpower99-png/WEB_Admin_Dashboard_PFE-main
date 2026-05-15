@@ -37,13 +37,17 @@ async function fetchReport(force = false): Promise<Report> {
   let res: Response;
 
   try {
+    const token = localStorage.getItem("accessToken");
     res = await fetch(`${PROXY_URL}/report${force ? "?force=true" : ""}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
     });
   } catch (networkErr) {
     // ERR_FAILED, CORS, backend down
-    throw new Error("Cannot reach backend — is it running on port 8080?");
+    throw new Error("Cannot reach backend — is it running on port 8009?");
   }
 
   // Try to parse JSON regardless of status code

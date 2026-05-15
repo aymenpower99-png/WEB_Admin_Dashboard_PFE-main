@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { BarChart3 } from "lucide-react";
 
 interface TopNavProps {
   onToggleSidebar?: () => void;
@@ -40,6 +42,7 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
   const popRef     = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const displayName = user
     ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Admin"
@@ -136,6 +139,35 @@ export default function TravelSyncTopNav({ onToggleSidebar, dark, onToggleDark, 
           >
             {dark ? <MoonIcon /> : <SunIcon />}
             <span>{dark ? "Dark" : "Light"}</span>
+          </button>
+
+          {/* Analytics toggle */}
+          <button
+            onClick={() => navigate("/analytics")}
+            title="Open Analytics Dashboard"
+            style={{
+              display:"flex", alignItems:"center", gap:"0.4rem",
+              padding:"0.375rem 0.75rem",
+              borderRadius:"9999px",
+              border:"1px solid rgba(168,85,247,0.25)",
+              background:"rgba(168,85,247,0.05)",
+              color: "#a855f7",
+              cursor:"pointer",
+              fontSize:"0.75rem",
+              fontWeight:600,
+              fontFamily:"inherit",
+              transition:"background 0.2s, color 0.2s",
+              letterSpacing:"0.02em",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(168,85,247,0.12)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(168,85,247,0.05)";
+            }}
+          >
+            <BarChart3 size={14} />
+            <span>Analytics</span>
           </button>
 
           {/* Profile trigger */}

@@ -31,10 +31,17 @@ import type { RevenueEntry, SupportEntry, Vehicle, VehicleStatus } from ".";
 
 const BASE = "/api";
 
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem("accessToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // ─── Revenue ─────────────────────────────────────────────────────────────────
 
 export async function fetchRevenueData(days = 7): Promise<RevenueEntry[]> {
-  const res = await fetch(`${BASE}/dashboard/revenue-trend?days=${days}`);
+  const res = await fetch(`${BASE}/dashboard/revenue-trend?days=${days}`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`revenue-trend: ${res.status}`);
   const json = await res.json();
   return (json.series ?? []).map((s: { label: string; revenue: number; rides: number }) => ({
@@ -47,7 +54,9 @@ export async function fetchRevenueData(days = 7): Promise<RevenueEntry[]> {
 // ─── Support ─────────────────────────────────────────────────────────────────
 
 export async function fetchSupportData(): Promise<SupportEntry[]> {
-  const res = await fetch(`${BASE}/dashboard/support-resolution`);
+  const res = await fetch(`${BASE}/dashboard/support-resolution`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`support-resolution: ${res.status}`);
   const json = await res.json();
   return (json.series ?? []).map((s: { hour: string; resolved: number; pending: number }) => ({
@@ -87,10 +96,14 @@ interface APIDriver {
 }
 async function fetchDriversMap(): Promise<Record<string, string>> {
   try {
-    const res = await fetch(`${BASE}/drivers`);
+    const res = await fetch(`${BASE}/drivers`, {
+      headers: getAuthHeaders(),
+    });
     if (!res.ok) return {};
     const json = await res.json();
-    const drivers: APIDriver[] = json.drivers ?? json.data ?? json ?? [];
+    const drivers: APIDriver[] = Array.isArray(json)
+      ? json
+      : json.drivers ?? json.data ?? [];
     return Object.fromEntries(
       drivers.map((d) => [
         d.id,
@@ -124,8 +137,8 @@ function pseudoCoord(id: string, axis: 0 | 1): number {
 
 export async function fetchFleetData(): Promise<Vehicle[]> {
   const [vehiclesRes, driversRes] = await Promise.all([
-    fetch(`${BASE}/vehicles`),
-    fetch(`${BASE}/drivers`),
+    fetch(`${BASE}/vehicles`, { headers: getAuthHeaders() }),
+    fetch(`${BASE}/drivers`, { headers: getAuthHeaders() }),
   ]);
 
   if (!vehiclesRes.ok) throw new Error(`vehicles: ${vehiclesRes.status}`);
@@ -134,8 +147,12 @@ export async function fetchFleetData(): Promise<Vehicle[]> {
   const vehiclesJson = await vehiclesRes.json();
   const driversJson  = await driversRes.json();
 
-  const vehicles: APIVehicle[] = vehiclesJson.vehicles ?? vehiclesJson.data ?? vehiclesJson ?? [];
-  const drivers: APIDriver[]   = driversJson.drivers   ?? driversJson.data  ?? driversJson  ?? [];
+  const vehicles: APIVehicle[] = Array.isArray(vehiclesJson)
+    ? vehiclesJson
+    : vehiclesJson.vehicles ?? vehiclesJson.data ?? [];
+  const drivers: APIDriver[]   = Array.isArray(driversJson)
+    ? driversJson
+    : driversJson.drivers   ?? driversJson.data  ?? [];
 
 const driversMap: Record<string, string> = Object.fromEntries(
   drivers.map((d) => [
@@ -171,7 +188,9 @@ export interface KPIData {
 }
 
 export async function fetchKPIData(): Promise<KPIData> {
-  const res  = await fetch(`${BASE}/dashboard/overview?hours=24`);
+  const res  = await fetch(`${BASE}/dashboard/overview?hours=24`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`overview: ${res.status}`);
   const json = await res.json();
   const k    = json.kpis ?? {};
@@ -196,7 +215,9 @@ export interface OperationalData {
   utilizationRate: number | null;
 }
 export async function fetchOperationalData(): Promise<OperationalData> {
-  const res  = await fetch(`${BASE}/dashboard/operational`);
+  const res  = await fetch(`${BASE}/dashboard/operational`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`operational: ${res.status}`);
   const json = await res.json();
   const op   = json.operational ?? json ?? {};
@@ -228,8 +249,8 @@ export async function fetchOperationalData(): Promise<OperationalData> {
 export async function fetchAiInsights(): Promise<string[]> {
   try {
     const [overview, op] = await Promise.all([
-      fetch(`${BASE}/dashboard/overview?hours=24`).then((r) => r.json()),
-      fetch(`${BASE}/dashboard/operational`).then((r) => r.json()),
+      fetch(`${BASE}/dashboard/overview?hours=24`, { headers: getAuthHeaders() }).then((r) => r.json()),
+      fetch(`${BASE}/dashboard/operational`, { headers: getAuthHeaders() }).then((r) => r.json()),
     ]);
     const insights: string[] = [];
 
@@ -304,10 +325,14 @@ function initials(name: string): string {
 
 export async function fetchLiveDrivers(): Promise<LiveDriver[]> {
   try {
-    const res  = await fetch(`${BASE}/drivers`);
-    
+    const res  = await fetch(`${BASE}/drivers`, {
+      headers: getAuthHeaders(),
+    });
+
     const json = await res.json();
-    const raw: any[] = json.drivers ?? json.data ?? json ?? [];
+    const raw: any[] = Array.isArray(json)
+      ? json
+      : json.drivers ?? json.data ?? [];
 
     return raw.map((d, i) => {
       const name = d.name ?? [d.first_name, d.last_name].filter(Boolean).join(" ") ?? `Driver ${d.id}`;
@@ -342,7 +367,9 @@ export interface RidesStats {
 }
 
 export async function fetchRidesStats(): Promise<RidesStats> {
-  const res  = await fetch(`${BASE}/rides/stats`);
+  const res  = await fetch(`${BASE}/rides/stats`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`rides/stats: ${res.status}`);
   const json = await res.json();
   return {
@@ -363,7 +390,9 @@ export interface TopDriver {
 }
 
 export async function fetchTopDrivers(limit = 5): Promise<TopDriver[]> {
-  const res  = await fetch(`${BASE}/drivers/top?limit=${limit}`);
+  const res  = await fetch(`${BASE}/drivers/top?limit=${limit}`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`drivers/top: ${res.status}`);
   const json = await res.json();
   const raw: any[] = json.drivers ?? json.data ?? json ?? [];
@@ -386,7 +415,9 @@ export interface DriverStatusBreakdown {
 }
 
 export async function fetchDriverStatusBreakdown(): Promise<DriverStatusBreakdown> {
-  const res  = await fetch(`${BASE}/drivers/status-breakdown`);
+  const res  = await fetch(`${BASE}/drivers/status-breakdown`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`drivers/status-breakdown: ${res.status}`);
   const json = await res.json();
   const data = json.breakdown ?? json ?? {};
@@ -409,7 +440,9 @@ export interface VehicleStats {
 }
 
 export async function fetchVehicleStats(): Promise<VehicleStats> {
-  const res  = await fetch(`${BASE}/vehicles/stats`);
+  const res  = await fetch(`${BASE}/vehicles/stats`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`vehicles/stats: ${res.status}`);
   const json = await res.json();
   const data = json.stats ?? json ?? {};
@@ -433,7 +466,9 @@ export interface SupportTicket {
 
 export async function fetchSupportTickets(status?: string): Promise<SupportTicket[]> {
   const url = status ? `${BASE}/support/tickets?status=${status}` : `${BASE}/support/tickets`;
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`support/tickets: ${res.status}`);
   const json = await res.json();
   // ✅ L'API NestJS retourne directement un tableau, pas { tickets: [] }
@@ -456,7 +491,9 @@ export interface RatingStats {
 }
 
 export async function fetchRatingStats(): Promise<RatingStats> {
-  const res  = await fetch(`${BASE}/ratings/stats`);
+  const res  = await fetch(`${BASE}/ratings/stats`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error(`ratings/stats: ${res.status}`);
   const json = await res.json();
   return {

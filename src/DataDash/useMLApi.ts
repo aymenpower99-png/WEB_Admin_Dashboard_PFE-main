@@ -57,8 +57,12 @@ export function useMLApi<T>(
     setError(null);
 
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`${BASE_URL}${path}`, {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
 
       if (!res.ok) {
@@ -114,9 +118,13 @@ export function useMLPost<TRes>(path: string): UseMLPostResult<TRes> {
     setError(null);
 
     try {
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(`${BASE_URL}${path}`, {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body:    JSON.stringify(body),
       });
 

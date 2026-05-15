@@ -166,7 +166,8 @@ export function useTickets() {
       setError(null);
       loadedMessages.current.clear();
       const res = await supportApi.listAll(1, 50);
-      setTickets(res.data.map(adaptTicket));
+      const ticketsArr = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
+      setTickets(ticketsArr.map(adaptTicket));
     } catch (e: unknown) {
       setError((e as Error).message ?? "Failed to load tickets");
     } finally {

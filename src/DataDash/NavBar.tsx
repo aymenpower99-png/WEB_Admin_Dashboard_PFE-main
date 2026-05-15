@@ -1,15 +1,17 @@
-import { Bell, Settings, Search } from "lucide-react";
+import { Bell, Settings, Search, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { C } from "./tokens";
 import { navItems } from "./mockData";
+
 interface NavBarProps {
   dark: boolean;
   onToggle: () => void;
   activeNav: string;
   setActiveNav: (item: string) => void;
+  onGoToAdmin?: () => void;
 }
 
-export function NavBar({ dark, onToggle, activeNav, setActiveNav }: NavBarProps) {
+export function NavBar({ dark, onToggle, activeNav, setActiveNav, onGoToAdmin }: NavBarProps) {
   return (
     <nav
       className="flex items-center gap-1 px-5 h-14 border-b sticky top-0 z-20"
@@ -67,6 +69,21 @@ export function NavBar({ dark, onToggle, activeNav, setActiveNav }: NavBarProps)
 
       {/* Right icons */}
       <div className="ml-auto flex items-center gap-2">
+        {/* Admin Dashboard toggle */}
+        <button
+          onClick={onGoToAdmin}
+          title="Admin Dashboard"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all"
+          style={{
+            background: dark ? C.darkSurface : C.lightSurface,
+            borderColor: dark ? C.darkBorder : C.lightBorder,
+            color: dark ? C.darkText : C.lightText,
+          }}
+        >
+          <LayoutDashboard size={14} color={C.primaryPurple} />
+          <span>Dashboard</span>
+        </button>
+
         <button
           className="w-8 h-8 rounded-lg border flex items-center justify-center relative"
           style={{
@@ -80,10 +97,6 @@ export function NavBar({ dark, onToggle, activeNav, setActiveNav }: NavBarProps)
             style={{ background: C.error }}
           />
         </button>
-
-      
-
-       
 
         <ThemeToggle dark={dark} onToggle={onToggle} />
       </div>

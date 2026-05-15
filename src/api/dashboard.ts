@@ -75,7 +75,7 @@ export const dashboardApi = {
       apiClient.get("/admin/users").catch(() => ({ data: { data: [] } })),
     ]);
 
-    const rides: any[] = ridesRes.data ?? [];
+    const rides: any[] = Array.isArray(ridesRes.data) ? ridesRes.data : ridesRes.data?.rides ?? ridesRes.data?.data ?? [];
     const today = startOfToday().getTime();
     const yesterday = startOfYesterday().getTime();
 
@@ -97,12 +97,12 @@ export const dashboardApi = {
     const rev = revenueRes.data;
     const revenue = rev?.totalRevenue ?? rev?.total ?? rev?.revenue ?? 0;
 
-    const drivers: any[] = driversRes.data?.drivers ?? driversRes.data?.data ?? driversRes.data ?? [];
+    const drivers: any[] = Array.isArray(driversRes.data) ? driversRes.data : driversRes.data?.drivers ?? driversRes.data?.data ?? [];
 
     // Paginated response: { data: [...], total: number }
     const totalTickets = ticketsRes.data?.total ?? ticketsRes.data?.data?.length ?? 0;
 
-    const users: any[] = usersRes.data?.data ?? usersRes.data ?? [];
+    const users: any[] = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data ?? [];
     const newUsers = users.filter((u) => {
       const created = new Date(u.createdAt ?? u.created_at ?? 0).getTime();
       return created >= yesterday;
@@ -123,7 +123,9 @@ export const dashboardApi = {
   /** GET /billing/revenue/daily?days=7 */
   getRevenueTrend: async (days = 7): Promise<RevenueEntry[]> => {
     const res = await apiClient.get(`/billing/revenue/daily?days=${days}`);
-    const raw: any[] = res.data?.daily ?? res.data?.data ?? res.data ?? [];
+    const raw: any[] = Array.isArray(res.data)
+      ? res.data
+      : res.data?.daily ?? res.data?.data ?? res.data?.series ?? [];
     return raw.map((d) => ({
       day: d.date ?? d.day ?? d.label ?? "",
       revenue: d.revenue ?? d.amount ?? 0,
@@ -134,7 +136,7 @@ export const dashboardApi = {
   /** GET /admin/users?limit=10 */
   getRecentUsers: async (limit = 10): Promise<RecentUser[]> => {
     const res = await apiClient.get("/admin/users", { params: { limit } });
-    const raw: any[] = res.data?.data ?? res.data ?? [];
+    const raw: any[] = Array.isArray(res.data) ? res.data : res.data?.data ?? res.data?.users ?? [];
     return raw.map((u) => ({
       id: u.id,
       name: `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim() || u.email || "Unknown",
@@ -151,7 +153,9 @@ export const dashboardApi = {
     const res = await apiClient.get("/admin/support/tickets", {
       params: { page: 1, limit },
     });
-    const raw: any[] = res.data?.data ?? res.data?.tickets ?? (Array.isArray(res.data) ? res.data : []);
+    const raw: any[] = Array.isArray(res.data)
+      ? res.data
+      : res.data?.data ?? res.data?.tickets ?? [];
     return raw.map((t) => ({
       id: t.id,
       user: t.author
