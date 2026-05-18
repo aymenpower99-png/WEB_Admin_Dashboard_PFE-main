@@ -81,10 +81,6 @@ export default function ForgotPassword({ onBack }: { onBack: () => void }) {
               className="login-logo-img"
             />
           </div>
-          <div>
-            <div className="login-brand-name ts-h">Moviroo</div>
-            <div className="login-brand-sub ts-faint">Operations Console</div>
-          </div>
         </div>
 
         <div className="login-hero">

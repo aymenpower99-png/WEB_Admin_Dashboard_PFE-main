@@ -58,9 +58,14 @@ export default function UsersPage({
     loadUsers();
   }, []);
 
+  const visibleUsers = useMemo(
+    () => (users || []).filter((u) => u.role !== "admin" && u.role !== "super_admin"),
+    [users],
+  );
+
   const filteredUsers = useMemo(() => {
     const roleFilter = ROLE_MAP[activeFilter];
-    return (users || []).filter((u) => {
+    return visibleUsers.filter((u) => {
       const matchRole = roleFilter ? u.role === roleFilter : true;
       const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
       const matchSearch =
@@ -69,7 +74,7 @@ export default function UsersPage({
         u.email.toLowerCase().includes(search.toLowerCase());
       return matchRole && matchSearch;
     });
-  }, [users, activeFilter, search]);
+  }, [visibleUsers, activeFilter, search]);
 
   const totalPages = Math.max(
     1,
@@ -194,7 +199,7 @@ export default function UsersPage({
       </div>
 
       {/* ── KPI Cards ── */}
-      <UserKpiCards users={users} />
+      <UserKpiCards users={visibleUsers} />
 
       {/* ── Filter bar ── */}
       <div

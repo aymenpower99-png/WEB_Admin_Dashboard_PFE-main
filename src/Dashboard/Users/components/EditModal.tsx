@@ -82,6 +82,86 @@ function parsePhone(raw: string): { dialCode: string; digits: string } {
   return { dialCode: "+216", digits: raw };
 }
 
+const ROLE_OPTIONS = [
+  { value: "passenger", label: "Rider" },
+  { value: "driver",    label: "Driver" },
+];
+
+function RoleDropdown({ value, onChange }: { value: string; onChange: (v: "passenger" | "driver") => void }) {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const selected = ROLE_OPTIONS.find(o => o.value === value);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: "100%",
+          padding: ".55rem .75rem",
+          border: "1px solid var(--border)",
+          borderBottom: open ? "none" : "1px solid var(--border)",
+          borderRadius: open ? ".4rem .4rem 0 0" : ".4rem",
+          background: "var(--bg-card)",
+          fontSize: ".82rem",
+          color: selected ? "var(--text-h)" : "var(--text-faint)",
+          cursor: "pointer",
+          userSelect: "none",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          boxSizing: "border-box",
+        }}
+      >
+        <span>{selected ? selected.label : "Select role"}</span>
+        <span style={{ fontSize: ".6rem", color: "var(--text-faint)", marginLeft: ".4rem" }}>▾</span>
+      </div>
+
+      {open && (
+        <div style={{
+          position: "absolute", top: "100%", left: 0, right: 0,
+          border: "1px solid var(--border)", borderTop: "none",
+          borderRadius: "0 0 .4rem .4rem",
+          background: "var(--bg-card)",
+          zIndex: 2147483647,
+          boxShadow: "0 8px 24px rgba(0,0,0,.18)",
+        }}>
+          {ROLE_OPTIONS.map(opt => (
+            <div
+              key={opt.value}
+              onClick={() => { onChange(opt.value as "passenger" | "driver"); setOpen(false); }}
+              onMouseEnter={() => setHovered(opt.value)}
+              onMouseLeave={() => setHovered(null)}
+              style={{
+                padding: ".55rem .75rem",
+                fontSize: ".82rem",
+                color: hovered === opt.value ? "#7c3aed" : "var(--text-body)",
+                background: hovered === opt.value ? "#ede9fe" : "transparent",
+                fontWeight: hovered === opt.value ? 600 : 400,
+                cursor: "pointer",
+                borderBottom: "1px solid var(--border)",
+                transition: "background var(--t-fast), color var(--t-fast)",
+              }}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EditModal({ user, onClose, onSave }: Props) {
   const parsed = parsePhone(user.phone ?? "");
   const [form, setForm] = useState({
@@ -186,11 +266,7 @@ export default function EditModal({ user, onClose, onSave }: Props) {
           {/* Role */}
           <div style={{ display: "flex", flexDirection: "column", gap: ".25rem", marginTop: ".75rem" }}>
             <label className="ts-label">Role</label>
-            <select className="ts-input" style={{ cursor: "pointer" }} value={form.role}
-              onChange={e => setForm({ ...form, role: e.target.value as "passenger" | "driver" })}>
-              <option value="passenger">Rider</option>
-              <option value="driver">Driver</option>
-            </select>
+            <RoleDropdown value={form.role} onChange={v => setForm({ ...form, role: v })} />
           </div>
         </div>
         <div className="ts-modal-footer">

@@ -6,15 +6,13 @@ import type { TabItem } from "../settings/settingsTypes";
 import PersonalPanel    from "./PersonalPanel";
 import PasswordPanel    from "./PasswordPanel";
 import AppearancePanel  from "./AppearancePanel";
-import CurrencyPanel    from "./CurrencyPanel";
 
-type TabId = "personal" | "password" | "appearance" | "currency";
+type TabId = "personal" | "password" | "appearance";
 
 const tabs: TabItem[] = [
   { id: "personal",   label: "Personal",   icon: icons.user     },
   { id: "password",   label: "Password",   icon: icons.lock     },
   { id: "appearance", label: "Appearance", icon: icons.palette  },
-  { id: "currency",   label: "Currency",   icon: icons.currency },
 ];
 
 interface SettingsProps { dark: boolean; onToggleDark: () => void; }
@@ -26,7 +24,6 @@ const Settings: FC<SettingsProps> = ({ dark, onToggleDark }) => {
     personal:   <PersonalPanel />,
     password:   <PasswordPanel />,
     appearance: <AppearancePanel dark={dark} onToggleDark={onToggleDark} />,
-    currency:   <CurrencyPanel />,
   };
 
   return (

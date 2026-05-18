@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logoLight from "../assets/moviroo light_dark_big.png";
 import logoDark from "../assets/moviroo dark_light_big.png";
 
@@ -21,6 +21,38 @@ export default function LoginAdmin({
   const [error, setError] = useState<string | null>(null);
   const [dark, setDark] = useState(localStorage.getItem("dark") === "true");
 
+  // ── Live stats from backend ──
+  const [stats, setStats] = useState<
+    { value: string; label: string }[] | null
+  >(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats/public");
+        if (!res.ok) throw new Error("Stats unavailable");
+        const data = await res.json();
+        if (!mounted) return;
+        setStats([
+          { value: String(data.activeVehicles ?? "—"), label: "Active Vehicles" },
+          { value: String(data.completedTrips ?? "—"), label: "Completed Trips" },
+          { value: String(data.tripsToday ?? "—"), label: "Trips Today" },
+        ]);
+      } catch {
+        if (mounted) setStats(null);
+      }
+    };
+
+    fetchStats();
+    const id = setInterval(fetchStats, 30000);
+    return () => {
+      mounted = false;
+      clearInterval(id);
+    };
+  }, []);
+
   const toggleDark = () => setDark((d) => !d);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +63,7 @@ export default function LoginAdmin({
       const res = await fetch("/api/auth/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, rememberMe: remember }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -90,11 +122,11 @@ export default function LoginAdmin({
             — built for professionals.
           </p>
           <div className="ts-card login-kpi-strip">
-            {[
-              { value: "312", label: "Active Vehicles" },
-              { value: "98.2%", label: "On-Time Rate" },
-              { value: "4.8K", label: "Trips Today" },
-            ].map((s, i) => (
+            {(stats ?? [
+              { value: "—", label: "Active Vehicles" },
+              { value: "—", label: "Completed Trips" },
+              { value: "—", label: "Trips Today" },
+            ]).map((s, i) => (
               <div
                 key={s.label}
                 className={`login-kpi-cell${i < 2 ? " login-kpi-cell--bordered" : ""}`}
