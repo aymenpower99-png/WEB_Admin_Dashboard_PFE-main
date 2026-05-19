@@ -6,7 +6,6 @@ import type { TabItem } from "../settings/settingsTypes";
 import PersonalPanel    from "./PersonalPanel";
 import PasswordPanel    from "./PasswordPanel";
 import AppearancePanel  from "./AppearancePanel";
-
 type TabId = "personal" | "password" | "appearance";
 
 const tabs: TabItem[] = [

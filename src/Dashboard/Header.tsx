@@ -2,8 +2,8 @@ interface HeaderProps {
   dark: boolean;
 }
 import "./travelsync-design-system.css";
-import logoLight from "../assets/moviroo light_dark_big.png";
-import logoDark from "../assets/moviroo dark_light_big.png";
+import logoLight from "../assets/lightt.png";
+import logoDark from "../assets/darkk.png";
 
 export default function Header({ dark }: HeaderProps) {
   return (

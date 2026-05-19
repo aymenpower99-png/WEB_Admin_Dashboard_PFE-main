@@ -6,8 +6,8 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import logoLight from "../assets/moviroo light_dark_big.png";
-import logoDark from "../assets/moviroo dark_light_big.png";
+import logoLight from "../assets/lightt.png";
+import logoDark from "../assets/darkk.png";
 
 import Sidebar from "../Dashboard/Sidebar";
 import TravelSyncTopNav from "../Dashboard/TopNavProps";
@@ -217,7 +217,7 @@ export default function Shell({
               src={dark ? logoDark : logoLight}
               alt="Moviroo"
               style={{
-                height: "90px",
+                height: "270px",
                 width: "auto",
                 objectFit: "contain",
                 flexShrink: 0,

@@ -1,8 +1,9 @@
-import { useState, useEffect, type FC } from "react";
+import { useState, useEffect, useRef, type FC } from "react";
 import apiClient from "../../api/apiClient";
 import { useAuth } from "../../contexts/AuthContext";
 import { Icon, SettingsInput, SectionHead, SaveBtn } from "./SettingsComponents";
 import { icons } from "./settingsTypes";
+import tunisiaFlag from "../../assets/tunisia.png";
 
 const ROLE_LABEL: Record<string, string> = {
   super_admin: "Super Admin",
@@ -11,14 +12,91 @@ const ROLE_LABEL: Record<string, string> = {
   driver:      "Driver",
 };
 
+const COUNTRIES = [
+  { code: "+216", flag: tunisiaFlag, name: "Tunisia" },
+];
+
+function parsePhone(raw: string): { dialCode: string; digits: string } {
+  const c = COUNTRIES.find(x => raw.startsWith(x.code));
+  if (c) return { dialCode: c.code, digits: raw.slice(c.code.length) };
+  return { dialCode: COUNTRIES[0].code, digits: raw };
+}
+
+function CountryDropdown({ value, onChange }: { value: string; onChange: (code: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [hovered, setHov] = useState<string | null>(null);
+  const [imgErr, setImgErr] = useState<Set<string>>(new Set());
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const selected = COUNTRIES.find(c => c.code === value);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <div onClick={() => setOpen(o => !o)} style={{
+        padding: "0 .75rem", border: "1px solid var(--border)",
+        borderBottom: open ? "none" : "1px solid var(--border)",
+        borderRight: "none",
+        borderRadius: open ? ".4rem 0 0 0" : ".4rem 0 0 .4rem",
+        background: "var(--bg-card)", fontSize: ".85rem", color: "var(--text-h)",
+        cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center",
+        gap: ".5rem", height: "2.25rem", boxSizing: "border-box" as const, minWidth: "5.5rem",
+      }}>
+        {selected && !imgErr.has(selected.code) ? (
+          <img src={selected.flag} alt={selected.name}
+            onError={() => setImgErr(p => new Set(p).add(selected.code))}
+            style={{ width: "1.2rem", height: "auto", display: "block" }} />
+        ) : <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>🌍</span>}
+        <span>{value}</span>
+        <span style={{ fontSize: ".7rem", color: "var(--text-faint)" }}>▾</span>
+      </div>
+      {open && (
+        <div style={{
+          position: "absolute", top: "100%", left: 0, minWidth: "12rem",
+          border: "1px solid var(--border)", borderTop: "none",
+          borderRadius: "0 0 .4rem .4rem", background: "var(--bg-card)",
+          zIndex: 2147483647, boxShadow: "0 8px 24px rgba(0,0,0,.18)",
+        }}>
+          {COUNTRIES.map(c => (
+            <div key={c.code}
+              onMouseDown={e => { e.preventDefault(); onChange(c.code); setOpen(false); }}
+              onMouseEnter={() => setHov(c.code)} onMouseLeave={() => setHov(null)}
+              style={{
+                padding: ".55rem .75rem", paddingLeft: hovered === c.code ? "1.1rem" : ".75rem",
+                fontSize: ".85rem", display: "flex", alignItems: "center", gap: ".55rem",
+                color: hovered === c.code ? "var(--rider-fg)" : "var(--text-body)",
+                background: hovered === c.code ? "var(--rider-bg)" : "var(--bg-card)",
+                cursor: "pointer", transition: "background var(--t-fast), color var(--t-fast), padding-left var(--t-fast)",
+              }}>
+              {!imgErr.has(c.code)
+                ? <img src={c.flag} alt={c.name} onError={() => setImgErr(p => new Set(p).add(c.code))} style={{ width: "1.2rem", height: "auto" }} />
+                : <span style={{ fontSize: "1.2rem" }}>🌍</span>}
+              <span>{c.code}</span>
+              <span style={{ color: "var(--text-faint)", marginLeft: ".25rem" }}>{c.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const PersonalPanel: FC = () => {
   const { user, updateUser } = useAuth();
+
+  const parsed = parsePhone((user?.phone ?? "") as string);
+  const [dialCode, setDialCode] = useState(parsed.dialCode);
+  const [phoneDigits, setPhoneDigits] = useState(parsed.digits);
 
   const [form, setForm] = useState({
     firstName: user?.firstName ?? "",
     lastName:  user?.lastName  ?? "",
     email:     user?.email     ?? "",
-    phone:     (user?.phone    ?? "") as string,
   });
 
   const [pendingEmail,       setPendingEmail]       = useState<string | null>(null);
@@ -28,6 +106,7 @@ const PersonalPanel: FC = () => {
   const [loading,       setLoading]       = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMsg,     setResendMsg]     = useState("");
+  const [phoneError,    setPhoneError]    = useState("");
 
   // ── On mount: fetch fresh /auth/me from backend ──────────────────────────
   // This is the KEY fix: if the user confirmed their email in another tab,
@@ -50,8 +129,10 @@ const PersonalPanel: FC = () => {
         firstName: data.firstName ?? "",
         lastName:  data.lastName  ?? "",
         email:     data.email     ?? "",
-        phone:     data.phone     ?? "",
       });
+      const p = parsePhone(data.phone ?? "");
+      setDialCode(p.dialCode);
+      setPhoneDigits(p.digits);
 
       // Check if there's still a pending email change
       if (data.emailChangePending && data.pendingEmail) {
@@ -75,11 +156,13 @@ const PersonalPanel: FC = () => {
     const currentEmail = user?.email ?? "";
     const emailChanged = form.email.trim() !== "" && form.email.trim() !== currentEmail;
 
+    const fullPhone = phoneDigits.trim() ? `${dialCode}${phoneDigits.trim()}` : "";
+
     try {
       const payload: Record<string, string> = {
         firstName: form.firstName,
         lastName:  form.lastName,
-        phone:     form.phone,
+        phone:     fullPhone,
       };
       if (emailChanged) payload.email = form.email.trim();
 
@@ -91,10 +174,10 @@ const PersonalPanel: FC = () => {
         setPendingEmail(res.data.pendingEmail ?? form.email.trim());
         setForm(f => ({ ...f, email: currentEmail }));
         // Only update name/phone in context — email stays until verified
-        updateUser({ firstName: form.firstName, lastName: form.lastName, phone: form.phone });
+        updateUser({ firstName: form.firstName, lastName: form.lastName, phone: fullPhone });
       } else {
         // Name/phone only → update context + show Saved!
-        updateUser({ firstName: form.firstName, lastName: form.lastName, phone: form.phone });
+        updateUser({ firstName: form.firstName, lastName: form.lastName, phone: fullPhone });
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
       }
@@ -198,7 +281,28 @@ const PersonalPanel: FC = () => {
             ? "Email locked until pending change is verified or cancelled."
             : undefined}
         />
-        <SettingsInput label="Phone number" value={form.phone} onChange={set("phone")} placeholder="+1 234 567 890" />
+        {/* Phone with flag + dial code */}
+        <div className="space-y-1.5">
+          <label className="ts-label">Phone number</label>
+          <div style={{ display: "flex", height: "2.25rem", width: "100%" }}>
+            <CountryDropdown value={dialCode} onChange={setDialCode} />
+            <input
+              type="tel"
+              placeholder="20 123 456"
+              value={phoneDigits}
+              onChange={e => { setPhoneDigits(e.target.value); setPhoneError(""); }}
+              style={{
+                flex: 1, height: "100%", fontSize: ".85rem",
+                fontFamily: "var(--font)", background: "var(--bg-card)",
+                color: "var(--text-h)",
+                border: `1px solid ${phoneError ? "#dc2626" : "var(--border)"}`,
+                borderRadius: "0 .4rem .4rem 0",
+                padding: "0 .75rem", outline: "none", boxSizing: "border-box",
+              }}
+            />
+          </div>
+          {phoneError && <p className="ts-err">{phoneError}</p>}
+        </div>
 
         {/* Role — read-only */}
         <div className="col-span-2 space-y-1.5">
