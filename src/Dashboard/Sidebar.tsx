@@ -58,6 +58,7 @@ const NAV_GROUPS: { section: string; items: NavItem[] }[] = [
         children: [
           { label: "All Classes", page: "classes" },
           { label: "Add Class", page: "classes-add" },
+          { label: "Pricing", page: "pricing" },
           // "Class Detail" removed — accessed via row action button only
         ],
       },

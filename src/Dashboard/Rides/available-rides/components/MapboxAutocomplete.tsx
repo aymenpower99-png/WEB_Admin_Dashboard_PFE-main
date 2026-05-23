@@ -60,7 +60,7 @@ export default function MapboxAutocomplete({
   const [results, setResults] = useState<MapboxPlace[]>([]);
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click

@@ -79,6 +79,12 @@ export default defineConfig({
       "/api/work-areas": { target: "http://localhost:3000", changeOrigin: true },
       "/api/help-center": { target: "http://localhost:3000", changeOrigin: true },
       "/api/upload": { target: "http://localhost:3000", changeOrigin: true },
+      // ML pricing config API (Flask on port 5000)
+      "/api/pricing-config": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/pricing-config/, "/api"),
+      },
       // Catch-all for any other /api routes to main backend
       "/api": { target: "http://localhost:3000", changeOrigin: true },
     },

@@ -20,6 +20,7 @@ import AddVehiclePage from "../Dashboard/Vehicles/Addvehiclepage";
 import ClassesPage from "../Dashboard/Classes/ClassesPage";
 import AddClassPage from "../Dashboard/Classes/AddClassPage";
 import ClassDetailPage from "../Dashboard/Classes/ClassDetailPage";
+import PricingPage from "../Dashboard/Pricing/PricingPage";
 import TripsPage from "../Dashboard/BookingsPage";
 import AgencyBillingOverviewPage from "../Dashboard/billing/overview/AgencyBillingOverviewPage";
 import AgencyBillingTripPaymentsPage from "../Dashboard/billing/trip-payments/AgencyBillingTripPaymentsPage";
@@ -48,6 +49,7 @@ const PAGE_ORDER = [
   "classes",
   "classes-add",
   "class-detail",
+  "pricing",
   "vehicles",
   "agency-vehicles",
   "trips",
@@ -322,6 +324,7 @@ export default function Shell({
                   />
                 }
               />
+              <Route path="pricing" element={<PricingPage />} />
 
               {/* ── Vehicles ── */}
               <Route
