@@ -37,6 +37,7 @@ export interface VehicleClass {
   meetAndGreet: boolean;
   extraFeatures: ExtraFeatureItem[];
   extraServices: ExtraFeatureItem[];
+  multiplier: number;         // ← DB-driven pricing multiplier
   isActive: boolean;
   vehicleCount?: number;   // ← returned by GET /admin/classes list
   createdAt: string;

@@ -16,9 +16,11 @@ import WeekendRoundedIcon from "@mui/icons-material/WeekendRounded";
 
 import { usePricingConfig } from "../../api/pricing";
 import type { PricingConfig } from "../../api/pricing";
+import { useVehicleClasses } from "../../api/useVehicleClasses";
 import PricingStatCards from "./components/PricingStatCards";
 import PricingSectionCard from "./components/PricingSectionCard";
 import PricingTableSection from "./components/PricingTableSection";
+import PricingCarTypesSection from "./components/PricingCarTypesSection";
 import PricingSingleRow from "./components/PricingSingleRow";
 import PricingMLTable from "./components/PricingMLTable";
 import PricingStatusBanner from "./components/PricingStatusBanner";
@@ -78,7 +80,14 @@ export default function PricingPage() {
     setNestedVal,
   } = usePricingConfig();
 
+  const {
+    classes,
+    status: classesStatus,
+    updateMultiplier,
+  } = useVehicleClasses();
+
   const [activeTab, setActiveTab] = useState<TabKey>("fare");
+  const [savingClassId, setSavingClassId] = useState<string | null>(null);
 
   const handleSave = useCallback(async () => {
     if (!config) return;
@@ -92,6 +101,17 @@ export default function PricingPage() {
     if (ok) toast.success("Pricing configuration reset to defaults");
     else toast.error("Failed to reset pricing configuration");
   }, [resetConfig]);
+
+  const handleClassMultiplierChange = useCallback(
+    async (id: string, value: number) => {
+      setSavingClassId(id);
+      const ok = await updateMultiplier(id, value);
+      setSavingClassId(null);
+      if (ok) toast.success("Class multiplier saved");
+      else toast.error("Failed to save class multiplier");
+    },
+    [updateMultiplier]
+  );
 
   const isBusy = status === "saving" || status === "loading";
 
@@ -435,13 +455,25 @@ export default function PricingPage() {
             <PricingSectionCard
               title="Car Type Multipliers"
               icon={<DirectionsCarRoundedIcon style={{ fontSize: 16 }} />}
-              description="Per-category pricing modifier based on vehicle class"
+              description="Per-category pricing modifier based on vehicle class (DB-driven)"
             >
-              <PricingTableSection
-                data={config.MULT_CAR}
-                keyLabel="Type"
-                onChange={(k, v) => setNestedNum("MULT_CAR", k, v)}
-              />
+              {classesStatus === "loading" && (
+                <div style={{ fontSize: ".85rem", color: "var(--text-faint)", padding: "1rem 0" }}>
+                  Loading vehicle classes…
+                </div>
+              )}
+              {classesStatus === "error" && (
+                <div style={{ fontSize: ".82rem", color: "#ef4444", padding: "1rem 0" }}>
+                  Failed to load vehicle classes
+                </div>
+              )}
+              {classes.length > 0 && (
+                <PricingCarTypesSection
+                  classes={classes}
+                  onChange={handleClassMultiplierChange}
+                  savingId={savingClassId}
+                />
+              )}
             </PricingSectionCard>
           )}
 
