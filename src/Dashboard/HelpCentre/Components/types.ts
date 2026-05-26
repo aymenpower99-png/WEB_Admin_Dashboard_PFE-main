@@ -30,11 +30,12 @@ export interface ActivityEvent {
 export interface Ticket {
   id: string;
   title: string;
-  description: string;       // ← ticket description from backend
+  description: string;
   status: TicketStatus;
   role: UserRole;
   category: TicketCategory;
   time: string;
+  createdAt: string; // raw ISO timestamp for sync comparisons
   user: {
     name: string;
     role: UserRole;

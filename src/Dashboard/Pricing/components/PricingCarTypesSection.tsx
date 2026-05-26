@@ -48,7 +48,8 @@ export default function PricingCarTypesSection({
 
   const getValue = (cls: VehicleClass) => {
     if (local[cls.id] !== undefined) return local[cls.id];
-    return cls.multiplier ?? 1.0;
+    const m = cls.multiplier;
+    return typeof m === "number" ? m : parseFloat(m as any) || 1.0;
   };
 
   return (

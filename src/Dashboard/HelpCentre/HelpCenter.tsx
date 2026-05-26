@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { TicketStatus } from "./Components/types";
 import { useTickets } from "./Components/useTickets";
+import { useSupportSocket } from "../../hooks/useSupportSocket";
 import TicketList from "./Components/TicketList";
 import TicketDetails from "./Components/TicketDetails";
 
@@ -9,8 +10,47 @@ interface HelpCenterProps {
 }
 
 export default function HelpCenter({ dark }: HelpCenterProps) {
-  const { tickets, loading, error, changeStatus, sendMessage, deleteTicket, editMessage, deleteMessage, loadTicketMessages } = useTickets();
+  const {
+    tickets,
+    loading,
+    error,
+    changeStatus,
+    sendMessage,
+    deleteTicket,
+    editMessage,
+    deleteMessage,
+    loadTicketMessages,
+    refetch,
+    checkMissedNotifications,
+  } = useTickets();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // ── Real-time WebSocket (connects only while this component is mounted) ─────
+  const handleTicketCreated = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  const handleTicketReply = useCallback(
+    (ticketId: string) => {
+      refetch();
+      if (selectedId === ticketId) {
+        loadTicketMessages(ticketId);
+      }
+    },
+    [refetch, selectedId, loadTicketMessages]
+  );
+
+  const handleReconnect = useCallback(() => {
+    refetch().then(() => {
+      checkMissedNotifications();
+    });
+  }, [refetch, checkMissedNotifications]);
+
+  useSupportSocket({
+    onTicketCreated: handleTicketCreated,
+    onTicketReply: handleTicketReply,
+    onReconnect: handleReconnect,
+  });
 
   // Auto-select first ticket once loaded
   useEffect(() => {

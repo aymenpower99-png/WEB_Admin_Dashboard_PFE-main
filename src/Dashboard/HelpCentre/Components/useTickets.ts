@@ -120,6 +120,7 @@ function adaptTicket(t: BackendTicket): Ticket {
     time: new Date(t.createdAt).toLocaleString("en-GB", {
       day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
     }),
+    createdAt: t.createdAt,
     user: {
       name: authorName,
       role,
@@ -337,6 +338,42 @@ export function useTickets() {
     []
   );
 
+  // ── Offline catch-up: compare fetched tickets with last seen timestamp ────────
+  const checkMissedNotifications = useCallback(() => {
+    if (tickets.length === 0) return;
+
+    const lastSeenRaw = localStorage.getItem("support:lastSeenAt");
+    const newestTimestamp = tickets.reduce((max, t) => {
+      const d = new Date(t.createdAt).getTime();
+      return d > max ? d : max;
+    }, 0);
+
+    if (lastSeenRaw) {
+      const lastSeen = new Date(lastSeenRaw).getTime();
+      const missed = tickets.filter(
+        (t) => new Date(t.createdAt).getTime() > lastSeen
+      );
+      if (missed.length > 0) {
+        toast.info(
+          `${missed.length} new ticket${missed.length > 1 ? "s" : ""} while you were away`
+        );
+      }
+    }
+
+    localStorage.setItem(
+      "support:lastSeenAt",
+      new Date(newestTimestamp).toISOString()
+    );
+  }, [tickets]);
+
+  // Run offline check once after the initial fetch completes
+  const didInitialSyncRef = useRef(false);
+  useEffect(() => {
+    if (loading || didInitialSyncRef.current) return;
+    didInitialSyncRef.current = true;
+    checkMissedNotifications();
+  }, [loading, checkMissedNotifications]);
+
   return {
     tickets,
     loading,
@@ -348,5 +385,6 @@ export function useTickets() {
     deleteMessage,
     loadTicketMessages,
     refetch: fetchTickets,
+    checkMissedNotifications,
   };
 }

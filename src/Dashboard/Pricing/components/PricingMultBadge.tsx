@@ -3,12 +3,14 @@ interface PricingMultBadgeProps {
 }
 
 export default function PricingMultBadge({ value }: PricingMultBadgeProps) {
+  const num = typeof value === "number" ? value : parseFloat(value as any) || 0;
+
   const style =
-    value > 1.5
+    num > 1.5
       ? { background: "rgba(239,68,68,.1)", color: "#ef4444", borderColor: "rgba(239,68,68,.25)" }
-      : value > 1.1
+      : num > 1.1
         ? { background: "rgba(245,158,11,.1)", color: "#f59e0b", borderColor: "rgba(245,158,11,.25)" }
-        : value < 1.0
+        : num < 1.0
           ? { background: "rgba(16,185,129,.1)", color: "#10b981", borderColor: "rgba(16,185,129,.25)" }
           : { background: "var(--bg-inner)", color: "var(--text-muted)", borderColor: "var(--border)" };
 
@@ -27,7 +29,7 @@ export default function PricingMultBadge({ value }: PricingMultBadgeProps) {
         whiteSpace: "nowrap",
       }}
     >
-      ×{value.toFixed(2)}
+      ×{num.toFixed(2)}
     </span>
   );
 }
