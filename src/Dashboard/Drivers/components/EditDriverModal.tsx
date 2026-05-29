@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { driversApi, type DriverProfile } from "../../../api/drivers";
+import { workAreasApi, type WorkAreaItem } from "../../../api/workAreas";
 import apiClient from "../../../api/apiClient";
 
 interface Props {
@@ -19,28 +20,31 @@ interface VehicleOption {
 
 export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
   const [vehicleId, setVehicleId] = useState<string>(driver.vehicle?.id ?? "");
-  const [vehicles,  setVehicles]  = useState<VehicleOption[]>([]);
-  const [loading,   setLoading]   = useState(true);
-  const [saving,    setSaving]    = useState(false);
-  const [error,     setError]     = useState<string | null>(null);
+  const [workAreaId, setWorkAreaId] = useState<string>(driver.workAreaId ?? "");
+  const [vehicles, setVehicles] = useState<VehicleOption[]>([]);
+  const [workAreas, setWorkAreas] = useState<WorkAreaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    // Fetch with status=Available filter — backend enforces this too, but we pre-filter in UI
-    apiClient.get("/vehicles", { params: { limit: 200, status: "Available" } })
-      .then(res => {
-        const list: any[] = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
-        // Extra client-side guard: keep only Available vehicles
-        const available = list.filter(v => v.status === "Available");
-        setVehicles(available.map(v => ({
-          id:           v.id,
-          make:         v.make,
-          model:        v.model,
-          year:         v.year,
-          licensePlate: v.licensePlate,
-          status:       v.status,
-        })));
-      })
+    Promise.all([
+      apiClient.get("/vehicles", { params: { limit: 200, status: "Available" } })
+        .then(res => {
+          const list: any[] = Array.isArray(res.data) ? res.data : (res.data?.data ?? []);
+          const available = list.filter(v => v.status === "Available");
+          setVehicles(available.map(v => ({
+            id: v.id,
+            make: v.make,
+            model: v.model,
+            year: v.year,
+            licensePlate: v.licensePlate,
+            status: v.status,
+          })));
+        }),
+      workAreasApi.getAll().then(setWorkAreas),
+    ])
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -48,9 +52,11 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
   async function handleSave() {
     setSaving(true); setError(null);
     try {
-      const updated = await driversApi.update(driver.id, {
-        ...(vehicleId ? { vehicleId } : {}),
-      });
+      const payload = {
+        vehicleId: vehicleId || null,
+        workAreaId: workAreaId || null,
+      };
+      const updated = await driversApi.update(driver.id, payload);
       onSaved(updated);
       onClose();
     } catch (err: any) {
@@ -62,14 +68,15 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
   }
 
   const selectedVehicle = vehicles.find(v => v.id === vehicleId);
+  const selectedWorkArea = workAreas.find(w => w.id === workAreaId);
 
-  // Current vehicle may already be assigned (driver.vehicle) — show it even if not in 'available' list
+  // Current vehicle may already be assigned — show it even if not in 'available' list
   const currentVehicleNotInList =
     driver.vehicle &&
     driver.vehicle.status === "Available" &&
     !vehicles.find(v => v.id === driver.vehicle!.id);
 
-  const allOptions: VehicleOption[] = [
+  const allVehicleOptions: VehicleOption[] = [
     ...(currentVehicleNotInList
       ? [{ ...driver.vehicle!, status: "Available" } as VehicleOption]
       : []),
@@ -84,7 +91,7 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
             <h2 className="ts-page-title" style={{ fontSize: "1rem" }}>
               Edit Driver — {driver.firstName} {driver.lastName}
             </h2>
-            <p className="ts-page-subtitle">Assign an available vehicle to this driver.</p>
+            <p className="ts-page-subtitle">Assign vehicle and work area to this driver.</p>
           </div>
           <button className="ts-modal-close" onClick={onClose}>✕</button>
         </div>
@@ -133,7 +140,7 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
             </div>
           )}
 
-          {/* Assign Vehicle — only Available vehicles shown */}
+          {/* Assign Vehicle */}
           <div className="ts-field">
             <label className="ts-label">
               Assign Vehicle
@@ -152,14 +159,14 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
                 onChange={e => setVehicleId(e.target.value)}
               >
                 <option value="">— No vehicle assigned —</option>
-                {allOptions.map(v => (
+                {allVehicleOptions.map(v => (
                   <option key={v.id} value={v.id}>
                     {v.year} {v.make} {v.model}{v.licensePlate ? ` · ${v.licensePlate}` : ""}
                   </option>
                 ))}
               </select>
             )}
-            {allOptions.length === 0 && !loading && (
+            {allVehicleOptions.length === 0 && !loading && (
               <div style={{
                 padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem",
                 background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)",
@@ -175,15 +182,50 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
             )}
           </div>
 
+          {/* Assign Work Area */}
+          <div className="ts-field">
+            <label className="ts-label">Assign Work Area</label>
+            {loading ? (
+              <div style={{ padding: ".6rem", fontSize: ".82rem", color: "var(--text-faint)" }}>
+                Loading work areas…
+              </div>
+            ) : (
+              <select
+                className="ts-select"
+                value={workAreaId}
+                onChange={e => setWorkAreaId(e.target.value)}
+              >
+                <option value="">— No work area assigned —</option>
+                {workAreas.map(w => (
+                  <option key={w.id} value={w.id}>
+                    {w.ville}, {w.country}
+                  </option>
+                ))}
+              </select>
+            )}
+            {workAreas.length === 0 && !loading && (
+              <div style={{
+                padding: ".6rem .9rem", borderRadius: 8, fontSize: ".8rem",
+                background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)",
+                color: "#92400e",
+              }}>
+                ⚠ No work areas found. Create a work area first.
+              </div>
+            )}
+            {selectedWorkArea && (
+              <span style={{ fontSize: ".78rem", color: "#7c3aed" }}>
+                ✓ Selected: {selectedWorkArea.ville}, {selectedWorkArea.country}
+              </span>
+            )}
+          </div>
+
           {/* Setup flow hint */}
           <div style={{
             padding: ".65rem .9rem", borderRadius: 8,
             background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.18)",
             fontSize: ".8rem", color: "var(--text-muted)", lineHeight: 1.6,
           }}>
-            After assigning a vehicle, go to <strong>Work Areas</strong> to assign a work area.
-            Once both are done and the vehicle is <strong>Available</strong>, the driver status becomes{" "}
-            <strong>Offline</strong> and they can go online.
+            Once both a vehicle (<strong>Available</strong>) and a work area are assigned, the driver status becomes <strong>Offline</strong> and they can go online.
           </div>
         </div>
 

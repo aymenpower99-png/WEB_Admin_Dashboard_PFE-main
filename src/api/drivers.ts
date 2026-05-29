@@ -44,7 +44,8 @@ export interface UpdateDriverPayload {
   driverLicenseFrontUrl?: string;
   driverLicenseBackUrl?: string;
   availabilityStatus?: DriverAvailabilityStatus;
-  vehicleId?: string;
+  vehicleId?: string | null;
+  workAreaId?: string | null;
   fixedMonthlySalary?: number;
 }
 
