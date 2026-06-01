@@ -1,4 +1,4 @@
-import { Receipt, CheckCircle, Clock, RotateCcw } from "lucide-react";
+import { Receipt, CheckCircle, RotateCcw } from "lucide-react";
 import type { RevenueStats } from "../../../../api/billing";
 
 function StatCard({
@@ -54,12 +54,6 @@ export default function TripPaymentsKpiCards({ stats, loading }: Props) {
         value={stats ? `${stats.paidRevenue.toLocaleString()} TND` : "—"}
         Icon={CheckCircle}
         iconBg="rgba(16,185,129,0.12)" iconColor="#10b981"
-      />
-      <StatCard
-        label="Pending" loading={loading}
-        value={stats ? `${stats.pendingPayments.toLocaleString()} TND` : "—"}
-        Icon={Clock}
-        iconBg="#fef9c3" iconColor="#854d0e"
       />
       <StatCard
         label="Refunded" loading={loading}

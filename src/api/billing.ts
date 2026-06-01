@@ -57,7 +57,6 @@ export interface DriverEarningRecord {
 export interface RevenueStats {
   totalEarnings: number;
   paidRevenue: number;
-  pendingPayments: number;
   refundedAmount: number;
   totalTrips: number;
 }
@@ -130,12 +129,7 @@ export const billingApi = {
       .then((r) => r.data);
   },
 
-  /* ── Cash ── */
-  confirmCashPayment(tripPaymentId: string) {
-    return apiClient
-      .patch<TripPaymentRecord>(`/billing/payments/${tripPaymentId}/confirm-cash`)
-      .then((r) => r.data);
-  },
+
 
   /* ── Revenue Stats ── */
   getRevenueStats() {

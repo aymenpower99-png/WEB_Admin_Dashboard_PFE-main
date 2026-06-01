@@ -57,4 +57,3 @@ export default function TripPaymentsTable({ payments, loading }: Props) {
     </div>
   );
 }
-
