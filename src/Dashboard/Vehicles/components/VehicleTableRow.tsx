@@ -110,7 +110,6 @@ interface VehicleTableRowProps {
   onEdit: (v: Vehicle) => void;
   onStatusChange: (v: Vehicle) => void;
   onRemove: (v: Vehicle) => void;
-  onUpdatePhotos: (v: Vehicle) => void;
 }
 
 export default function VehicleTableRow({

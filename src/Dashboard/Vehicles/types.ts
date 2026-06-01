@@ -10,7 +10,6 @@ export interface Vehicle {
   driverId:     string | null;
   driver:       string;
   status:       "Pending" | "Available" | "On_Trip" | "Maintenance";
-  photos:       string[] | null;
   isActive:     boolean;
 }
 
@@ -41,7 +40,6 @@ export function mapBackendVehicle(v: any, driverMap?: Map<string, string>): Vehi
     driverId:     v.driverId     ?? null,
     driver:       (v.driverId && driverMap?.get(v.driverId)) ?? "",
     status:       v.status,
-    photos:       v.photos       ?? null,
     isActive:     v.isActive     ?? true,
   };
 }

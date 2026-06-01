@@ -59,7 +59,10 @@ export default function UsersPage({
   }, []);
 
   const visibleUsers = useMemo(
-    () => (users || []).filter((u) => u.role !== "admin" && u.role !== "super_admin"),
+    () =>
+      (users || []).filter(
+        (u) => u.role !== "admin" && u.role !== "super_admin",
+      ),
     [users],
   );
 
@@ -194,7 +197,7 @@ export default function UsersPage({
             cursor: "pointer",
           }}
         >
-          + Invite User
+          + Add User
         </button>
       </div>
 

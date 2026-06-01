@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import AddRoundedIcon        from "@mui/icons-material/AddRounded";
 import SaveRoundedIcon       from "@mui/icons-material/SaveRounded";
@@ -17,7 +18,6 @@ import type { FormState } from "./AddvehicleComponents/types";
 import { Field, PlainDropdown, VehicleClassGrid } from "./AddvehicleComponents/Field";
 import { MakeAutocomplete, ModelAutocomplete }    from "./AddvehicleComponents/VehicleAutocompletes";
 import { DriverPicker }                           from "./AddvehicleComponents/DriverPicker";
-import { VehiclePhotosSection }                   from "./AddvehicleComponents/VehiclePhotosSection";
 
 export type { AddVehiclePageProps };
 
@@ -157,7 +157,11 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
       }
       onNavigate("vehicles");
     } catch (err: any) {
+      const status = err?.response?.status;
       const msg = err?.response?.data?.message ?? err?.message ?? "Failed to save vehicle.";
+      if (status === 409) {
+        toast.error("Véhicule déjà existant");
+      }
       setApiError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
     } finally {
       setSubmitting(false);
@@ -243,19 +247,6 @@ export default function AddVehiclePage({ prefill, setVehicles, onNavigate }: Add
             }}
           />
         </Field>
-
-        {/* Row 6 — Photos (edit only) */}
-        {isEdit && (
-          <VehiclePhotosSection
-            vehicleId={prefill!.id}
-            currentPhotos={prefill!.photos ?? []}
-            onPhotosUpdated={newPhotos => {
-              setVehicles(prev => prev.map(v =>
-                v.id === prefill!.id ? { ...v, photos: newPhotos } : v
-              ));
-            }}
-          />
-        )}
 
         {/* API error */}
         {apiError && (

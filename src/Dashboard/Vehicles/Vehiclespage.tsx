@@ -10,7 +10,6 @@ import Pagination from "./components/Pagination";
 import RemoveModal from "./components/RemoveModal";
 import ChangeStatusModal from "./components/ChangeStatusModal";
 import VehicleTableRow from "./components/VehicleTableRow";
-import UpdatePhotoModal from "./UpdatePhotoModal";
 
 export { INITIAL_VEHICLES, mapBackendVehicle };
 export type { Vehicle, VehiclesPageProps };
@@ -61,7 +60,6 @@ export default function VehiclesPage({
   const [removeTarget, setRemoveTarget] = useState<Vehicle | null>(null);
   const [removeLoading, setRemoveLoading] = useState(false);
   const [statusTarget, setStatusTarget] = useState<Vehicle | null>(null);
-  const [photoTarget, setPhotoTarget] = useState<Vehicle | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function loadVehicles() {
@@ -181,17 +179,6 @@ export default function VehiclesPage({
           }}
         />
       )}
-      {photoTarget && (
-        <UpdatePhotoModal
-          vehicle={photoTarget}
-          onClose={() => setPhotoTarget(null)}
-          onUploaded={(u) => {
-            setVehicles((p) => p.map((v) => (v.id === u.id ? u : v)));
-            setPhotoTarget(null);
-          }}
-        />
-      )}
-
       <div className="ts-page-header">
         <div>
           <h1
@@ -375,7 +362,6 @@ export default function VehiclesPage({
                       }
                       onStatusChange={(vehicle) => setStatusTarget(vehicle)}
                       onRemove={(vehicle) => setRemoveTarget(vehicle)}
-                      onUpdatePhotos={(vehicle) => setPhotoTarget(vehicle)}
                     />
                   ))
                 )}
