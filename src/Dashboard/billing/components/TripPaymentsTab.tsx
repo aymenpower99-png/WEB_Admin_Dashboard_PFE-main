@@ -8,7 +8,7 @@ import {
   Pagination,
 } from "./billing-shared";
 
-export default function TripPaymentsTab({ onRefresh }: { onRefresh: () => void }) {
+export default function TripPaymentsTab() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
   const [payments, setPayments] = useState<TripPaymentRecord[]>([]);

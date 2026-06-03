@@ -21,6 +21,7 @@ import {
   DispatchRideModal,
   AvailableRideDetailsModal,
   CreateRideModal,
+  CancelRideModal,
 } from "./AvailableRidesModals";
 
 /* ─── Filter tabs ────────────────────────────────────────────────────── */
@@ -43,6 +44,7 @@ export default function AvailableRidesPage() {
   const [dispatchModal, setDispatchModal] = useState<BackendRide | null>(null);
   const [detailModal, setDetailModal] = useState<BackendRide | null>(null);
   const [createModal, setCreateModal] = useState(false);
+  const [cancelModal, setCancelModal] = useState<BackendRide | null>(null);
 
   /* ── Fetch ───────────────────────────────────────────────────────── */
   const fetchRides = (silent = false) => {
@@ -96,15 +98,13 @@ export default function AvailableRidesPage() {
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
   /* ── Handlers────────────────────────────────────────────────────── */
-  const handleCancel = async (ride: BackendRide) => {
-    try {
-      await ridesApi.cancel(ride.id, {
-        cancellation_reason: "Cancelled by admin",
-      });
-      fetchRides();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || "Cancel failed");
-    }
+  const handleCancelConfirm = () => {
+    setCancelModal(null);
+    fetchRides();
+  };
+
+  const handleCancel = (ride: BackendRide) => {
+    setCancelModal(ride);
   };
 
   const handleDispatch = (_rideId: string) => {
@@ -136,6 +136,13 @@ export default function AvailableRidesPage() {
         <CreateRideModal
           onClose={() => setCreateModal(false)}
           onCreate={handleCreate}
+        />
+      )}
+      {cancelModal && (
+        <CancelRideModal
+          ride={cancelModal}
+          onClose={() => setCancelModal(null)}
+          onCancelled={handleCancelConfirm}
         />
       )}
 

@@ -40,7 +40,6 @@ export default function LoginWithIntro() {
   if (showIntro) {
     return (
       <IntroLoader
-        onDone={handleIntroDone}
         onFinish={handleIntroDone}
         dark={false}
       />

@@ -166,7 +166,7 @@ export function useTickets() {
       setLoading(true);
       setError(null);
       loadedMessages.current.clear();
-      const res = await supportApi.listAll(1, 50);
+      const res = await supportApi.listAll(1, 50) as any;
       const ticketsArr = Array.isArray(res.data) ? res.data : res.data?.data ?? [];
       setTickets(ticketsArr.map(adaptTicket));
     } catch (e: unknown) {

@@ -9,7 +9,6 @@ import {
 import { C } from "./tokens";
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
-// mapboxgl.accessToken = "pk.eyJ1IjoiYXltb3VuMTEiLCJhIjoiY21vM2JvY3UzMGtrdzJzcXc0cXZwbmE5eiJ9.LcnOY7q-WQ37STLy7wogRA";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

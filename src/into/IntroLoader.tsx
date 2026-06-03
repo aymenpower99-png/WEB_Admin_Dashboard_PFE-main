@@ -1,13 +1,12 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import websiteGif from '../assets/WebSite.gif';
 
 type IntroLoaderProps = {
   onFinish: () => void;
-  onDone: () => void;
   dark: boolean;
 };
 
-export default function IntroLoader({ onDone, onFinish, dark }: IntroLoaderProps) {
+export default function IntroLoader({ onFinish, dark }: IntroLoaderProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       onFinish();

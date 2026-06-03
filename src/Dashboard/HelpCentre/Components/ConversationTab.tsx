@@ -4,10 +4,10 @@ import type { Message } from "./types";
 
 interface ConversationTabProps {
   messages: Message[];
-  ticketStatus: string;
+  ticketStatus?: string;
   onSend: (content: string) => void;
-  onEditMessage: (messageId: string, content: string) => void;
-  onDeleteMessage: (messageId: string) => void;
+  onEditMessage?: (messageId: string, content: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
   dark: boolean;
 }
 
@@ -58,7 +58,7 @@ export default function ConversationTab({
   function saveEdit(id: string) {
     const trimmed = editValue.trim();
     if (!trimmed) return;
-    onEditMessage(id, trimmed);
+    onEditMessage?.(id, trimmed);
     setEditingId(null);
     setEditValue("");
   }
@@ -71,7 +71,7 @@ export default function ConversationTab({
   function confirmDelete(id: string) {
     setMenuOpenId(null);
     if (window.confirm("Delete this message? This cannot be undone.")) {
-      onDeleteMessage(id);
+      onDeleteMessage?.(id);
     }
   }
 
@@ -100,8 +100,8 @@ export default function ConversationTab({
                   {msg.sender} · {msg.timestamp}
                   {msg.updatedAt ? " · edited" : ""}
                 </p>
-                {/* Three-dot menu — only on admin's own messages, visible on hover */}
-                {isMine && !isEditing && (
+                {/* Three-dot menu — only on admin's own messages when edit/delete handlers are provided */}
+                {isMine && !isEditing && (onEditMessage || onDeleteMessage) && (
                   <div className="relative opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => setMenuOpenId(menuOpenId === msg.id ? null : msg.id)}

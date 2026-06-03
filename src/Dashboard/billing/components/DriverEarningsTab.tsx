@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import {
   billingApi,
   type DriverEarningRecord,
-  formatId,
 } from "../../../api/billing";
 import { driversApi } from "../../../api/drivers";
 import {
   ROWS, ROW_H, TH, TD,
-  Pagination, FilterPill,
+  Pagination,
 } from "./billing-shared";
 
 /* ── Month helper ─────────────────────────────────────────────────── */

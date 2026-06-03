@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, MapPin, RefreshCw } from "lucide-react";
+import { AlertTriangle, MapPin } from "lucide-react";
 import { C } from "./tokens";
 import { fetchSupportTickets, type SupportTicket } from "./mockData";
 

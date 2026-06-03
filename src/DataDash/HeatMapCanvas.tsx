@@ -1,12 +1,10 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { C } from "./tokens";
 import { fetchFleetData } from "./mockData";
 import type { Vehicle } from ".";
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
-// mapboxgl.accessToken =
-//   "pk.eyJ1IjoiYXltb3VuMTEiLCJhIjoiY21vM2JvY3UzMGtrdzJzcXc0cXZwbmE5eiJ9.LcnOY7q-WQ37STLy7wogRA";
 
 const STATUS_COLOR: Record<string, string> = {
   ACTIVE:      C.success,

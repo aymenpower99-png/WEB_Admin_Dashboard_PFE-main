@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { C } from "./tokens";
 import { NavBar } from "./NavBar";
-import { KPICard } from "./KPICard";
 import { HeatMapCanvas } from "./HeatMapCanvas";
 import { RevenueChart } from "./RevenueChart";
 import { SupportChart } from "./SupportChart";
@@ -33,7 +32,6 @@ export default function DataDashShell({ dark: darkProp, onToggleDark }: DataDash
 
   const [activeNav, setActiveNav] = useState<string>("Dashboard");
   const [showAll, setShowAll] = useState<boolean>(false);
-  const [liveTime, setLiveTime] = useState<Date>(new Date());
 
   useEffect(() => {
     if (showIntro) {
@@ -44,11 +42,6 @@ export default function DataDashShell({ dark: darkProp, onToggleDark }: DataDash
       return () => clearTimeout(t);
     }
   }, [showIntro]);
-
-  useEffect(() => {
-    const id = setInterval(() => setLiveTime(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
 
   const bg = dark ? C.darkBg : C.lightBg;
   const surface = dark ? C.darkSurface : C.lightSurface;

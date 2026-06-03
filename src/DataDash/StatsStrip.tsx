@@ -65,7 +65,7 @@ export function StatsStrip({ dark }: StatsStripProps) {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
-      {stats.map(({ icon: Icon, label, value, up }) => (
+      {stats.map(({ icon: Icon, label, value }) => (
         <div key={label} className="rounded-xl border p-3" style={{ background: surface, borderColor: border }}>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center"

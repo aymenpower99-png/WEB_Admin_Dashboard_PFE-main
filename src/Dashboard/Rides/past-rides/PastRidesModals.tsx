@@ -293,10 +293,8 @@ function StatsGrid({
 
 function FareCard({
   fare,
-  fareEstimate,
 }: {
   fare: number;
-  fareEstimate?: number | null;
 }) {
   return (
     <div
@@ -400,11 +398,11 @@ function DispatchReport({ ride }: { ride: BackendRide }) {
 
 /* ─── Activity Log timeline ──────────────────────────────────────────── */
 function RideActivityLog({ ride }: { ride: BackendRide }) {
-  const fmtTs = (ts: string) =>
-    new Date(ts).toLocaleString("fr-FR", {
+  const fmtTs = (ts: string | null) =>
+    ts ? new Date(ts).toLocaleString("fr-FR", {
       day: "2-digit", month: "2-digit",
       hour: "2-digit", minute: "2-digit",
-    });
+    }) : "—";
 
   const events: { ts: string | null; label: string; color: string }[] = [
     { ts: ride.createdAt,       label: "Ride Created",                                            color: "#a855f7" },
@@ -633,10 +631,7 @@ export function PastRideDetailsModal({
           />
 
           {/* Fare */}
-          <FareCard
-            fare={ride.priceFinal ?? 0}
-            fareEstimate={ride.priceEstimate}
-          />
+          <FareCard fare={ride.priceFinal ?? 0} />
 
           {/* Loyalty Points (completed only) */}
           {isCompleted && ride.loyaltyPointsEarned > 0 && (

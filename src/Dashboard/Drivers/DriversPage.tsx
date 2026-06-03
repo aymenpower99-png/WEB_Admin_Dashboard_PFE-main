@@ -46,22 +46,6 @@ export default function DriversPage({
     loadDrivers();
   }, []);
 
-  const counts = useMemo(
-    () => ({
-      all: (drivers || []).length,
-      pending: (drivers || []).filter((d) => d.availabilityStatus === "pending")
-        .length,
-      setup_required: (drivers || []).filter(
-        (d) => d.availabilityStatus === "setup_required",
-      ).length,
-      online: (drivers || []).filter((d) => d.availabilityStatus === "online")
-        .length,
-      offline: (drivers || []).filter((d) => d.availabilityStatus === "offline")
-        .length,
-    }),
-    [drivers],
-  );
-
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     return (drivers || []).filter((d) => {

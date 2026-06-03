@@ -94,27 +94,6 @@ interface APIDriver {
     last_name?: string;
   };
 }
-async function fetchDriversMap(): Promise<Record<string, string>> {
-  try {
-    const res = await fetch(`${BASE}/drivers`, {
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) return {};
-    const json = await res.json();
-    const drivers: APIDriver[] = Array.isArray(json)
-      ? json
-      : json.drivers ?? json.data ?? [];
-    return Object.fromEntries(
-      drivers.map((d) => [
-        d.id,
-        d.name ?? ([d.first_name, d.last_name].filter(Boolean).join(" ") || d.id),
-      ])
-    );
-  } catch {
-    return {};
-  }
-}
-
 function normalizeVehicleStatus(raw: string): VehicleStatus {
   const s = (raw ?? "").toLowerCase();
   if (s === "approved")  return "ACTIVE";
@@ -334,7 +313,7 @@ export async function fetchLiveDrivers(): Promise<LiveDriver[]> {
       ? json
       : json.drivers ?? json.data ?? [];
 
-    return raw.map((d, i) => {
+    return raw.map((d) => {
       const name = d.name ?? [d.first_name, d.last_name].filter(Boolean).join(" ") ?? `Driver ${d.id}`;
       return {
         id:          d.id,
@@ -508,9 +487,7 @@ export async function fetchRatingStats(): Promise<RatingStats> {
 export const navItems: string[] = [
   "Dashboard",
   "Live Map",
-  "Revenue",
   "AI Insights",
-  "Fleet",
 ];
 
 export const aiInsights: string[] = [

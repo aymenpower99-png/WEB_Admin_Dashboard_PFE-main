@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { Ticket, TicketStatus } from "./types";
-import StatusBadge from "./StatusBadge";
 import UserContextSection from "./UserContextSection";
 import ConversationTab from "./ConversationTab";
 import ActivityTab from "./ActivityTab";
@@ -23,7 +22,6 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, o
 
   const card    = dark ? "bg-gray-900" : "bg-white";
   const divider = dark ? "border-gray-800" : "border-gray-200";
-  const muted   = dark ? "text-gray-400" : "text-gray-500";
 
   const PAGE_TABS: { id: Page; label: string; icon: React.ReactNode }[] = [
     {

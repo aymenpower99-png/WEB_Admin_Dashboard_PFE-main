@@ -7,7 +7,10 @@ interface Props {
   onSearch: (s: string) => void;
 }
 
-const ALL_CHIPS = [{ key: "all", label: "All", icon: "🗂️" }, ...HELP_CATEGORIES];
+const ALL_CHIPS: { key: string; label: string; icon?: string }[] = [
+  { key: "all", label: "All", icon: "🗂️" },
+  ...HELP_CATEGORIES.map((c) => ({ ...c, icon: undefined })),
+];
 
 export default function CategoryFilter({ filter, onFilter, search, onSearch }: Props) {
   return (

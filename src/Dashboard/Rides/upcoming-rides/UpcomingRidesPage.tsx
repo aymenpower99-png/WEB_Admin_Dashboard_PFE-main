@@ -18,7 +18,6 @@ import {
   ActionButton,
   IconEye,
   IconCancel,
-  IconDelete,
   HOVER,
 } from "../shared/RideActionButtons";
 import RidePagination from "../shared/RidePagination";
@@ -53,8 +52,6 @@ export default function UpcomingRidesPage() {
   const [page, setPage] = useState(1);
   const [detailModal, setDetailModal] = useState<BackendRide | null>(null);
   const [cancelModal, setCancelModal] = useState<BackendRide | null>(null);
-  const [deleting, setDeleting] = useState<string | null>(null);
-
   const fetchRides = useCallback(async () => {
     try {
       const rides = await ridesApi.getAll();
@@ -89,24 +86,6 @@ export default function UpcomingRidesPage() {
   const handleCancelConfirm = () => {
     setCancelModal(null);
     fetchRides();
-  };
-
-  const handleHardDelete = async (ride: BackendRide) => {
-    if (
-      !window.confirm(
-        `Permanently delete this ride?\n${ride.pickupAddress} → ${ride.dropoffAddress}\n\nThis cannot be undone.`,
-      )
-    )
-      return;
-    setDeleting(ride.id);
-    try {
-      await ridesApi.hardDelete(ride.id);
-      setAllRides((prev) => prev.filter((r) => r.id !== ride.id));
-    } catch (e: any) {
-      alert(e?.response?.data?.message ?? "Failed to delete ride");
-    } finally {
-      setDeleting(null);
-    }
   };
 
   return (

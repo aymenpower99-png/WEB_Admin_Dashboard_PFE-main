@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Cpu, X, AlertTriangle, TrendingUp,
-  Zap, Activity, Loader2, RefreshCw, Sparkles,
+  Zap, Activity, RefreshCw, Sparkles,
 } from "lucide-react";
 
 // ── Config ────────────────────────────────────────────────────────────────────

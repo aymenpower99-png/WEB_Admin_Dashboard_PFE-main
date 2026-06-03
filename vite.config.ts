@@ -37,28 +37,17 @@ export default defineConfig({
       credentials: true,
     },
     proxy: {
-      "/api/intelligence": {
+      "/api8002": {
         target: "http://localhost:8002",
         changeOrigin: true,
-        rewrite: (path) =>
-          path.replace(/^\/api\/intelligence/, "/intelligence"),
+        rewrite: (path) => path.replace(/^\/api8002/, ""),
       },
-      "/api/demand-forecast": {
-        target: "http://localhost:8002",
+
+      // ─── Prediction API :8005 (correspond à API5() dans le hook) ───────────
+      "/api8005": {
+        target: "http://localhost:8005",
         changeOrigin: true,
-        rewrite: (path) =>
-          path.replace(/^\/api\/demand-forecast/, "/demand-forecast"),
-      },
-      "/api/anomalies": {
-        target: "http://localhost:8002",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/anomalies/, "/anomalies"),
-      },
-      "/api/model-registry": {
-        target: "http://localhost:8002",
-        changeOrigin: true,
-        rewrite: (path) =>
-          path.replace(/^\/api\/model-registry/, "/model-registry"),
+        rewrite: (path) => path.replace(/^\/api8005/, ""),
       },
 
       "/api/v1": { target: "http://localhost:3000", changeOrigin: true },

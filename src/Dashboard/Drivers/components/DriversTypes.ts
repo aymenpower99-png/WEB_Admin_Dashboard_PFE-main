@@ -31,6 +31,7 @@ export const STATUS_CFG = {
   setup_required:{ label: "Setup Required",bg: "#fff7ed", fg: "#c2410c" },
   online:        { label: "Online",        bg: "#d1fae5", fg: "#065f46" },
   offline:       { label: "Offline",       bg: "#f3f4f6", fg: "#6b7280" },
+  busy:          { label: "Busy",          bg: "#dbeafe", fg: "#1e40af" },
 } as const;
 
 export type DriverStatusKey = keyof typeof STATUS_CFG;

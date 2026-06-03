@@ -1,13 +1,11 @@
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
-import type { Driver } from "../types";
+
 
 export default function DriversRowActions({
-  driver,
   onEdit,
   onDelete,
 }: {
-  driver: Driver;
   onEdit: () => void;
   onDelete: () => void;
 }) {
