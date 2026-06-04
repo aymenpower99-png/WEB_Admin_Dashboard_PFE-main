@@ -12,6 +12,7 @@ interface NavBarProps {
   activeNav: string;
   setActiveNav: (item: string) => void;
   onGoToAdmin?: () => void;
+  onGoToAdminWithSplash?: () => void;
 }
 
 export function NavBar({
@@ -20,14 +21,13 @@ export function NavBar({
   activeNav,
   setActiveNav,
   onGoToAdmin,
+  onGoToAdminWithSplash,
 }: NavBarProps) {
   return (
     <nav
       className="flex items-center gap-1 px-5 h-14 border-b sticky top-0 z-20"
       style={{
-        background: dark
-          ? "rgba(11,11,15,.92)"
-          : "rgba(244,244,248,.92)",
+        background: dark ? "rgba(11,11,15,.92)" : "rgba(244,244,248,.92)",
         borderColor: dark ? C.darkBorder : C.lightBorder,
         backdropFilter: "blur(12px)",
       }}
@@ -57,19 +57,18 @@ export function NavBar({
               activeNav === item
                 ? C.primaryPurple
                 : dark
-                ? C.gray7B
-                : C.lightSubtext,
+                  ? C.gray7B
+                  : C.lightSubtext,
           }}
         >
           {item}
         </button>
       ))}
 
-
       {/* Right icons */}
       <div className="ml-auto flex items-center gap-2">
         <button
-          onClick={onGoToAdmin}
+          onClick={onGoToAdminWithSplash || onGoToAdmin}
           title="Admin Dashboard"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all"
           style={{
@@ -81,7 +80,6 @@ export function NavBar({
           <LayoutDashboard size={14} color={C.primaryPurple} />
           <span>Dashboard</span>
         </button>
-
 
         <ThemeToggle dark={dark} onToggle={onToggle} />
       </div>

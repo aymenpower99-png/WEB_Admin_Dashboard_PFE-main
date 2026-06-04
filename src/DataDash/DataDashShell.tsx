@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { C } from "./tokens";
 import { NavBar } from "./NavBar";
@@ -12,13 +12,17 @@ import { IssuesPanel } from "./IssuesPanel";
 import { LiveMapPage } from "./Livemappage";
 import { AIInsightsPage } from "./Aiinsightspage";
 import { Map } from "lucide-react";
+import AnalyticsSplash from "../Dashboard/AnalyticsSplash";
 
 interface DataDashShellProps {
   dark?: boolean;
   onToggleDark?: () => void;
 }
 
-export default function DataDashShell({ dark: darkProp, onToggleDark }: DataDashShellProps) {
+export default function DataDashShell({
+  dark: darkProp,
+  onToggleDark,
+}: DataDashShellProps) {
   const navigate = useNavigate();
 
   // Local dark mode fallback if props not provided
@@ -26,22 +30,10 @@ export default function DataDashShell({ dark: darkProp, onToggleDark }: DataDash
   const dark = darkProp ?? localDark;
   const toggleDark = onToggleDark ?? (() => setLocalDark((d) => !d));
 
-  const [showIntro, setShowIntro] = useState(() => {
-    return !sessionStorage.getItem("datadash-intro-shown");
-  });
+  const [showSplash, setShowSplash] = useState(false);
 
   const [activeNav, setActiveNav] = useState<string>("Dashboard");
   const [showAll, setShowAll] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (showIntro) {
-      const t = setTimeout(() => {
-        setShowIntro(false);
-        sessionStorage.setItem("datadash-intro-shown", "true");
-      }, 5000);
-      return () => clearTimeout(t);
-    }
-  }, [showIntro]);
 
   const bg = dark ? C.darkBg : C.lightBg;
   const surface = dark ? C.darkSurface : C.lightSurface;
@@ -53,43 +45,9 @@ export default function DataDashShell({ dark: darkProp, onToggleDark }: DataDash
     navigate("/dashboard");
   };
 
-  if (showIntro) {
-    return (
-      <div
-        style={{
-          height: "100vh",
-          width: "100%",
-          background: "#0F0D1A",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          animation: "fadeIn 0.6s ease",
-        }}
-      >
-        <img
-          src="/DataAnalysis.gif"
-          alt="Data Analysis"
-          style={{
-            width: 500,
-            height: 500,
-            objectFit: "contain",
-            filter: "drop-shadow(0 0 20px rgba(168,85,247,0.4))",
-          }}
-        />
-        <p
-          style={{
-            marginTop: 18,
-            fontSize: 14,
-            color: "rgba(255,255,255,0.6)",
-            letterSpacing: "0.08em",
-          }}
-        >
-          Loading Mobility Intelligence...
-        </p>
-      </div>
-    );
-  }
+  const handleGoToAdminWithSplash = () => {
+    setShowSplash(true);
+  };
 
   return (
     <div
@@ -108,6 +66,7 @@ export default function DataDashShell({ dark: darkProp, onToggleDark }: DataDash
         activeNav={activeNav}
         setActiveNav={setActiveNav}
         onGoToAdmin={handleGoToAdmin}
+        onGoToAdminWithSplash={handleGoToAdminWithSplash}
       />
 
       {/* ── Page routing ────────────────────────────────────────── */}
@@ -248,26 +207,33 @@ export default function DataDashShell({ dark: darkProp, onToggleDark }: DataDash
       >
         <span>Analytics Pro &nbsp;·&nbsp; © 2024 Mobility OS Global</span>
         <div className="flex gap-5">
-          {[
-            "Privacy Policy",
-            "System Status",
-            "Documentation",
-            "Support",
-          ].map((l) => (
-            <a
-              key={l}
-              href="#"
-              style={{ color: sub, textDecoration: "none" }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = C.primaryPurple)
-              }
-              onMouseLeave={(e) => (e.currentTarget.style.color = sub)}
-            >
-              {l}
-            </a>
-          ))}
+          {["Privacy Policy", "System Status", "Documentation", "Support"].map(
+            (l) => (
+              <a
+                key={l}
+                href="#"
+                style={{ color: sub, textDecoration: "none" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = C.primaryPurple)
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.color = sub)}
+              >
+                {l}
+              </a>
+            ),
+          )}
         </div>
       </footer>
+
+      {/* Analytics Splash Screen */}
+      {showSplash && (
+        <AnalyticsSplash
+          onComplete={() => {
+            setShowSplash(false);
+            navigate("/dashboard");
+          }}
+        />
+      )}
     </div>
   );
 }

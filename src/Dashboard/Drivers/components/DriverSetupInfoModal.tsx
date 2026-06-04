@@ -92,6 +92,34 @@ export default function DriverSetupInfoModal({ driver, onClose, onGoEdit }: Prop
             ))}
           </div>
 
+          {/* Performance stats */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: ".5rem",
+            padding: ".65rem .9rem",
+            borderRadius: 8,
+            background: "rgba(59,130,246,0.04)",
+            border: "1px solid rgba(59,130,246,0.12)",
+          }}>
+            <div>
+              <div style={{ fontSize: ".72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".04em" }}>Trips</div>
+              <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-h)" }}>{driver.totalTrips ?? 0}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: ".72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".04em" }}>Cancellations</div>
+              <div style={{ fontSize: "1.1rem", fontWeight: 700, color: driver.cancellationCount ? "#ef4444" : "var(--text-h)" }}>{driver.cancellationCount ?? 0}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: ".72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".04em" }}>Acceptance</div>
+              <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-h)" }}>{driver.acceptanceRate ?? 0}%</div>
+            </div>
+            <div>
+              <div style={{ fontSize: ".72rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: ".04em" }}>Assigned</div>
+              <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-h)" }}>{driver.assignedRidesCount ?? 0}</div>
+            </div>
+          </div>
+
           {/* Flow instructions */}
           <div style={{
             padding: ".65rem .9rem", borderRadius: 8,

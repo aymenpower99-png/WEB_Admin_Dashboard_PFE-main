@@ -17,6 +17,15 @@ export interface DriverProfile {
   ratingAverage: number | string | null;
   totalRatings: number;
   totalTrips: number;
+  monthlyRides?: number;
+  assignedRidesCount?: number;
+  cancellationCount?: number;
+  cancellationRate?: number;
+  acceptedOffersCount?: number;
+  rejectedOffersCount?: number;
+  expiredOffersCount?: number;
+  totalOffersCount?: number;
+  acceptanceRate?: number;
   availabilityStatus: DriverAvailabilityStatus;
   currentLatitude: number | null;
   currentLongitude: number | null;

@@ -196,12 +196,13 @@ export default function DriversPage({
                 }}
               >
                 <colgroup>
-                  <col style={{ width: "22%" }} />
-                  <col style={{ width: "22%" }} />
-                  <col style={{ width: "16%" }} />
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "8%" }} />
+                  <col style={{ width: "20%" }} />
+                  <col style={{ width: "20%" }} />
                   <col style={{ width: "14%" }} />
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "7%" }} />
+                  <col style={{ width: "7%" }} />
+                  <col style={{ width: "16%" }} />
                 </colgroup>
                 <thead>
                   <tr>
@@ -210,6 +211,7 @@ export default function DriversPage({
                     <th style={TH}>Status</th>
                     <th style={TH}>Vehicle</th>
                     <th style={TH}>Trips</th>
+                    <th style={TH}>Cancels</th>
                     <th style={TH}>Actions</th>
                   </tr>
                 </thead>
@@ -217,7 +219,7 @@ export default function DriversPage({
                   {filtered.length === 0 ? (
                     <tr style={{ height: ROW_H }}>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         style={{
                           ...TD,
                           textAlign: "center",
@@ -284,6 +286,15 @@ export default function DriversPage({
                           }}
                         >
                           {d.totalTrips ?? 0}
+                        </td>
+                        <td
+                          style={{
+                            ...TD,
+                            fontWeight: 800,
+                            color: d.cancellationCount ? "#ef4444" : "var(--text-h)",
+                          }}
+                        >
+                          {d.cancellationCount ?? 0}
                         </td>
                         <td style={TD} onClick={(e) => e.stopPropagation()}>
                           <DriverInlineRowActions
