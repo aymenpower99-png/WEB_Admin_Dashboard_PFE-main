@@ -48,7 +48,6 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
   useEffect(() => {
     fetchDemandData(20)
       .then((data) => {
-        console.log("🔥 Demand hotspots received:", data);
         setDemandHotspots(data);
       })
       .catch(console.error);
@@ -67,8 +66,6 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
         coordinates: [hotspot.lng, hotspot.lat],
       },
     }));
-
-    console.log("🗺️ Updating map with", features.length, "hotspots:", features);
 
     // Add source if it doesn't exist
     if (!map.getSource("demand")) {
