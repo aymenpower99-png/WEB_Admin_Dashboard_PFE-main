@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import splashGif from "../assets/splash.gif";
 
 interface AnalyticsSplashProps {
   onComplete: () => void;
@@ -26,7 +27,7 @@ export default function AnalyticsSplash({ onComplete }: AnalyticsSplashProps) {
         left: 0,
         width: "100vw",
         height: "100vh",
-        background: "#000",
+        background: "#fff",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -36,19 +37,15 @@ export default function AnalyticsSplash({ onComplete }: AnalyticsSplashProps) {
         transition: "opacity 0.3s ease",
       }}
     >
-      <video
-        autoPlay
-        muted
-        playsInline
+      <img
+        src={splashGif}
+        alt="Loading"
         style={{
-          width: 400,
-          height: 400,
+          width: 1400,
+          height: 1400,
           objectFit: "contain",
-          filter: "drop-shadow(0 0 30px rgba(168,85,247,0.5))",
         }}
-      >
-        <source src="/splash.mp4" type="video/mp4" />
-      </video>
+      />
     </div>
   );
 }
