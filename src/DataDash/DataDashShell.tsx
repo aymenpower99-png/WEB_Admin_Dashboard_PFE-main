@@ -206,23 +206,6 @@ export default function DataDashShell({
         style={{ borderColor: border, color: sub }}
       >
         <span>Analytics Pro &nbsp;·&nbsp; © 2024 Mobility OS Global</span>
-        <div className="flex gap-5">
-          {["Privacy Policy", "System Status", "Documentation", "Support"].map(
-            (l) => (
-              <a
-                key={l}
-                href="#"
-                style={{ color: sub, textDecoration: "none" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = C.primaryPurple)
-                }
-                onMouseLeave={(e) => (e.currentTarget.style.color = sub)}
-              >
-                {l}
-              </a>
-            ),
-          )}
-        </div>
       </footer>
 
       {/* Analytics Splash Screen */}
