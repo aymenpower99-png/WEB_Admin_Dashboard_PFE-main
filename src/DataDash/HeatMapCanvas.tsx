@@ -58,91 +58,38 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
     const map = mapRef.current;
     if (!map) return;
 
-    const features: GeoJSON.Feature[] = demandHotspots.map((hotspot) => ({
-      type: "Feature",
-      properties: { weight: hotspot.weight },
-      geometry: {
-        type: "Point",
-        coordinates: [hotspot.lng, hotspot.lat],
-      },
-    }));
-
-    // Add source if it doesn't exist
-    if (!map.getSource("demand")) {
-      map.addSource("demand", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features },
-      });
-    } else {
-      (map.getSource("demand") as mapboxgl.GeoJSONSource).setData({
-        type: "FeatureCollection",
-        features,
-      });
-    }
-
-    // Add heatmap layer if it doesn't exist
-    if (!map.getLayer("demand-heat")) {
-      map.addLayer({
-        id: "demand-heat",
-        type: "heatmap",
-        source: "demand",
-        maxzoom: 15,
-        paint: {
-          "heatmap-weight": [
-            "interpolate",
-            ["linear"],
-            ["get", "weight"],
-            0,
-            0,
-            1,
-            1,
-          ],
-          "heatmap-intensity": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            1,
-            15,
-            3,
-          ],
-          "heatmap-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            20,
-            15,
-            60,
-          ],
-          "heatmap-opacity": 0.55,
-          "heatmap-color": [
-            "interpolate",
-            ["linear"],
-            ["heatmap-density"],
-            0,
-            "rgba(0,0,0,0)",
-            0.2,
-            "rgba(75,159,255,0.6)",
-            0.5,
-            "rgba(255,149,0,0.7)",
-            0.8,
-            "rgba(255,59,48,0.8)",
-            1,
-            "rgba(255,59,48,1)",
-          ],
+    const updateHeatmap = () => {
+      const features: GeoJSON.Feature[] = demandHotspots.map((hotspot) => ({
+        type: "Feature",
+        properties: { weight: hotspot.weight },
+        geometry: {
+          type: "Point",
+          coordinates: [hotspot.lng, hotspot.lat],
         },
-      });
-    }
+      }));
 
-    // Auto-center map on first hotspot if available
-    if (demandHotspots.length > 0) {
-      const first = demandHotspots[0];
-      map.flyTo({
-        center: [first.lng, first.lat],
-        zoom: 12,
-        duration: 1000,
-      });
+      // Update source data if source exists
+      const source = map.getSource("demand") as mapboxgl.GeoJSONSource;
+      if (source) {
+        source.setData({ type: "FeatureCollection", features });
+      }
+
+      // Auto-center map on first hotspot if available
+      if (demandHotspots.length > 0) {
+        const first = demandHotspots[0];
+        map.flyTo({
+          center: [first.lng, first.lat],
+          zoom: 12,
+          duration: 1000,
+        });
+      }
+    };
+
+    // Wait for style to load before updating
+    if (map.isStyleLoaded()) {
+      updateHeatmap();
+    } else {
+      map.once("styledata", updateHeatmap);
     }
   }, [demandHotspots]);
 
