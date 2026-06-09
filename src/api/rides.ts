@@ -95,6 +95,9 @@ export interface BackendRide {
   createdAt: string;
   updatedAt: string;
 
+  passengerName?: string | null;
+  passengerPhone?: string | null;
+
   passenger?: RidePassenger;
   driver?: RideDriver | null;
   vehicle?: RideVehicle | null;
@@ -197,6 +200,9 @@ export function fmtTime(iso: string): string {
 }
 
 export function passengerName(ride: BackendRide): string {
+  // Prefer the snapshot stored at booking time (survives account deletion)
+  if (ride.passengerName) return ride.passengerName;
+  // Fallback to live user relation (for older rides before the fix)
   const p = ride.passenger;
   if (!p) return "Unknown";
   return `${p.firstName ?? ""} ${p.lastName ?? ""}`.trim() || p.email;

@@ -152,11 +152,20 @@ export default function AvailableRidesPage() {
           <div>
             <h1 className="ts-page-title">Available Rides</h1>
           </div>
-          <button className="ts-btn-fab" onClick={() => setCreateModal(true)}>
-            <span style={{ fontSize: "1.1rem", lineHeight: 1, flexShrink: 0 }}>
-              ＋
-            </span>
-            <span className="ts-btn-fab-label">New Ride</span>
+          <button
+            onClick={() => setCreateModal(true)}
+            style={{
+              background: "#7c3aed",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "8px 18px",
+              fontSize: ".82rem",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            + New Ride
           </button>
         </div>
 
