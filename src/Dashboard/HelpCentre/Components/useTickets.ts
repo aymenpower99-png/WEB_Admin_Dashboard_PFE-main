@@ -52,6 +52,7 @@ function adaptTicket(t: BackendTicket): Ticket {
     senderType: m.senderId === t.authorId ? "user" : "admin",
     content: m.body,
     timestamp: fmt(m.createdAt),
+    createdAt: m.createdAt,
     updatedAt: m.updatedAt ? fmt(m.updatedAt) : undefined,
   }));
 
@@ -388,3 +389,5 @@ export function useTickets() {
     checkMissedNotifications,
   };
 }
+
+

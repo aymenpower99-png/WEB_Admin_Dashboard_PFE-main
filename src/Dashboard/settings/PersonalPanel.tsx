@@ -18,7 +18,18 @@ const COUNTRIES = [
 
 function parsePhone(raw: string): { dialCode: string; digits: string } {
   const c = COUNTRIES.find(x => raw.startsWith(x.code));
-  if (c) return { dialCode: c.code, digits: raw.slice(c.code.length) };
+  if (c) {
+    const digits = raw.slice(c.code.length);
+    // Format as xx xxx xxx
+    let formatted = digits;
+    if (digits.length > 2) {
+      formatted = digits.slice(0, 2) + " " + digits.slice(2);
+    }
+    if (digits.length > 5) {
+      formatted = digits.slice(0, 2) + " " + digits.slice(2, 5) + " " + digits.slice(5);
+    }
+    return { dialCode: c.code, digits: formatted };
+  }
   return { dialCode: COUNTRIES[0].code, digits: raw };
 }
 
@@ -156,7 +167,17 @@ const PersonalPanel: FC = () => {
     const currentEmail = user?.email ?? "";
     const emailChanged = form.email.trim() !== "" && form.email.trim() !== currentEmail;
 
-    const fullPhone = phoneDigits.trim() ? `${dialCode}${phoneDigits.trim()}` : "";
+    // Validate phone number
+    if (phoneDigits.trim()) {
+      const digitsOnly = phoneDigits.replace(/\s/g, "");
+      if (digitsOnly.length !== 8) {
+        setPhoneError("Phone number must be 8 digits (format: xx xxx xxx)");
+        setLoading(false);
+        return;
+      }
+    }
+
+    const fullPhone = phoneDigits.trim() ? `${dialCode}${phoneDigits.replace(/\s/g, "")}` : "";
 
     try {
       const payload: Record<string, string> = {
@@ -290,7 +311,19 @@ const PersonalPanel: FC = () => {
               type="tel"
               placeholder="20 123 456"
               value={phoneDigits}
-              onChange={e => { setPhoneDigits(e.target.value); setPhoneError(""); }}
+              onChange={e => {
+                  // Allow only digits, max 8, format as xx xxx xxx
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                  let formatted = digits;
+                  if (digits.length > 2) {
+                    formatted = digits.slice(0, 2) + " " + digits.slice(2);
+                  }
+                  if (digits.length > 5) {
+                    formatted = digits.slice(0, 2) + " " + digits.slice(2, 5) + " " + digits.slice(5);
+                  }
+                  setPhoneDigits(formatted);
+                  setPhoneError("");
+                }}
               style={{
                 flex: 1, height: "100%", fontSize: ".85rem",
                 fontFamily: "var(--font)", background: "var(--bg-card)",
@@ -328,3 +361,6 @@ const PersonalPanel: FC = () => {
 };
 
 export default PersonalPanel;
+
+
+

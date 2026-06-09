@@ -8,7 +8,7 @@ export interface ArticleStepRaw {
 
 export interface StepInput {
   order: number;
-  title: string;       // English only
+  title: string; // English only
   description: string; // English only
 }
 
@@ -18,7 +18,7 @@ export interface HelpArticleRaw {
   description: Record<string, string>;
   categoryKey: string;
   categoryLabel: Record<string, string>;
-  status: "auto" | "reviewed" | "disabled";
+  status: "active" | "disabled";
   isActive: boolean;
   sortOrder: number;
   steps: ArticleStepRaw[];
@@ -31,8 +31,7 @@ export interface CreateArticlePayload {
   description: string;
   categoryKey: string;
   categoryLabel?: string;
-  status?: "auto" | "reviewed" | "disabled";
-  sortOrder?: number;
+  status?: "active" | "disabled";
   steps?: StepInput[];
 }
 
@@ -41,9 +40,8 @@ export interface UpdateArticlePayload {
   description?: Record<string, string>;
   categoryKey?: string;
   categoryLabel?: Record<string, string>;
-  status?: "auto" | "reviewed" | "disabled";
+  status?: "active" | "disabled";
   isActive?: boolean;
-  sortOrder?: number;
   steps?: StepInput[];
 }
 

@@ -119,24 +119,23 @@ export function MapboxMap({
 
     const existingIds = new Set(markersRef.current.keys());
 
-    drivers.forEach((d) => {
+    // Show all drivers with valid coordinates (including OFFLINE)
+    const driversWithCoords = drivers.filter(
+      (d) =>
+        d.lat !== null &&
+        d.lat !== undefined &&
+        d.lng !== null &&
+        d.lng !== undefined,
+    );
+
+    driversWithCoords.forEach((d) => {
       const [lng, lat] = toRealCoords(d.lat, d.lng);
 
       if (markersRef.current.has(d.id)) {
         const marker = markersRef.current.get(d.id)!;
+        // Only update position, don't replace element to prevent duplicates
         marker.setLngLat([lng, lat]);
-        const newEl = makeMarkerEl(d, false);
-        newEl.addEventListener("click", (e) => {
-          e.stopPropagation();
-          map.flyTo({
-            center: [lng, lat],
-            zoom: 14,
-            duration: 800,
-            essential: true,
-          });
-        });
-        const oldEl = marker.getElement();
-        oldEl.replaceWith(newEl);
+        marker.setRotation(d.bearing);
         existingIds.delete(d.id);
       } else {
         const el = makeMarkerEl(d, false);

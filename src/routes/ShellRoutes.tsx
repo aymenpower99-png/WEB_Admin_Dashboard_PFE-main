@@ -34,6 +34,7 @@ import PastRidesPage from "../Dashboard/Rides/past-rides/PastRidesPage";
 import WorkAreasPage from "../Dashboard/WorkArea/WorkAreasPage";
 import MembershipLevelsPage from "../Dashboard/Membership/MembershipLevelsPage";
 import CommissionTiersPage from "../Dashboard/Commissions/CommissionTiersPage";
+import { useSupportSocket } from "../hooks/useSupportSocket";
 
 import type { VehicleClass } from "../api/classes";
 import AddArticlePage from "../Dashboard/HelpCenter/AddArticlePage";
@@ -129,6 +130,20 @@ export default function Shell({
   const [editClass, setEditClass] = useState<VehicleClass | null>(null);
   const [detailClassId, setDetailClassId] = useState<string>("");
   const [editArticle, setEditArticle] = useState<HelpArticleRaw | null>(null);
+
+  // ── Global WebSocket for support tickets (stays connected across all pages) ──
+  useSupportSocket({
+    onTicketCreated: () => {
+      // Optionally refresh ticket data when new ticket is created
+      console.log("[Shell] New ticket created");
+    },
+    onTicketReply: (ticketId: string) => {
+      console.log("[Shell] New reply on ticket:", ticketId);
+    },
+    onReconnect: () => {
+      console.log("[Shell] Support WebSocket reconnected");
+    },
+  });
 
   const toKey = (path: string) =>
     path.replace(/^\/dashboard\/?/, "") || "dashboard";

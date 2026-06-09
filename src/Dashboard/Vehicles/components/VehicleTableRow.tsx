@@ -162,7 +162,9 @@ export default function VehicleTableRow({
         }}
       >
         {v.driver ? (
-          <span style={{ color: "var(--text-body)" }}>{v.driver}</span>
+          <span style={{ color: "var(--text-body)", fontWeight: 700 }}>
+            {v.driver}
+          </span>
         ) : v.driverId ? (
           <span style={{ color: "var(--text-muted)", fontSize: ".8rem" }}>
             Assigned

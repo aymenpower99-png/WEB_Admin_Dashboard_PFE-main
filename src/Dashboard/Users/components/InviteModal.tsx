@@ -301,7 +301,7 @@ export default function InviteModal({ onClose, onSuccess }: Props) {
         (err as { response?: { data?: { message?: string } } })?.response?.data
           ?.message ?? "Failed to send invitation.";
       setErrors({ form: msg });
-      toast.error("Failed to invite user");
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -434,7 +434,21 @@ export default function InviteModal({ onClose, onSuccess }: Props) {
                 placeholder="20 123 456"
                 value={form.phoneDigits}
                 onChange={(e) => {
-                  setForm({ ...form, phoneDigits: e.target.value });
+                  // Allow only digits, max 8, format as xx xxx xxx
+                  const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                  let formatted = digits;
+                  if (digits.length > 2) {
+                    formatted = digits.slice(0, 2) + " " + digits.slice(2);
+                  }
+                  if (digits.length > 5) {
+                    formatted =
+                      digits.slice(0, 2) +
+                      " " +
+                      digits.slice(2, 5) +
+                      " " +
+                      digits.slice(5);
+                  }
+                  setForm({ ...form, phoneDigits: formatted });
                   setErrors({ ...errors, phone: "" });
                 }}
                 style={{

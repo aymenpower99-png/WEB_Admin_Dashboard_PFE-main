@@ -11,19 +11,24 @@ export function useDrivers() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [isLive, setIsLive] = useState(true);
   const [tick, setTick] = useState(0);
+  const [activeRides, setActiveRides] = useState<any[]>([]);
 
-  // Fetch initial driver data
+  // Fetch initial driver data and active rides
   useEffect(() => {
-    const fetchDrivers = async () => {
+    const fetchData = async () => {
       try {
-        const data = await liveMapApi.getOnlineDrivers();
-        setDrivers(data.map(convertToDriver));
+        const [driverData, ridesData] = await Promise.all([
+          liveMapApi.getOnlineDrivers(),
+          liveMapApi.getActiveRides(),
+        ]);
+        setActiveRides(ridesData);
+        setDrivers(driverData.map((d) => convertToDriver(d, ridesData)));
       } catch (error) {
-        console.error("Failed to fetch drivers:", error);
+        console.error("Failed to fetch data:", error);
         setDrivers([]);
       }
     };
-    fetchDrivers();
+    fetchData();
   }, []);
 
   // WebSocket + polling
@@ -37,8 +42,12 @@ export function useDrivers() {
     const startPolling = () =>
       setInterval(async () => {
         try {
-          const data = await liveMapApi.getOnlineDrivers();
-          setDrivers(data.map(convertToDriver));
+          const [driverData, ridesData] = await Promise.all([
+            liveMapApi.getOnlineDrivers(),
+            liveMapApi.getActiveRides(),
+          ]);
+          setActiveRides(ridesData);
+          setDrivers(driverData.map((d) => convertToDriver(d, ridesData)));
           setTick((t) => t + 1);
         } catch (error) {
           console.error("Failed to refresh drivers:", error);
@@ -84,9 +93,9 @@ export function useDrivers() {
           };
 
           if (existingIndex >= 0) {
-            updated[existingIndex] = convertToDriver(patch);
+            updated[existingIndex] = convertToDriver(patch, activeRides);
           } else {
-            updated.push(convertToDriver(patch));
+            updated.push(convertToDriver(patch, activeRides));
           }
           return updated;
         });

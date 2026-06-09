@@ -12,7 +12,7 @@ export const EVENT_COLORS = {
 };
 
 export const STATUS_CONFIG = {
-  ACTIVE: { color: C.success, label: "Available", pulse: true },
+  ACTIVE: { color: C.success, label: "Online", pulse: true },
   "EN ROUTE": { color: C.primaryPurple, label: "En Route", pulse: true },
   IDLE: { color: C.warning, label: "Idle", pulse: false },
   OFFLINE: { color: C.gray7B, label: "Offline", pulse: false },

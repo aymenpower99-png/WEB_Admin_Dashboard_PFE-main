@@ -19,9 +19,17 @@ export function toRealCoords(lat: number, lng: number): [number, number] {
   return [lng, lat];
 }
 
-export function convertToDriver(loc: DriverLocation): Driver {
+export function convertToDriver(
+  loc: DriverLocation,
+  activeRides: any[] = [],
+): Driver {
+  // Check if driver has an active ride assigned
+  const hasActiveRide = activeRides.some(
+    (ride) => ride.driver.id === loc.driver_id,
+  );
+
   const status = loc.is_online
-    ? loc.speed_kmh > 0
+    ? hasActiveRide
       ? "EN ROUTE"
       : "ACTIVE"
     : "OFFLINE";

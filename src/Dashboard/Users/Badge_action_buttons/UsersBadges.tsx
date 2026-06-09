@@ -26,7 +26,7 @@ export function EmailVerifiedBadge({ verified }: { verified: boolean }) {
   const style: React.CSSProperties = verified
     ? { ...BADGE_BASE, background: "rgba(34,197,94,0.12)", color: "#16a34a", border: "1px solid rgba(34,197,94,0.3)" }
     : { ...BADGE_BASE, background: "rgba(239,68,68,0.10)", color: "#dc2626", border: "1px solid rgba(239,68,68,0.25)" };
-  return <span style={style}>{verified ? " Verified" : "❌ Not Verified"}</span>;
+  return <span style={style}>{verified ? " Verified" : " Not Verified"}</span>;
 }
 
 const PROVIDER_STYLE: Record<string, React.CSSProperties> = {

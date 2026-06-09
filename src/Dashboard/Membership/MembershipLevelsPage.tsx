@@ -58,11 +58,11 @@ export default function MembershipLevelsPage() {
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
 
-  async function handleToggle(id: string) {
-    setActionLoading(id + "-toggle");
+  async function handleDelete(id: string) {
+    setActionLoading(id + "-delete");
     try {
-      const updated = await membershipLevelsApi.toggleActive(id);
-      setLevels((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
+      await membershipLevelsApi.delete(id);
+      setLevels((prev) => prev.filter((l) => l.id !== id));
     } catch {
     } finally {
       setActionLoading(null);
@@ -278,7 +278,7 @@ export default function MembershipLevelsPage() {
                             level={l}
                             actionLoading={actionLoading}
                             onEdit={() => setEditLevel(l)}
-                            onToggle={() => handleToggle(l.id)}
+                            onDelete={() => handleDelete(l.id)}
                           />
                         </td>
                       </tr>

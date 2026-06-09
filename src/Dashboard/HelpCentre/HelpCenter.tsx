@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import type { TicketStatus } from "./Components/types";
 import { useTickets } from "./Components/useTickets";
-import { useSupportSocket } from "../../hooks/useSupportSocket";
 import TicketList from "./Components/TicketList";
 import TicketDetails from "./Components/TicketDetails";
 
@@ -20,37 +19,11 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
     editMessage,
     deleteMessage,
     loadTicketMessages,
-    refetch,
-    checkMissedNotifications,
   } = useTickets();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // ── Real-time WebSocket (connects only while this component is mounted) ─────
-  const handleTicketCreated = useCallback(() => {
-    refetch();
-  }, [refetch]);
-
-  const handleTicketReply = useCallback(
-    (ticketId: string) => {
-      refetch();
-      if (selectedId === ticketId) {
-        loadTicketMessages(ticketId);
-      }
-    },
-    [refetch, selectedId, loadTicketMessages]
-  );
-
-  const handleReconnect = useCallback(() => {
-    refetch().then(() => {
-      checkMissedNotifications();
-    });
-  }, [refetch, checkMissedNotifications]);
-
-  useSupportSocket({
-    onTicketCreated: handleTicketCreated,
-    onTicketReply: handleTicketReply,
-    onReconnect: handleReconnect,
-  });
+  // Note: WebSocket connection is now managed in ShellRoutes.tsx
+  // to stay connected across all dashboard pages
 
   // Auto-select first ticket once loaded
   useEffect(() => {
@@ -74,7 +47,9 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
 
   if (loading) {
     return (
-      <div className={`flex items-center justify-center h-full ${dark ? "text-gray-300" : "text-gray-600"}`}>
+      <div
+        className={`flex items-center justify-center h-full ${dark ? "text-gray-300" : "text-gray-600"}`}
+      >
         <div className="flex flex-col items-center gap-3">
           <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-sm">Loading tickets…</p>
@@ -85,7 +60,9 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
 
   if (error) {
     return (
-      <div className={`flex items-center justify-center h-full ${dark ? "text-red-400" : "text-red-600"}`}>
+      <div
+        className={`flex items-center justify-center h-full ${dark ? "text-red-400" : "text-red-600"}`}
+      >
         <div className="text-center">
           <p className="text-sm font-semibold mb-1">Failed to load tickets</p>
           <p className="text-xs opacity-70">{error}</p>
@@ -96,7 +73,9 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
 
   if (!selectedTicket) {
     return (
-      <div className={`flex items-center justify-center h-full ${dark ? "text-gray-400" : "text-gray-500"}`}>
+      <div
+        className={`flex items-center justify-center h-full ${dark ? "text-gray-400" : "text-gray-500"}`}
+      >
         <p className="text-sm">No tickets found.</p>
       </div>
     );
@@ -118,14 +97,20 @@ export default function HelpCenter({ dark }: HelpCenterProps) {
       <div className="flex-1 min-w-0 h-full">
         <TicketDetails
           ticket={selectedTicket}
-          onStatusChange={(id, status: TicketStatus) => changeStatus(id, status)}
+          onStatusChange={(id, status: TicketStatus) =>
+            changeStatus(id, status)
+          }
           onSendMessage={(id, content) => sendMessage(id, content)}
           onDelete={(id) => {
             deleteTicket(id);
             setSelectedId(null);
           }}
-          onEditMessage={(ticketId, messageId, content) => editMessage(ticketId, messageId, content)}
-          onDeleteMessage={(ticketId, messageId) => deleteMessage(ticketId, messageId)}
+          onEditMessage={(ticketId, messageId, content) =>
+            editMessage(ticketId, messageId, content)
+          }
+          onDeleteMessage={(ticketId, messageId) =>
+            deleteMessage(ticketId, messageId)
+          }
           dark={dark}
         />
       </div>

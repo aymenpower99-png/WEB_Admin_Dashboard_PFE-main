@@ -148,6 +148,7 @@ export default function TicketDetails({ ticket, onStatusChange, onSendMessage, o
           <ConversationTab
             messages={ticket.messages}
             ticketStatus={ticket.status}
+            ticketCreatedAt={ticket.createdAt}
             onSend={(content) => onSendMessage(ticket.id, content)}
             onEditMessage={(messageId, content) => onEditMessage(ticket.id, messageId, content)}
             onDeleteMessage={(messageId) => onDeleteMessage(ticket.id, messageId)}

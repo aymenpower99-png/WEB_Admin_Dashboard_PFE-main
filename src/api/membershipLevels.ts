@@ -19,7 +19,8 @@ export interface CreateMembershipLevelPayload {
   isActive?: boolean;
 }
 
-export type UpdateMembershipLevelPayload = Partial<CreateMembershipLevelPayload>;
+export type UpdateMembershipLevelPayload =
+  Partial<CreateMembershipLevelPayload>;
 
 export const membershipLevelsApi = {
   /** GET /admin/membership-levels */
@@ -39,10 +40,21 @@ export const membershipLevelsApi = {
     apiClient.post("/admin/membership-levels", payload).then((r) => r.data),
 
   /** PATCH /admin/membership-levels/:id */
-  update: (id: string, payload: UpdateMembershipLevelPayload): Promise<MembershipLevel> =>
-    apiClient.patch(`/admin/membership-levels/${id}`, payload).then((r) => r.data),
+  update: (
+    id: string,
+    payload: UpdateMembershipLevelPayload,
+  ): Promise<MembershipLevel> =>
+    apiClient
+      .patch(`/admin/membership-levels/${id}`, payload)
+      .then((r) => r.data),
 
   /** PATCH /admin/membership-levels/:id/toggle */
   toggleActive: (id: string): Promise<MembershipLevel> =>
-    apiClient.patch(`/admin/membership-levels/${id}/toggle`).then((r) => r.data),
+    apiClient
+      .patch(`/admin/membership-levels/${id}/toggle`)
+      .then((r) => r.data),
+
+  /** DELETE /admin/membership-levels/:id */
+  delete: (id: string): Promise<void> =>
+    apiClient.delete(`/admin/membership-levels/${id}`).then(() => undefined),
 };

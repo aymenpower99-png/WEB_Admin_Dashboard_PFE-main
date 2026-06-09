@@ -1,6 +1,11 @@
 export type TicketStatus = "Open" | "In Progress" | "Pending" | "Resolved";
 export type UserRole = "Passenger" | "Driver";
-export type TicketCategory = "Ride" | "Payment" | "Account" | "Technical" | "App Bug";
+export type TicketCategory =
+  | "Ride"
+  | "Payment"
+  | "Account"
+  | "Technical"
+  | "App Bug";
 
 export interface InternalNote {
   id: string;
@@ -16,6 +21,7 @@ export interface Message {
   senderType: "user" | "admin";
   content: string;
   timestamp: string;
+  createdAt?: string; // Full ISO timestamp for relative time calculation (optional)
   updatedAt?: string;
 }
 
