@@ -82,7 +82,7 @@ export function RevenueChart({ dark }: RevenueChartProps) {
         <ResponsiveContainer width="100%" height={160}>
           <AreaChart
             data={revenueData}
-            margin={{ top: 5, right: 5, bottom: 0, left: -20 }}
+            margin={{ top: 5, right: 5, bottom: 0, left: 30 }}
           >
             <defs>
               <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
@@ -109,7 +109,7 @@ export function RevenueChart({ dark }: RevenueChartProps) {
               tick={{ fill: tickColor, fontSize: 10 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k TND`}
+              tickFormatter={(v: number) => `${v.toFixed(0)} TND`}
             />
             <Tooltip content={<CustomTooltip dark={dark} prefix="TND" />} />
             <Area

@@ -1,11 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { Driver } from "./types";
 import { DEFAULT_CENTER, MAP_EVENTS, EVENT_COLORS } from "./constants";
 import { toRealCoords, makeMarkerEl } from "./utils";
-
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+import { getMapboxToken } from "../mapboxToken";
 
 export function MapboxMap({
   drivers,
@@ -20,10 +19,18 @@ export function MapboxMap({
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const eventLayersRef = useRef<string[]>([]);
+  const [tokenReady, setTokenReady] = useState(false);
+
+  /* fetch Mapbox token from backend */
+  useEffect(() => {
+    getMapboxToken()
+      .then(() => setTokenReady(true))
+      .catch((err) => console.error("[MapboxMap] Token failed:", err));
+  }, []);
 
   // Init map
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current || mapRef.current || !tokenReady) return;
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
@@ -99,7 +106,7 @@ export function MapboxMap({
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tokenReady]);
 
   // Sync dark/light style
   useEffect(() => {

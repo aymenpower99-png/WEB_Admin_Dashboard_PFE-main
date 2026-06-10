@@ -16,7 +16,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   train_station: "🚂",
   bus_station: "🚌",
   transit_station: "🚇",
-  
+
   // Hotels & Lodging
   hotel: "🏨",
   lodging: "🏨",
@@ -25,7 +25,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   bed_and_breakfast: "🏨",
   guest_house: "🏨",
   resort: "🏨",
-  
+
   // Restaurants & Food
   restaurant: "🍽️",
   food: "🍽️",
@@ -35,27 +35,27 @@ const CATEGORY_ICONS: Record<string, string> = {
   pub: "🍺",
   bakery: "🥐",
   fast_food: "🍔",
-  
+
   // Shopping
   shop: "🛒",
   shopping_mall: "🛍️",
   supermarket: "🛒",
   grocery: "🛒",
   convenience_store: "🏪",
-  
+
   // Health & Medical
   hospital: "🏥",
   clinic: "🏥",
   pharmacy: "💊",
   dentist: "🦷",
   doctor: "🏥",
-  
+
   // Education
   school: "🎓",
   university: "🎓",
   college: "🎓",
   library: "📚",
-  
+
   // Entertainment
   cinema: "🎬",
   movie_theater: "🎬",
@@ -65,116 +65,217 @@ const CATEGORY_ICONS: Record<string, string> = {
   park: "🌳",
   amusement_park: "🎢",
   zoo: "🦁",
-  
+
   // Places & Landmarks
   city: "🏙️",
   town: "🏘️",
   village: "🏘️",
-  locality: "📍",
+  locality: "🏙️",
   neighborhood: "🏘️",
   landmark: "🏛️",
   tourist_attraction: "🎯",
   point_of_interest: "📍",
-  
+  place: "📍",
+
   // Services
   bank: "🏦",
   atm: "💳",
   post_office: "📮",
   police: "👮",
   fire_station: "🚒",
-  
+
   // Sports & Recreation
   stadium: "🏟️",
   gym: "🏋️",
   swimming_pool: "🏊",
   golf_course: "⛳",
-  
+
   // Default
   default: "📍",
 };
 
-export function getCategoryIcon(categories: string): string {
+export function getCategoryIcon(categories: string, name?: string): string {
   const lower = categories.toLowerCase();
+  console.log(
+    `[ICON] 🔍 Looking up icon for category: "${categories}" (lower: "${lower}")`,
+  );
+
   for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
-    if (lower.includes(key)) return icon;
+    if (lower.includes(key)) {
+      console.log(`[ICON] ✅ Matched key "${key}" → icon: ${icon}`);
+      return icon;
+    }
   }
+
+  // Fallback: try to infer from name if category is generic
+  if (name) {
+    const nameLower = name.toLowerCase();
+    console.log(`[ICON] 🔄 Trying name-based fallback for: "${name}"`);
+
+    for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
+      if (nameLower.includes(key)) {
+        console.log(`[ICON] ✅ Name matched key "${key}" → icon: ${icon}`);
+        return icon;
+      }
+    }
+  }
+
+  console.log(`[ICON] ❌ No match found, returning default 📍`);
   return "📍";
 }
 
-// Search with fallback chain: Google Places -> Mapbox -> Nominatim
+// Search using backend API (same as mobile app)
+// Google Places primary, then fallback to Mapbox + Nominatim
 export async function searchPlaces(
   query: string,
-  proximity: [number, number] = [10.18, 36.81]
+  proximity: [number, number] = [10.18, 36.81],
 ): Promise<Place[]> {
   if (!query.trim()) return [];
 
-  const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY ?? "";
-  const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? "";
-  const GEOCODE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places";
+  const API_URL = import.meta.env.VITE_API_URL || "/api";
 
-  // Try Google Places API first (primary)
-  if (GOOGLE_PLACES_API_KEY) {
-    try {
-      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${GOOGLE_PLACES_API_KEY}&components=country:tn&language=en`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.predictions && data.predictions.length > 0) {
-          return data.predictions.slice(0, 6).map((p: any) => ({
-            id: p.place_id,
-            name: p.structured_formatting?.main_text || p.description,
-            fullAddress: p.description,
-            category: p.types?.join(",") || "point_of_interest",
-            lat: 0,
-            lng: 0,
-          }));
-        }
-      }
-    } catch (e) {
-      console.warn("Google Places API failed:", e);
-    }
-  }
+  console.log(`[AUTOCOMPLETE] 🔍 Searching for: "${query}"`);
+  console.log(`[AUTOCOMPLETE] 📍 Proximity: ${proximity[0]}, ${proximity[1]}`);
 
-  // Fallback to Mapbox
-  if (MAPBOX_TOKEN) {
-    try {
-      const url = `${GEOCODE_URL}/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&types=poi,address,place,locality,neighborhood&country=tn&limit=6&proximity=${proximity[0]},${proximity[1]}&language=en`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        return (data.features ?? []).map((f: any) => ({
-          id: f.id,
-          name: f.text || f.place_name,
-          fullAddress: f.place_name,
-          category: f.properties?.category ?? f.place_type?.[0] ?? "",
-          lat: f.center?.[1] ?? 0,
-          lng: f.center?.[0] ?? 0,
-        }));
-      }
-    } catch (e) {
-      console.warn("Mapbox API failed:", e);
-    }
-  }
-
-  // Fallback to Nominatim (OpenStreetMap)
+  // Try Google Places first (primary)
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=tn&limit=6&addressdetails=1`;
+    const params = new URLSearchParams({
+      q: query,
+      lang: "en",
+    });
+
+    const url = `${API_URL}/rides/geocode/google-search?${params.toString()}`;
+    console.log(`[AUTOCOMPLETE] 🌐 Trying Google Places: ${url}`);
+
+    const startTime = Date.now();
     const res = await fetch(url);
+    const duration = Date.now() - startTime;
+
+    console.log(`[AUTOCOMPLETE] ⏱️ Google request duration: ${duration}ms`);
+    console.log(
+      `[AUTOCOMPLETE] 📊 Google response status: ${res.status} ${res.statusText}`,
+    );
+
     if (res.ok) {
       const data = await res.json();
-      return (data ?? []).map((f: any) => ({
-        id: f.place_id || f.osm_id?.toString(),
-        name: f.display_name.split(",")[0] || f.display_name,
-        fullAddress: f.display_name,
-        category: f.type || "point_of_interest",
-        lat: parseFloat(f.lat) || 0,
-        lng: parseFloat(f.lon) || 0,
-      }));
+      console.log(`[AUTOCOMPLETE] 📦 Google raw response:`, data);
+      console.log(`[AUTOCOMPLETE] 📋 Google results: ${data?.length || 0}`);
+
+      if (data && data.length > 0) {
+        const sources = data.map(
+          (item: any) => item.source || item._debug_source || "unknown",
+        );
+        const uniqueSources = [...new Set(sources)];
+        console.log(
+          `[AUTOCOMPLETE] 🔌 Google API source:`,
+          uniqueSources.join(", "),
+        );
+
+        const transformed = (data || []).map((item: any) => ({
+          id: item.place_id || item.id || `${item.lat},${item.lon}`,
+          name:
+            item.display_name?.split(",")[0] ||
+            item.display_name ||
+            item.address ||
+            item.name,
+          fullAddress: item.display_name || item.address || item.name,
+          category: item.place_type || item.type || "point_of_interest",
+          lat: item.lat || 0,
+          lng: item.lon || 0,
+          source: item.source || item._debug_source || "google",
+        }));
+
+        console.log(
+          `[AUTOCOMPLETE] ✅ Google - Transformed ${transformed.length} places`,
+        );
+        return transformed;
+      }
+      console.log(`[AUTOCOMPLETE] Google returned empty, trying fallback`);
+    } else {
+      console.warn(
+        `[AUTOCOMPLETE] Google failed with status ${res.status}, trying fallback`,
+      );
     }
   } catch (e) {
-    console.warn("Nominatim API failed:", e);
+    console.warn(`[AUTOCOMPLETE] Google Places error, trying fallback:`, e);
   }
 
-  // All APIs failed
-  return [];
+  // Fallback to Mapbox + Nominatim
+  console.log(`[AUTOCOMPLETE] 🔄 Falling back to Mapbox/Nominatim`);
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      proximityLat: proximity[0].toString(),
+      proximityLon: proximity[1].toString(),
+      lang: "en",
+    });
+
+    const url = `${API_URL}/rides/geocode/search?${params.toString()}`;
+    console.log(`[AUTOCOMPLETE] 🌐 Fallback URL: ${url}`);
+
+    const startTime = Date.now();
+    const res = await fetch(url);
+    const duration = Date.now() - startTime;
+
+    console.log(`[AUTOCOMPLETE] ⏱️ Fallback request duration: ${duration}ms`);
+    console.log(
+      `[AUTOCOMPLETE] 📊 Fallback response status: ${res.status} ${res.statusText}`,
+    );
+
+    if (!res.ok) {
+      console.warn(
+        `[AUTOCOMPLETE] ❌ Fallback API failed:`,
+        res.status,
+        res.statusText,
+      );
+      return [];
+    }
+
+    const data = await res.json();
+    console.log(`[AUTOCOMPLETE] 📦 Fallback raw response:`, data);
+    console.log(`[AUTOCOMPLETE] 📋 Fallback results: ${data?.length || 0}`);
+
+    // Log API source if available in response
+    if (data && data.length > 0) {
+      const sources = data.map(
+        (item: any) => item.source || item._debug_source || "unknown",
+      );
+      const uniqueSources = [...new Set(sources)];
+      console.log(
+        `[AUTOCOMPLETE] 🔌 Fallback API sources:`,
+        uniqueSources.join(", "),
+      );
+
+      // Log first result details
+      console.log(`[AUTOCOMPLETE] 🏷️ First result:`, {
+        name: data[0].display_name || data[0].name,
+        place_type: data[0].place_type,
+        source: data[0].source || data[0]._debug_source,
+        coordinates: `${data[0].lat}, ${data[0].lon}`,
+      });
+    }
+
+    // Transform backend response to Place interface
+    const transformed = (data || []).map((item: any) => ({
+      id: item.place_id || item.id || `${item.lat},${item.lon}`,
+      name:
+        item.display_name?.split(",")[0] ||
+        item.display_name ||
+        item.address ||
+        item.name,
+      fullAddress: item.display_name || item.address || item.name,
+      category: item.place_type || item.type || "point_of_interest",
+      lat: item.lat || 0,
+      lng: item.lon || 0,
+      source: item.source || item._debug_source || "fallback",
+    }));
+
+    console.log(
+      `[AUTOCOMPLETE] ✅ Fallback - Transformed ${transformed.length} places`,
+    );
+    return transformed;
+  } catch (e) {
+    console.error(`[AUTOCOMPLETE] 💥 Fallback API error:`, e);
+    return [];
+  }
 }

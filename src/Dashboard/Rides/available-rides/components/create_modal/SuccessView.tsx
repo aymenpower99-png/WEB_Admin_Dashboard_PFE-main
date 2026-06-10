@@ -5,10 +5,20 @@ import type { BackendRide } from "../../../../../api/rides";
 interface SuccessViewProps {
   createdRide: BackendRide;
   logs: { time: string; msg: string; kind: "ok" | "error" }[];
-  pollStatus: "polling" | "scheduled" | "cancelled" | "searching" | "assigned" | null;
+  pollStatus:
+    | "polling"
+    | "scheduled"
+    | "cancelled"
+    | "searching"
+    | "assigned"
+    | null;
 }
 
-export function SuccessView({ createdRide, logs, pollStatus }: SuccessViewProps) {
+export function SuccessView({
+  createdRide,
+  logs,
+  pollStatus,
+}: SuccessViewProps) {
   return (
     <>
       {/* Success banner */}

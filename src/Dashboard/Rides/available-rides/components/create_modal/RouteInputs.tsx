@@ -8,8 +8,16 @@ interface RouteInputsProps {
   dropoffError?: string;
   onPickupChange: (value: string) => void;
   onDropoffChange: (value: string) => void;
-  onPickupSelect: (place: { fullAddress: string; lat: number; lng: number }) => void;
-  onDropoffSelect: (place: { fullAddress: string; lat: number; lng: number }) => void;
+  onPickupSelect: (place: {
+    fullAddress: string;
+    lat: number;
+    lng: number;
+  }) => void;
+  onDropoffSelect: (place: {
+    fullAddress: string;
+    lat: number;
+    lng: number;
+  }) => void;
   onClearPickupError: () => void;
   onClearDropoffError: () => void;
 }
@@ -71,7 +79,8 @@ export function RouteInputs({
             }}
             onFocus={(e) => {
               (e.target as HTMLInputElement).style.borderColor = T.accent;
-              (e.target as HTMLInputElement).style.boxShadow = `0 0 0 3px ${T.accentGlow}`;
+              (e.target as HTMLInputElement).style.boxShadow =
+                `0 0 0 3px ${T.accentGlow}`;
             }}
             onBlur={(e) => {
               if (e?.target) {
@@ -122,8 +131,8 @@ export function RouteInputs({
               width: 8,
               height: 8,
               borderRadius: "2px",
-              background: T.red,
-              boxShadow: `0 0 8px ${T.red}55`,
+              background: T.violet,
+              boxShadow: `0 0 8px ${T.violet}55`,
               zIndex: 1,
             }}
           />
@@ -146,7 +155,8 @@ export function RouteInputs({
             }}
             onFocus={(e) => {
               (e.target as HTMLInputElement).style.borderColor = T.accent;
-              (e.target as HTMLInputElement).style.boxShadow = `0 0 0 3px ${T.accentGlow}`;
+              (e.target as HTMLInputElement).style.boxShadow =
+                `0 0 0 3px ${T.accentGlow}`;
             }}
             onBlur={(e) => {
               if (e?.target) {

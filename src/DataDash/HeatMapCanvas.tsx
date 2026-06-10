@@ -8,7 +8,7 @@ import {
   type DemandHotspot,
 } from "./mockData";
 import type { Vehicle } from ".";
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+import { getMapboxToken } from "./mapboxToken";
 
 const STATUS_COLOR: Record<string, string> = {
   ACTIVE: C.success,
@@ -38,6 +38,14 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [demandHotspots, setDemandHotspots] = useState<DemandHotspot[]>([]);
+  const [tokenReady, setTokenReady] = useState(false);
+
+  /* fetch Mapbox token from backend */
+  useEffect(() => {
+    getMapboxToken()
+      .then(() => setTokenReady(true))
+      .catch((err) => console.error("[HeatMap] Mapbox token failed:", err));
+  }, []);
 
   /* fetch fleet once */
   useEffect(() => {
@@ -95,7 +103,7 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
 
   /* init map */
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current || mapRef.current || !tokenReady) return;
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
@@ -174,7 +182,7 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
       mapRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [tokenReady, dark]);
 
   /* swap style when dark changes */
   useEffect(() => {

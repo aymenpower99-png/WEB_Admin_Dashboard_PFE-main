@@ -33,7 +33,6 @@ export default function DataDashShell({
   const [showSplash, setShowSplash] = useState(false);
 
   const [activeNav, setActiveNav] = useState<string>("Dashboard");
-  const [showAll, setShowAll] = useState<boolean>(false);
 
   const bg = dark ? C.darkBg : C.lightBg;
   const surface = dark ? C.darkSurface : C.lightSurface;
@@ -196,7 +195,7 @@ export default function DataDashShell({
           <StatsStrip dark={dark} />
 
           {/* ── Fleet Table ─────────────────────────────────────────── */}
-          <FleetTable dark={dark} showAll={showAll} setShowAll={setShowAll} />
+          <FleetTable dark={dark} />
         </div>
       )}
 

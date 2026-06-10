@@ -201,8 +201,7 @@ export default function DriversPage({
                   <col style={{ width: "14%" }} />
                   <col style={{ width: "16%" }} />
                   <col style={{ width: "7%" }} />
-                  <col style={{ width: "7%" }} />
-                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "23%" }} />
                 </colgroup>
                 <thead>
                   <tr>
@@ -210,8 +209,7 @@ export default function DriversPage({
                     <th style={TH}>Email</th>
                     <th style={TH}>Status</th>
                     <th style={TH}>Vehicle</th>
-                    <th style={TH}>Trips</th>
-                    <th style={TH}>Cancels</th>
+                    <th style={TH}>Rides</th>
                     <th style={TH}>Actions</th>
                   </tr>
                 </thead>
@@ -219,7 +217,7 @@ export default function DriversPage({
                   {filtered.length === 0 ? (
                     <tr style={{ height: ROW_H }}>
                       <td
-                        colSpan={7}
+                        colSpan={6}
                         style={{
                           ...TD,
                           textAlign: "center",
@@ -286,15 +284,6 @@ export default function DriversPage({
                           }}
                         >
                           {d.totalTrips ?? 0}
-                        </td>
-                        <td
-                          style={{
-                            ...TD,
-                            fontWeight: 800,
-                            color: d.cancellationCount ? "#ef4444" : "var(--text-h)",
-                          }}
-                        >
-                          {d.cancellationCount ?? 0}
                         </td>
                         <td style={TD} onClick={(e) => e.stopPropagation()}>
                           <DriverInlineRowActions

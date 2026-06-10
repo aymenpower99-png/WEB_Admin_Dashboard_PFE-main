@@ -183,7 +183,7 @@ export default function MapboxAutocomplete({
                     flexShrink: 0,
                   }}
                 >
-                  {getCategoryIcon(place.category)}
+                  {getCategoryIcon(place.category, place.name)}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p
