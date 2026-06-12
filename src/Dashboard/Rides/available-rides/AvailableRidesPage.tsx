@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import { toast } from "sonner";
 
 import type { BackendRide } from "../../../api/rides";
 import { ridesApi, filterAvailable, passengerName } from "../../../api/rides";
@@ -100,6 +101,7 @@ export default function AvailableRidesPage() {
   /* ── Handlers────────────────────────────────────────────────────── */
   const handleCancelConfirm = () => {
     setCancelModal(null);
+    toast.success("Ride cancelled");
     fetchRides();
   };
 

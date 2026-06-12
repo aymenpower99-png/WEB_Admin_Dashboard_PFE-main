@@ -95,8 +95,9 @@ export default function UsersPage({
       setUsers((p) =>
         p.map((x) => (x.id === u.id ? { ...x, status: "blocked" } : x)),
       );
+      toast.success("User blocked successfully");
     } catch {
-      /* ignore */
+      toast.error("Failed to block user");
     } finally {
       setActionLoading(null);
     }
@@ -109,8 +110,9 @@ export default function UsersPage({
       setUsers((p) =>
         p.map((x) => (x.id === u.id ? { ...x, status: "active" } : x)),
       );
+      toast.success("User unblocked successfully");
     } catch {
-      /* ignore */
+      toast.error("Failed to unblock user");
     } finally {
       setActionLoading(null);
     }
@@ -120,8 +122,9 @@ export default function UsersPage({
     setActionLoading(u.id + "-resend");
     try {
       await usersApi.resendInvite(u.id);
+      toast.success("Invitation resent successfully");
     } catch {
-      /* ignore */
+      toast.error("Failed to resend invitation");
     } finally {
       setActionLoading(null);
     }
@@ -134,7 +137,9 @@ export default function UsersPage({
       setUsers((p) => p.filter((x) => x.id !== u.id));
       setModal(null);
       setDeleteTarget(null);
-      toast.success("User deleted successfully");
+      toast.success("User deleted successfully", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
     } catch {
       toast.error("Failed to delete user");
     } finally {

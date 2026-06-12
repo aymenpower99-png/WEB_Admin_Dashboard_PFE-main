@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { CommissionTierRecord } from "../../../api/billing";
 
 const BADGE_BASE: React.CSSProperties = {
   display: "inline-flex",
@@ -75,13 +74,9 @@ function ActionButton({
 }
 
 export function CommissionInlineRowActions({
-  tier,
-  actionLoading,
   onEdit,
   onDelete,
 }: {
-  tier: CommissionTierRecord;
-  actionLoading: string | null;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -91,14 +86,12 @@ export function CommissionInlineRowActions({
         title="Edit Tier"
         onClick={onEdit}
         hoverStyle={{ background: "#eff6ff", color: "#2563eb", borderColor: "#bfdbfe" }}
-        loading={actionLoading === tier.id + "-edit"}
       >
         <IconEdit />
       </ActionButton>
       <ActionButton
         title="Delete Tier"
         onClick={onDelete}
-        loading={actionLoading === tier.id + "-delete"}
         hoverStyle={{ background: "#fef2f2", color: "#dc2626", borderColor: "#fecaca" }}
       >
         <IconDelete />

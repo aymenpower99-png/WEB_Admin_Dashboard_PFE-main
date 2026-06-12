@@ -147,10 +147,10 @@ export default function VehicleTableRow({
       </td>
 
       {/* Year */}
-      <td style={{ ...TD, color: "var(--text-muted)" }}>{v.year}</td>
+      <td style={{ ...TD, color: "var(--text-muted)" ,fontWeight: 700}}>{v.year}</td>
 
       {/* Seats */}
-      <td style={{ ...TD, color: "var(--text-muted)" }}>{seats}</td>
+      <td style={{ ...TD, color: "var(--text-muted)",fontWeight: 700 }}>{seats}</td>
 
       {/* Driver — no "Loading…" if name not resolved */}
       <td

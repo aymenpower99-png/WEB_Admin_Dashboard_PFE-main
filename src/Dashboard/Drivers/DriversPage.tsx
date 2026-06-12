@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { toast } from "sonner";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 import type { DriverProfile } from "../../api/drivers";
@@ -31,8 +32,6 @@ export default function DriversPage({
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [editDriver, setEditDriver] = useState<DriverProfile | null>(null);
   const [infoDriver, setInfoDriver] = useState<DriverProfile | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-
   function loadDrivers() {
     setLoading(true);
     driversApi
@@ -66,14 +65,13 @@ export default function DriversPage({
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
   async function handleDelete(id: string) {
-    setActionLoading(id + "-delete");
     try {
       await driversApi.remove(id);
       setDrivers((prev) => prev.filter((d) => d.id !== id));
       setRemoveId(null);
+      toast.success("Driver deleted successfully");
     } catch {
-    } finally {
-      setActionLoading(null);
+      toast.error("Failed to delete driver");
     }
   }
 
@@ -288,9 +286,7 @@ export default function DriversPage({
                         <td style={TD} onClick={(e) => e.stopPropagation()}>
                           <DriverInlineRowActions
                             driver={d}
-                            actionLoading={actionLoading}
                             onEdit={() => setEditDriver(d)}
-                            onDelete={() => setRemoveId(d.id)}
                             onInfo={() => setInfoDriver(d)}
                           />
                         </td>

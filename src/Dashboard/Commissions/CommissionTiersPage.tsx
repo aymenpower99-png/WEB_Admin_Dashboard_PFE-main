@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { toast } from "sonner";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import ChevronLeftRoundedIcon from "@mui/icons-material/ChevronLeftRounded";
 import ChevronRightRoundedIcon from "@mui/icons-material/ChevronRightRounded";
@@ -119,7 +120,8 @@ export default function CommissionTiersPage() {
   const [page, setPage] = useState(1);
   const [editTier, setEditTier] = useState<CommissionTierRecord | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CommissionTierRecord | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   function loadTiers() {
     setLoading(true);
@@ -154,15 +156,20 @@ export default function CommissionTiersPage() {
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
 
-  async function handleDelete(id: string) {
-    if (!window.confirm("Delete this commission tier?")) return;
-    setActionLoading(id + "-delete");
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
-      await billingApi.deleteTier(id);
-      setTiers((prev) => prev.filter((t) => t.id !== id));
+      await billingApi.deleteTier(deleteTarget.id);
+      setTiers((prev) => prev.filter((t) => t.id !== deleteTarget.id));
+      toast.success("Commission tier deleted", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
+      setDeleteTarget(null);
     } catch {
+      toast.error("Failed to delete commission tier");
     } finally {
-      setActionLoading(null);
+      setDeleteLoading(false);
     }
   }
 
@@ -172,6 +179,7 @@ export default function CommissionTiersPage() {
       {showCreate && (
         <CommissionTierModal
           mode="create"
+          existingTiers={tiers}
           onClose={() => setShowCreate(false)}
           onSaved={(t) => {
             setTiers((prev) => [...prev, t]);
@@ -182,6 +190,7 @@ export default function CommissionTiersPage() {
         <CommissionTierModal
           mode="edit"
           tier={editTier}
+          existingTiers={tiers}
           onClose={() => setEditTier(null)}
           onSaved={(updated) => {
             setTiers((prev) =>
@@ -189,6 +198,37 @@ export default function CommissionTiersPage() {
             );
           }}
         />
+      )}
+
+      {deleteTarget && (
+        <div className="ts-overlay" onClick={() => setDeleteTarget(null)}>
+          <div className="ts-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
+            <div className="ts-modal-header">
+              <span style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text-h)" }}>
+                Delete Commission Tier
+              </span>
+              <button className="ts-icon-btn" onClick={() => setDeleteTarget(null)}>✕</button>
+            </div>
+            <div className="ts-modal-body">
+              <p style={{ fontSize: ".85rem", color: "var(--text-body)" }}>
+                Are you sure you want to delete <strong>{deleteTarget.name}</strong>? This action cannot be undone.
+              </p>
+            </div>
+            <div className="ts-modal-footer">
+              <button className="ts-btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>
+                Cancel
+              </button>
+              <button
+                className="ts-btn-primary"
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                style={{ background: "#dc2626", borderColor: "#dc2626" }}
+              >
+                {deleteLoading ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
@@ -362,10 +402,8 @@ export default function CommissionTiersPage() {
                         </td>
                         <td style={{ ...TD, textAlign: "center" }}>
                           <CommissionInlineRowActions
-                            tier={tier}
-                            actionLoading={actionLoading}
                             onEdit={() => setEditTier(tier)}
-                            onDelete={() => handleDelete(tier.id)}
+                            onDelete={() => setDeleteTarget(tier)}
                           />
                         </td>
                       </tr>

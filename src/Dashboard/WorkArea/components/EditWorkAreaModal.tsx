@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { workAreasApi, type WorkAreaItem } from "../../../api/workAreas";
 import { COUNTRIES, TUNISIA_VILLES } from "./WorkAreaTypes";
@@ -29,10 +30,12 @@ export default function EditWorkAreaModal({ area, onClose, onSaved }: Props) {
     try {
       const updated = await workAreasApi.update(area.id, { country, ville });
       onSaved(updated);
+      toast.success("Work area updated successfully");
       onClose();
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? "Failed to update work area.";
       setError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to update work area");
     } finally {
       setSaving(false);
     }

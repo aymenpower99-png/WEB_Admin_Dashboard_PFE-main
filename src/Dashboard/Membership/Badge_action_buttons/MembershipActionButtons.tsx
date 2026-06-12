@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { MembershipLevel } from "../../../api/membershipLevels";
 
 const ACTION_BTN_BASE: React.CSSProperties = {
   display: "inline-flex",
@@ -86,13 +85,9 @@ function ActionButton({
 }
 
 export function MembershipInlineRowActions({
-  level,
-  actionLoading,
   onEdit,
   onDelete,
 }: {
-  level: MembershipLevel;
-  actionLoading: string | null;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -115,7 +110,6 @@ export function MembershipInlineRowActions({
       <ActionButton
         title="Delete Level"
         onClick={onDelete}
-        loading={actionLoading === level.id + "-delete"}
         hoverStyle={{
           background: "#fef2f2",
           color: "#dc2626",

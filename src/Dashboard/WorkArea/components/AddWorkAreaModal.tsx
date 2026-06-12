@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import { workAreasApi, type WorkAreaItem } from "../../../api/workAreas";
 import { COUNTRIES, TUNISIA_VILLES } from "./WorkAreaTypes";
@@ -28,10 +29,12 @@ export default function AddWorkAreaModal({ onClose, onCreated }: Props) {
     try {
       const created = await workAreasApi.create({ country, ville });
       onCreated(created);
+      toast.success("Work area created successfully");
       onClose();
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? "Failed to create work area.";
       setError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to create work area");
     } finally {
       setSaving(false);
     }

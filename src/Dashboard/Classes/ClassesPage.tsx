@@ -80,7 +80,9 @@ export default function ClassesPage({ onNavigate }: ClassesPageProps) {
       await classesApi.remove(deleteTarget.id);
       setClasses((p) => p.filter((c) => c.id !== deleteTarget.id));
       setDeleteTarget(null);
-      toast.success("Class deleted");
+      toast.success("Class deleted", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
     } catch {
       toast.error("Failed to delete class");
     } finally {

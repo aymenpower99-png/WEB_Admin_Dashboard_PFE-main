@@ -171,6 +171,7 @@ export default function AddVehiclePage({
         setVehicles((prev: Vehicle[]) =>
           prev.map((v) => (v.id === prefill!.id ? updated : v)),
         );
+        toast.success("Vehicle updated successfully");
       } else {
         const res = await apiClient.post<any>("/vehicles", payload);
 
@@ -187,6 +188,7 @@ export default function AddVehiclePage({
           ...prev,
           mapBackendVehicle(rawData, new Map()),
         ]);
+        toast.success("Vehicle added successfully");
       }
       onNavigate("vehicles");
     } catch (err: any) {

@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import PlaceRoundedIcon  from "@mui/icons-material/PlaceRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import { workAreasApi, type WorkAreaDriver, type WorkAreaItem } from "../../../api/workAreas";
+import { PlainDropdown } from "../../Vehicles/AddvehicleComponents/Field";
 
 interface Props {
   driver: WorkAreaDriver;
@@ -18,6 +20,8 @@ export default function AssignWorkAreaModal({ driver, areas, onClose, onSaved }:
 
   const selectedArea = areas.find(a => a.id === selectedAreaId);
 
+  const prevAreaId = driver.workAreaId ?? null;
+
   async function handleSave() {
     setSaving(true); setError(null);
     try {
@@ -30,10 +34,22 @@ export default function AssignWorkAreaModal({ driver, areas, onClose, onSaved }:
         workArea:   newArea ? { id: newArea.id, country: newArea.country, ville: newArea.ville } : null,
         availabilityStatus: updated.availabilityStatus ?? driver.availabilityStatus,
       });
+
+      const changed = (selectedAreaId || null) !== prevAreaId;
+      if (changed) {
+        if (selectedAreaId) {
+          toast.success(`Work area assigned to ${driver.name}`);
+        } else {
+          toast.success(`Work area unassigned from ${driver.name}`, {
+            style: { background: "rgb(194, 65, 12)", color: "#fff", border: "none" },
+          });
+        }
+      }
       onClose();
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? "Failed to assign work area.";
       setError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to assign work area");
     } finally { setSaving(false); }
   }
 
@@ -79,15 +95,18 @@ export default function AssignWorkAreaModal({ driver, areas, onClose, onSaved }:
           {/* Work area select */}
           <div style={{ display: "flex", flexDirection: "column", gap: ".3rem" }}>
             <label className="ts-label">Work Area (Ville)</label>
-            <select
-              className="ts-input" value={selectedAreaId} style={{ cursor: "pointer" }}
-              onChange={e => setSelectedAreaId(e.target.value)}
-            >
-              <option value="">— No area assigned —</option>
-              {areas.map(a => (
-                <option key={a.id} value={a.id}>{a.ville} — {a.country}</option>
-              ))}
-            </select>
+            <PlainDropdown
+              value={selectedAreaId}
+              onChange={(v) => setSelectedAreaId(v)}
+              options={[
+                { value: "", label: "— No area assigned —" },
+                ...areas.map((a) => ({
+                  value: a.id,
+                  label: `${a.ville} — ${a.country}`,
+                })),
+              ]}
+              placeholder="SELECT WORK AREA"
+            />
           </div>
 
           {/* Preview */}

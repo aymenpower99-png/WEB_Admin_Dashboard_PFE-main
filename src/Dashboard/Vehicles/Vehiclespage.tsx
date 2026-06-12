@@ -152,7 +152,9 @@ export default function VehiclesPage({
       await apiClient.delete(`/vehicles/${removeTarget.id}`);
       setVehicles((p) => p.filter((v) => v.id !== removeTarget.id));
       setRemoveTarget(null);
-      toast.success("Vehicle removed");
+      toast.success("Vehicle removed", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
     } catch {
       toast.error("Failed to remove vehicle");
     } finally {

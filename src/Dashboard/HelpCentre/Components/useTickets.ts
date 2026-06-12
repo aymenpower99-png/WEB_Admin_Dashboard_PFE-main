@@ -294,7 +294,9 @@ export function useTickets() {
   const deleteTicket = useCallback(
     async (id: string) => {
       await supportApi.remove(id);
-      toast.success("Ticket deleted");
+      toast.success("Ticket deleted", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
       setTickets((prev) => prev.filter((t) => t.id !== id));
     },
     []

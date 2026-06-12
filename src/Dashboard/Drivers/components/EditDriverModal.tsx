@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { driversApi, type DriverProfile } from "../../../api/drivers";
 import { workAreasApi, type WorkAreaItem } from "../../../api/workAreas";
 import apiClient from "../../../api/apiClient";
+import { PlainDropdown } from "../../Vehicles/AddvehicleComponents/Field";
 
 interface Props {
   driver: DriverProfile;
@@ -49,6 +51,9 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
       .finally(() => setLoading(false));
   }, []);
 
+  const prevVehicleId = driver.vehicle?.id ?? null;
+  const prevWorkAreaId = driver.workAreaId ?? null;
+
   async function handleSave() {
     setSaving(true); setError(null);
     try {
@@ -57,11 +62,37 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
         workAreaId: workAreaId || null,
       };
       const updated = await driversApi.update(driver.id, payload);
+
+      const vehicleChanged = (vehicleId || null) !== prevVehicleId;
+      const workAreaChanged = (workAreaId || null) !== prevWorkAreaId;
+
+      if (vehicleChanged) {
+        if (vehicleId) {
+          toast.success("Vehicle assigned");
+        } else {
+          toast.success("Vehicle unassigned", {
+            style: { background: "rgb(194, 65, 12)", color: "#fff", border: "none" },
+          });
+        }
+      }
+      if (workAreaChanged) {
+        if (workAreaId) {
+          toast.success("Work area assigned");
+        } else {
+          toast.success("Work area unassigned", {
+            style: { background: "rgb(194, 65, 12)", color: "#fff", border: "none" },
+          });
+        }
+      }
+      if (!vehicleChanged && !workAreaChanged) {
+        toast.success("Driver assignments unchanged");
+      }
       onSaved(updated);
       onClose();
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? "Failed to save driver.";
       setError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to update driver assignments");
     } finally {
       setSaving(false);
     }
@@ -87,11 +118,24 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
     <div className="ts-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="ts-modal" style={{ maxWidth: 440 }}>
         <div className="ts-modal-header">
-          <div>
-            <h2 className="ts-page-title" style={{ fontSize: "1rem" }}>
-              Edit Driver — {driver.firstName} {driver.lastName}
-            </h2>
-            <p className="ts-page-subtitle">Assign vehicle and work area to this driver.</p>
+          <div style={{ display: "flex", alignItems: "center", gap: ".65rem" }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: "linear-gradient(135deg, #7c3aed, #5b21b6)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fff", flexShrink: 0,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 className="ts-page-title" style={{ fontSize: "1rem" }}>
+                Assign Driver — {driver.firstName} {driver.lastName}
+              </h2>
+              <p className="ts-page-subtitle">Assign vehicle and work area to this driver.</p>
+            </div>
           </div>
           <button className="ts-modal-close" onClick={onClose}>✕</button>
         </div>
@@ -153,18 +197,18 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
                 Loading available vehicles…
               </div>
             ) : (
-              <select
-                className="ts-select"
+              <PlainDropdown
                 value={vehicleId}
-                onChange={e => setVehicleId(e.target.value)}
-              >
-                <option value="">— No vehicle assigned —</option>
-                {allVehicleOptions.map(v => (
-                  <option key={v.id} value={v.id}>
-                    {v.year} {v.make} {v.model}{v.licensePlate ? ` · ${v.licensePlate}` : ""}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setVehicleId(v)}
+                options={[
+                  { value: "", label: "— No vehicle assigned —" },
+                  ...allVehicleOptions.map((v) => ({
+                    value: v.id,
+                    label: `${v.year} ${v.make} ${v.model}${v.licensePlate ? ` · ${v.licensePlate}` : ""}`,
+                  })),
+                ]}
+                placeholder="SELECT VEHICLE"
+              />
             )}
             {allVehicleOptions.length === 0 && !loading && (
               <div style={{
@@ -190,18 +234,18 @@ export default function EditDriverModal({ driver, onClose, onSaved }: Props) {
                 Loading work areas…
               </div>
             ) : (
-              <select
-                className="ts-select"
+              <PlainDropdown
                 value={workAreaId}
-                onChange={e => setWorkAreaId(e.target.value)}
-              >
-                <option value="">— No work area assigned —</option>
-                {workAreas.map(w => (
-                  <option key={w.id} value={w.id}>
-                    {w.ville}, {w.country}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => setWorkAreaId(v)}
+                options={[
+                  { value: "", label: "— No work area assigned —" },
+                  ...workAreas.map((w) => ({
+                    value: w.id,
+                    label: `${w.ville}, ${w.country}`,
+                  })),
+                ]}
+                placeholder="SELECT WORK AREA"
+              />
             )}
             {workAreas.length === 0 && !loading && (
               <div style={{

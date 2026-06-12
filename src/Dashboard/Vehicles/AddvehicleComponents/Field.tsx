@@ -101,11 +101,16 @@ export function PlainDropdown({
     width: number;
   } | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const h = (e: MouseEvent) => {
-      if (triggerRef.current && !triggerRef.current.contains(e.target as Node))
+      const t = triggerRef.current;
+      const d = dropdownRef.current;
+      const target = e.target as Node;
+      if (t && d && !t.contains(target) && !d.contains(target)) {
         setOpen(false);
+      }
     };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
@@ -129,6 +134,7 @@ export function PlainDropdown({
   const dropdownContent =
     position && open ? (
       <div
+        ref={dropdownRef}
         style={{
           position: "fixed",
           top: position.top,
@@ -145,7 +151,7 @@ export function PlainDropdown({
       >
         {options.map((opt) => (
           <div
-            key={opt.value}
+            key={opt.value || "__empty__"}
             onClick={() => {
               onChange(opt.value);
               setOpen(false);

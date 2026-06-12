@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import "../travelsync-design-system.css";
 
@@ -139,8 +140,11 @@ export default function WorkAreasPage() {
               );
               setShowConfirmDelete(false);
               setAreaToDelete(null);
+              toast.success("Work area deleted successfully", {
+                style: { background: "#dc2626", color: "#fff", border: "none" },
+              });
             } catch (err: any) {
-              alert(
+              toast.error(
                 err?.response?.data?.message ?? "Failed to delete work area.",
               );
             } finally {

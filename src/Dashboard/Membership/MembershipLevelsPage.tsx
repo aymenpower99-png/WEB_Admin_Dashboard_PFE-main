@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { toast } from "sonner";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 import {
@@ -23,7 +24,8 @@ export default function MembershipLevelsPage() {
   const [page, setPage] = useState(1);
   const [editLevel, setEditLevel] = useState<MembershipLevel | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MembershipLevel | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   function loadLevels() {
     setLoading(true);
@@ -58,14 +60,20 @@ export default function MembershipLevelsPage() {
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
 
-  async function handleDelete(id: string) {
-    setActionLoading(id + "-delete");
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
-      await membershipLevelsApi.delete(id);
-      setLevels((prev) => prev.filter((l) => l.id !== id));
+      await membershipLevelsApi.delete(deleteTarget.id);
+      setLevels((prev) => prev.filter((l) => l.id !== deleteTarget.id));
+      toast.success("Membership level deleted", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
+      setDeleteTarget(null);
     } catch {
+      toast.error("Failed to delete membership level");
     } finally {
-      setActionLoading(null);
+      setDeleteLoading(false);
     }
   }
 
@@ -80,6 +88,7 @@ export default function MembershipLevelsPage() {
       {showCreate && (
         <MembershipLevelModal
           mode="create"
+          existingLevels={levels}
           onClose={() => setShowCreate(false)}
           onSaved={(created) => {
             setLevels((prev) => [...prev, created]);
@@ -92,6 +101,7 @@ export default function MembershipLevelsPage() {
         <MembershipLevelModal
           mode="edit"
           level={editLevel}
+          existingLevels={levels}
           onClose={() => setEditLevel(null)}
           onSaved={(updated) => {
             setLevels((prev) =>
@@ -100,6 +110,37 @@ export default function MembershipLevelsPage() {
             setEditLevel(null);
           }}
         />
+      )}
+
+      {deleteTarget && (
+        <div className="ts-overlay" onClick={() => setDeleteTarget(null)}>
+          <div className="ts-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
+            <div className="ts-modal-header">
+              <span style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text-h)" }}>
+                Delete Membership Level
+              </span>
+              <button className="ts-icon-btn" onClick={() => setDeleteTarget(null)}>✕</button>
+            </div>
+            <div className="ts-modal-body">
+              <p style={{ fontSize: ".85rem", color: "var(--text-body)" }}>
+                Are you sure you want to delete <strong>{deleteTarget.name}</strong>? This action cannot be undone.
+              </p>
+            </div>
+            <div className="ts-modal-footer">
+              <button className="ts-btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>
+                Cancel
+              </button>
+              <button
+                className="ts-btn-primary"
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                style={{ background: "#dc2626", borderColor: "#dc2626" }}
+              >
+                {deleteLoading ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
@@ -275,10 +316,8 @@ export default function MembershipLevelsPage() {
                         </td>
                         <td style={TD} onClick={(e) => e.stopPropagation()}>
                           <MembershipInlineRowActions
-                            level={l}
-                            actionLoading={actionLoading}
                             onEdit={() => setEditLevel(l)}
-                            onDelete={() => handleDelete(l.id)}
+                            onDelete={() => setDeleteTarget(l)}
                           />
                         </td>
                       </tr>

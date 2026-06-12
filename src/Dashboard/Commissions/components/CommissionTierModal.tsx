@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { billingApi, type CommissionTierRecord } from "../../../api/billing";
 
 interface Props {
   mode: "create" | "edit";
   tier?: CommissionTierRecord;
+  existingTiers: CommissionTierRecord[];
   onClose: () => void;
   onSaved: (t: CommissionTierRecord) => void;
 }
@@ -14,7 +16,7 @@ const LABEL: React.CSSProperties = {
   letterSpacing: ".05em", marginBottom: ".35rem",
 };
 
-export default function CommissionTierModal({ mode, tier, onClose, onSaved }: Props) {
+export default function CommissionTierModal({ mode, tier, existingTiers, onClose, onSaved }: Props) {
   const [name,          setName]          = useState(tier?.name            ?? "");
   const [requiredRides, setRequiredRides] = useState(String(tier?.requiredRides ?? ""));
   const [bonusAmount,   setBonusAmount]   = useState(String(tier?.bonusAmount   ?? ""));
@@ -33,21 +35,48 @@ export default function CommissionTierModal({ mode, tier, onClose, onSaved }: Pr
     const rides  = Number(requiredRides);
     const bonus  = Number(bonusAmount);
     const order  = Number(sortOrder);
+    const trimmedName = name.trim();
 
-    if (!name.trim())                    return setError("Name is required.");
+    if (!trimmedName)                    return setError("Name is required.");
     if (isNaN(rides) || rides < 0)       return setError("Required rides must be a non-negative number.");
     if (isNaN(bonus) || bonus < 0)       return setError("Bonus amount must be a non-negative number.");
+
+    // Duplicate check — name
+    const duplicateName = existingTiers.find(
+      (t) => t.name.trim().toLowerCase() === trimmedName.toLowerCase() && t.id !== tier?.id,
+    );
+    if (duplicateName) {
+      return setError(`A commission tier named "${duplicateName.name}" already exists.`);
+    }
+
+    // Duplicate check — sort order
+    const duplicateOrder = existingTiers.find(
+      (t) => t.sortOrder === order && t.id !== tier?.id,
+    );
+    if (duplicateOrder) {
+      return setError(`Sort order ${order} is already used by "${duplicateOrder.name}".`);
+    }
+
+    // Duplicate check — required rides
+    const duplicateRides = existingTiers.find(
+      (t) => t.requiredRides === rides && t.id !== tier?.id,
+    );
+    if (duplicateRides) {
+      return setError(`Required rides ${rides} are already used by "${duplicateRides.name}".`);
+    }
 
     setSaving(true);
     try {
       const result = mode === "create"
-        ? await billingApi.createTier({ name: name.trim(), requiredRides: rides, bonusAmount: bonus, sortOrder: order })
-        : await billingApi.updateTier(tier!.id, { name: name.trim(), requiredRides: rides, bonusAmount: bonus, sortOrder: order, isActive });
+        ? await billingApi.createTier({ name: trimmedName, requiredRides: rides, bonusAmount: bonus, sortOrder: order })
+        : await billingApi.updateTier(tier!.id, { name: trimmedName, requiredRides: rides, bonusAmount: bonus, sortOrder: order, isActive });
       onSaved(result);
+      toast.success(mode === "create" ? "Commission tier created" : "Commission tier updated");
       onClose();
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? "Failed to save. Please try again.";
       setError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to save commission tier");
     } finally {
       setSaving(false);
     }

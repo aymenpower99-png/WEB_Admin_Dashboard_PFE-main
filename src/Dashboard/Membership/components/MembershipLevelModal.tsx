@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { PlainDropdown } from "../../Vehicles/AddvehicleComponents/Field";
 import {
   membershipLevelsApi,
   type MembershipLevel,
@@ -8,6 +10,7 @@ import {
 interface Props {
   mode: "create" | "edit";
   level?: MembershipLevel;
+  existingLevels: MembershipLevel[];
   onClose: () => void;
   onSaved: (l: MembershipLevel) => void;
 }
@@ -18,7 +21,7 @@ const LABEL: React.CSSProperties = {
   letterSpacing: ".05em", marginBottom: ".35rem",
 };
 
-export default function MembershipLevelModal({ mode, level, onClose, onSaved }: Props) {
+export default function MembershipLevelModal({ mode, level, existingLevels, onClose, onSaved }: Props) {
   const [name,       setName]       = useState(level?.name              ?? "");
   const [points,     setPoints]     = useState(String(level?.requiredPoints    ?? ""));
   const [discount,   setDiscount]   = useState(String(level?.discountPercentage ?? ""));
@@ -37,15 +40,40 @@ export default function MembershipLevelModal({ mode, level, onClose, onSaved }: 
     setError(null);
     const reqPoints = Number(points);
     const disc      = Number(discount);
+    const trimmedName = name.trim();
 
-    if (!name.trim())           return setError("Name is required.");
+    if (!trimmedName)           return setError("Name is required.");
     if (isNaN(reqPoints) || reqPoints < 0) return setError("Required points must be a non-negative number.");
     if (isNaN(disc) || disc < 0 || disc > 100) return setError("Discount must be between 0 and 100.");
+
+    // Duplicate check — name
+    const duplicateName = existingLevels.find(
+      (l) => l.name.trim().toLowerCase() === trimmedName.toLowerCase() && l.id !== level?.id,
+    );
+    if (duplicateName) {
+      return setError(`A membership level named "${duplicateName.name}" already exists.`);
+    }
+
+    // Duplicate check — level number
+    const duplicateLevel = existingLevels.find(
+      (l) => l.level === Number(levelNum) && l.id !== level?.id,
+    );
+    if (duplicateLevel) {
+      return setError(`Level ${levelNum} is already assigned to "${duplicateLevel.name}".`);
+    }
+
+    // Duplicate check — required points
+    const duplicatePoints = existingLevels.find(
+      (l) => l.requiredPoints === reqPoints && l.id !== level?.id,
+    );
+    if (duplicatePoints) {
+      return setError(`Required points ${reqPoints} are already used by "${duplicatePoints.name}".`);
+    }
 
     setSaving(true);
     try {
       const payload: CreateMembershipLevelPayload = {
-        name: name.trim(),
+        name: trimmedName,
         requiredPoints: reqPoints,
         discountPercentage: disc,
         level: Number(levelNum),
@@ -55,10 +83,12 @@ export default function MembershipLevelModal({ mode, level, onClose, onSaved }: 
         ? await membershipLevelsApi.create(payload)
         : await membershipLevelsApi.update(level!.id, payload);
       onSaved(result);
+      toast.success(mode === "create" ? "Membership level created" : "Membership level updated");
       onClose();
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? "Failed to save. Please try again.";
       setError(Array.isArray(msg) ? msg.join(" · ") : String(msg));
+      toast.error("Failed to save membership level");
     } finally {
       setSaving(false);
     }
@@ -114,17 +144,14 @@ export default function MembershipLevelModal({ mode, level, onClose, onSaved }: 
             </div>
             <div style={{ flex: 1 }}>
               <label style={LABEL}>Level (1–10)</label>
-              <select
-                className="ts-input"
+              <PlainDropdown
                 value={levelNum}
-                onChange={e => setLevelNum(e.target.value)}
-                disabled={saving}
-                style={{ cursor: "pointer" }}
-              >
-                {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
-                  <option key={n} value={n}>{n}</option>
-                ))}
-              </select>
+                onChange={(v) => setLevelNum(v)}
+                options={Array.from({ length: 10 }, (_, i) => i + 1).map(n => ({
+                  value: String(n),
+                  label: String(n),
+                }))}
+              />
             </div>
           </div>
 

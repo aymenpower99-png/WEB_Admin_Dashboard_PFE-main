@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { helpCenterApi, type HelpArticleRaw } from "../../api/helpCenter";
 import HelpStatsBar from "./components/HelpStatsBar";
@@ -47,9 +48,16 @@ export default function HelpCenterAdmin({ dark, onNavigate }: Props) {
 
   async function confirmDelete() {
     if (!deleteArticle) return;
-    await helpCenterApi.delete(deleteArticle.id);
-    setDeleteArticle(null);
-    loadArticles();
+    try {
+      await helpCenterApi.delete(deleteArticle.id);
+      setDeleteArticle(null);
+      toast.success("Article deleted", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
+      loadArticles();
+    } catch {
+      toast.error("Failed to delete article");
+    }
   }
   function handleToggleStatus(article: HelpArticleRaw) {
     const newStatus = article.status === "active" ? "disabled" : "active";

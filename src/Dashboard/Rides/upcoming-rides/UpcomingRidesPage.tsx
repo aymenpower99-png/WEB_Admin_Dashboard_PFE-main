@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import { toast } from "sonner";
 
 import type { BackendRide } from "../../../api/rides";
 import {
@@ -85,6 +86,7 @@ export default function UpcomingRidesPage() {
   const paged = filtered.slice((safePage - 1) * ROWS, safePage * ROWS);
   const handleCancelConfirm = () => {
     setCancelModal(null);
+    toast.success("Ride cancelled");
     fetchRides();
   };
 

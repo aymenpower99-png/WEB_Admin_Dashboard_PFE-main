@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import { toast } from "sonner";
 
 import type { BackendRide } from "../../../api/rides";
 import {
@@ -69,8 +70,11 @@ export default function PastRidesPage() {
     try {
       await ridesApi.hardDelete(ride.id);
       setAllRides((prev) => prev.filter((r) => r.id !== ride.id));
+      toast.success("Ride deleted", {
+        style: { background: "#dc2626", color: "#fff", border: "none" },
+      });
     } catch (e: any) {
-      alert(e?.response?.data?.message ?? "Failed to delete ride");
+      toast.error(e?.response?.data?.message ?? "Failed to delete ride");
     } finally {
       setDeleting(null);
     }
