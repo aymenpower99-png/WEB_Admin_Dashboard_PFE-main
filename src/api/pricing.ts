@@ -1,15 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-// ── Base URL ───────────────────────────────────────────────────────────────────
-// The pricing-config API runs on a separate Flask service (port 5000 by default).
-// In dev, Vite proxies /api/pricing-config/* → localhost:5000/api/*
 const BASE_URL = import.meta.env.VITE_ML_CONFIG_URL
   ? String(import.meta.env.VITE_ML_CONFIG_URL).replace(/\/$/, "")
   : "";
 
-const API_PREFIX = `${BASE_URL}/api/pricing-config`;
-
-// ── Types ──────────────────────────────────────────────────────────────────────
+const API_PREFIX = `${BASE_URL}/api/rides/pricing`;
 
 export interface PricingConfig {
   BASE_FARE: number;
@@ -61,8 +56,6 @@ export interface UsePricingConfigResult {
   setNestedVal: <K extends keyof PricingConfig>(sectionKey: K, itemKey: string, val: number | string) => void;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -78,8 +71,6 @@ function getHeaders(): Record<string, string> {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
-
-// ── Hook ───────────────────────────────────────────────────────────────────────
 
 export function usePricingConfig(): UsePricingConfigResult {
   const [config, setConfig] = useState<PricingConfig | null>(null);
@@ -98,9 +89,9 @@ export function usePricingConfig(): UsePricingConfigResult {
     setErrorMsg("");
     try {
       const res = await fetch(`${API_PREFIX}/config`, { headers: getHeaders() });
-      const data = await handleResponse<PricingConfig>(res);
+      const data = await handleResponse<PricingConfigResponse>(res);
       if (mountedRef.current) {
-        setConfig(data);
+        setConfig(data.config ?? data);
         setStatus("idle");
       }
     } catch (err: unknown) {

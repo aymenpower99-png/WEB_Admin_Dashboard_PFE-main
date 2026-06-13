@@ -48,11 +48,12 @@ export default defineConfig(({ mode }) => {
     "/api/work-areas": { target: "http://localhost:3000", changeOrigin: true },
     "/api/help-center": { target: "http://localhost:3000", changeOrigin: true },
     "/api/upload": { target: "http://localhost:3000", changeOrigin: true },
-    // ML pricing config API (Flask on port 5000)
+    // ML pricing config API (Flask, deployed on Railway)
     "/api/pricing-config": {
-      target: "http://localhost:5000",
+      target: "https://harmonious-renewal-production-db7e.up.railway.app",
       changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/api\/pricing-config/, "/api"),
+      secure: true,
+      rewrite: (path: string) => path.replace(/^\/api\/pricing-config/, "/api"),
     },
     // Catch-all for any other /api routes to main backend
     "/api": { target: "http://localhost:3000", changeOrigin: true },
