@@ -97,6 +97,8 @@ export interface BackendRide {
 
   passengerName?: string | null;
   passengerPhone?: string | null;
+  driverName?: string | null;
+  driverPhone?: string | null;
 
   passenger?: RidePassenger;
   driver?: RideDriver | null;
@@ -209,6 +211,9 @@ export function passengerName(ride: BackendRide): string {
 }
 
 export function driverName(ride: BackendRide): string {
+  // Prefer the snapshot stored at assignment time (survives account deletion)
+  if (ride.driverName) return ride.driverName;
+  // Fallback to live user relation (for older rides before the fix)
   const d = ride.driver;
   if (!d) return "Unassigned";
   return `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim() || d.email;

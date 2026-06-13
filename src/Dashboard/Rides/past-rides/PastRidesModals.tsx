@@ -668,9 +668,6 @@ export function PastRideDetailsModal({
 
         {/* Footer */}
         <div style={modalFooter}>
-          <button style={btnGhost} onClick={onClose}>
-            Report Issue
-          </button>
           <button style={btnPrimary} onClick={onClose}>
             Close
           </button>
