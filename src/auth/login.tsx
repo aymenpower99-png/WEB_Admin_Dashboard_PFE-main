@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import logoLight from "../assets/moviroo light_dark_big.png";
 import logoDark from "../assets/moviroo dark_light_big.png";
 
+
+const BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 export default function LoginAdmin({
   onLogin,
   onForgot,
@@ -62,11 +64,14 @@ export default function LoginAdmin({
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, rememberMe: remember }),
-      });
+      const res = await fetch(`${BASE}/api/auth/admin/login`, {
+  method: "POST",
+  headers: { 
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  },
+  body: JSON.stringify({ email, password, rememberMe: remember }),
+});
       const data = await res.json();
       if (!res.ok) {
         setError(data?.message || "Invalid credentials. Please try again.");
