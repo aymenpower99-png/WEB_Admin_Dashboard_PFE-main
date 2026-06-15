@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import {
-  Navigation,
   Wifi,
   WifiOff,
   LocateFixed,
