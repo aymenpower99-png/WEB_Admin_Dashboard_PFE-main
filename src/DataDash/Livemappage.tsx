@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import type { Map as MapboxMapType } from "mapbox-gl";
 import {
   Wifi,
   WifiOff,
@@ -29,10 +29,10 @@ export function LiveMapPage({ dark }: { dark: boolean }) {
     counts,
   } = useDrivers();
 
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<MapboxMapType | null>(null);
   const zoomRef = useRef(12.5);
 
-  const handleMapReady = (map: mapboxgl.Map) => {
+  const handleMapReady = (map: MapboxMapType) => {
     mapRef.current = map;
   };
 
@@ -71,7 +71,6 @@ export function LiveMapPage({ dark }: { dark: boolean }) {
         minHeight: 600,
       }}
     >
-      {/* Sidebar */}
       <Sidebar
         filtered={filtered}
         selectedId={selectedId}
@@ -85,11 +84,9 @@ export function LiveMapPage({ dark }: { dark: boolean }) {
         onDriverClick={handleDriverClick}
       />
 
-      {/* Map area */}
       <div
         style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}
       >
-        {/* Toolbar */}
         <div
           className="flex items-center gap-3 rounded-xl border px-4 h-11"
           style={{ background: surface, borderColor: border, flexShrink: 0 }}
@@ -181,7 +178,6 @@ export function LiveMapPage({ dark }: { dark: boolean }) {
           </div>
         </div>
 
-        {/* Map */}
         <div
           className="rounded-xl border overflow-hidden relative"
           style={{ flex: 1, borderColor: border }}
@@ -192,7 +188,6 @@ export function LiveMapPage({ dark }: { dark: boolean }) {
             onMapReady={handleMapReady}
           />
 
-          {/* Legend */}
           <div
             className="absolute bottom-4 left-4 rounded-xl border px-3 py-2.5 flex items-center gap-4"
             style={{
