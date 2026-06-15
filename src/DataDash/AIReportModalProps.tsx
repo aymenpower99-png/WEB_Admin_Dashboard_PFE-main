@@ -6,7 +6,7 @@ import {
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const PROXY_URL   = import.meta.env.VITE_PROXY_URL ;
+const PROXY_URL   = import.meta.env.VITE_AI_REPORT_URL || import.meta.env.VITE_BACKEND_URL ;
 const DEBOUNCE_MS = 10;
 
 // ── Types ─────────────────────────────────────────────────────────────────────

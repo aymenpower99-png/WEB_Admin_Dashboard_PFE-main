@@ -11,7 +11,7 @@ import { AIStrategyPanel } from "./AIStrategyPanel";
 import { IssuesPanel } from "./IssuesPanel";
 import { LiveMapPage } from "./Livemappage";
 import { AIInsightsPage } from "./Aiinsightspage";
-import { Map } from "lucide-react";
+import { Map, Brain } from "lucide-react";
 import AnalyticsSplash from "../Dashboard/AnalyticsSplash";
 
 interface DataDashShellProps {
@@ -77,7 +77,27 @@ export default function DataDashShell({
 
       {activeNav === "AI Insights" && (
         <div style={{ padding: "20px 24px" }}>
-          <AIInsightsPage dark={dark} />
+          {import.meta.env.VITE_ENABLE_ML === "true" || import.meta.env.VITE_ENABLE_ML === "1" ? (
+            <AIInsightsPage dark={dark} />
+          ) : (
+            <div
+              className="rounded-xl border flex flex-col items-center justify-center gap-4 px-6 py-16"
+              style={{ background: surface, borderColor: border, minHeight: "60vh" }}
+            >
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                style={{ background: dark ? "rgba(168,85,247,.1)" : "rgba(168,85,247,.07)", border: `1px solid ${dark ? "rgba(168,85,247,.2)" : "rgba(168,85,247,.15)"}` }}
+              >
+                <Brain size={24} color={C.primaryPurple} />
+              </div>
+              <div className="text-center">
+                <p style={{ fontSize: 16, fontWeight: 600, color: text }}>ML Services Unavailable</p>
+                <p style={{ fontSize: 13, color: sub, maxWidth: 360, lineHeight: 1.6, marginTop: 6 }}>
+                  AI Insights requires ML microservices to be running. Set <code style={{ background: dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.05)", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>VITE_ENABLE_ML=true</code> in your <code style={{ background: dark ? "rgba(255,255,255,.06)" : "rgba(0,0,0,.05)", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>.env.local</code> to enable this feature.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
