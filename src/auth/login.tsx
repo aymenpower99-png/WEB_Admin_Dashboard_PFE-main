@@ -31,7 +31,9 @@ export default function LoginAdmin({
 
     const fetchStats = async () => {
       try {
-        const res = await fetch("/api/stats/public");
+        const BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+        const res = await fetch(`${BASE}/api/stats/public`, {
+        headers: { "ngrok-skip-browser-warning": "true" }});
         if (!res.ok) throw new Error("Stats unavailable");
         const data = await res.json();
         if (!mounted) return;
