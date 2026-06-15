@@ -1,9 +1,14 @@
 import axios from "axios";
 import { getToken, setToken, clearToken } from "../lib/auth";
 
+const BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
 const apiClient = axios.create({
-  baseURL: "/api",
-  headers: { "Content-Type": "application/json" },
+  baseURL: `${BASE}/api`,
+  headers: {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  },
 });
 
 // ─── Shared hook so AuthContext can register its updater ──────────────────────
@@ -22,7 +27,7 @@ apiClient.interceptors.request.use((config) => {
 
 // ─── Response: auto-refresh on 401 ───────────────────────────────────────────
 let isRefreshing = false;
-let isRedirecting = false; // ✅ guard: only redirect once
+let isRedirecting = false;
 let queue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 
 function processQueue(err: unknown, token: string | null) {
@@ -31,7 +36,6 @@ function processQueue(err: unknown, token: string | null) {
 }
 
 function doRedirect() {
-  // ✅ Prevents multiple simultaneous 401s from each firing window.location.href
   if (isRedirecting) return;
   isRedirecting = true;
   clearToken();
@@ -43,7 +47,6 @@ apiClient.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // Don't retry the refresh endpoint itself to avoid infinite loops
     if (original.url?.includes("/auth/refresh")) {
       doRedirect();
       return Promise.reject(error);
@@ -59,7 +62,6 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // ✅ If a refresh is already in-flight, queue this request — don't redirect
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         queue.push({
@@ -77,11 +79,12 @@ apiClient.interceptors.response.use(
 
     try {
       const res = await axios.post<{ accessToken: string; refreshToken?: string }>(
-        "/api/auth/refresh",
+        `${BASE}/api/auth/refresh`,
         {},
         {
           headers: {
             "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
             Authorization: `Bearer ${refreshToken}`,
           },
         }
@@ -89,11 +92,8 @@ apiClient.interceptors.response.use(
 
       const newAccess = res.data.accessToken;
       setToken(newAccess);
-
-      // Sync React state so isAuthenticated stays true
       _updateAccessToken?.(newAccess);
 
-      // Store the new rotated refresh token if provided
       if (res.data.refreshToken) {
         localStorage.setItem("refreshToken", res.data.refreshToken);
       }
