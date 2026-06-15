@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { BarChart3 } from "lucide-react";
-import AnalyticsSplash from "./AnalyticsSplash";
+import Swal from "sweetalert2";
 
 interface TopNavProps {
   onToggleSidebar?: () => void;
@@ -61,11 +60,9 @@ export default function TravelSyncTopNav({
   onNavigate,
 }: TopNavProps) {
   const [open, setOpen] = useState(false);
-  const [showSplash, setShowSplash] = useState(false);
   const popRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
 
   const displayName = user
     ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Admin"
@@ -107,6 +104,16 @@ export default function TravelSyncTopNav({
     }
     logout();
   };
+
+  const handleAnalyticsClick = () => {
+  Swal.fire({
+    title: "Analytics Dashboard Access",
+    text: "To ensure relevant results and actionable insights, the system requires a sufficiently rich data history. The data currently available is not yet sufficient to generate reliable statistics and predictions.",
+    icon: "warning",
+    confirmButtonText: "Got it",
+    confirmButtonColor: "#a855f7",
+  });
+};
 
   return (
     <>
@@ -173,7 +180,7 @@ export default function TravelSyncTopNav({
             position: "relative",
           }}
         >
-          {/* Dark / Light toggle pill — shows CURRENT mode, click switches to the other */}
+          {/* Dark / Light toggle pill */}
           <button
             className="dark-toggle-pill"
             onClick={onToggleDark}
@@ -199,9 +206,9 @@ export default function TravelSyncTopNav({
             <span>{dark ? "Dark" : "Light"}</span>
           </button>
 
-          {/* Analytics toggle */}
+          {/* Analytics button */}
           <button
-            onClick={() => setShowSplash(true)}
+            onClick={handleAnalyticsClick}
             title="Open Analytics Dashboard"
             style={{
               display: "flex",
@@ -431,16 +438,6 @@ export default function TravelSyncTopNav({
           )}
         </div>
       </nav>
-
-      {/* Analytics Splash Screen */}
-      {showSplash && (
-        <AnalyticsSplash
-          onComplete={() => {
-            setShowSplash(false);
-            navigate("/analytics");
-          }}
-        />
-      )}
     </>
   );
 }

@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const BASE_URL = import.meta.env.VITE_ML_CONFIG_URL
-  ? String(import.meta.env.VITE_ML_CONFIG_URL).replace(/\/$/, "")
+// ✅ Always route through NestJS backend (works in both dev + production)
+// In dev: Vite proxy forwards /api/rides/pricing → NestJS → Railway
+// In prod: NestJS on ngrok forwards to Railway (no direct browser→Railway call)
+const BASE_URL = import.meta.env.VITE_BACKEND_URL
+  ? String(import.meta.env.VITE_BACKEND_URL).replace(/\/$/, "")
   : "";
 
 const API_PREFIX = `${BASE_URL}/api/rides/pricing`;
@@ -68,6 +71,7 @@ function getHeaders(): Record<string, string> {
   const token = localStorage.getItem("accessToken");
   return {
     "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true", // ✅ required for ngrok backend in production
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
@@ -80,7 +84,9 @@ export function usePricingConfig(): UsePricingConfigResult {
   const mountedRef = useRef(true);
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, []);
 
   const fetchConfig = useCallback(async () => {
@@ -158,11 +164,18 @@ export function usePricingConfig(): UsePricingConfigResult {
     }
   }, []);
 
-  const setConfigField = useCallback(<K extends keyof PricingConfig>(key: K, val: PricingConfig[K]) => {
+  const setConfigField = useCallback(<K extends keyof PricingConfig>(
+    key: K,
+    val: PricingConfig[K]
+  ) => {
     setConfig((prev) => (prev ? { ...prev, [key]: val } : prev));
   }, []);
 
-  const setNestedNum = useCallback(<K extends keyof PricingConfig>(sectionKey: K, itemKey: string, val: number) => {
+  const setNestedNum = useCallback(<K extends keyof PricingConfig>(
+    sectionKey: K,
+    itemKey: string,
+    val: number
+  ) => {
     setConfig((prev) => {
       if (!prev) return prev;
       const section = prev[sectionKey] as Record<string, number>;
@@ -170,7 +183,11 @@ export function usePricingConfig(): UsePricingConfigResult {
     });
   }, []);
 
-  const setNestedVal = useCallback(<K extends keyof PricingConfig>(sectionKey: K, itemKey: string, val: number | string) => {
+  const setNestedVal = useCallback(<K extends keyof PricingConfig>(
+    sectionKey: K,
+    itemKey: string,
+    val: number | string
+  ) => {
     setConfig((prev) => {
       if (!prev) return prev;
       const section = prev[sectionKey] as Record<string, number | string>;
