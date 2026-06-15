@@ -105,7 +105,7 @@ export default function RevenueByClassChart({ data }: Props) {
               <LabelList
                 dataKey="revenue"
                 position="top"
-                formatter={(v: string | number) => formatTnd(Number(v))}
+                formatter={(v) => formatTnd(Number(v))}
                 style={{
                   fontSize: 11,
                   fontWeight: 600,

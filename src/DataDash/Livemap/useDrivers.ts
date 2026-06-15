@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 import type { Driver } from "./types";
 import { convertToDriver } from "./utils";
@@ -12,6 +12,12 @@ export function useDrivers() {
   const [isLive, setIsLive] = useState(true);
   const [tick, setTick] = useState(0);
   const [activeRides, setActiveRides] = useState<any[]>([]);
+  const activeRidesRef = useRef<any[]>([]);
+
+  // Keep ref in sync with state so WebSocket handlers read the latest value
+  useEffect(() => {
+    activeRidesRef.current = activeRides;
+  }, [activeRides]);
 
   // Fetch initial driver data and active rides
   useEffect(() => {
@@ -22,6 +28,7 @@ export function useDrivers() {
           liveMapApi.getActiveRides(),
         ]);
         setActiveRides(ridesData);
+        activeRidesRef.current = ridesData;
         setDrivers(driverData.map((d) => convertToDriver(d, ridesData)));
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -47,6 +54,7 @@ export function useDrivers() {
             liveMapApi.getActiveRides(),
           ]);
           setActiveRides(ridesData);
+          activeRidesRef.current = ridesData;
           setDrivers(driverData.map((d) => convertToDriver(d, ridesData)));
           setTick((t) => t + 1);
         } catch (error) {
@@ -92,10 +100,11 @@ export function useDrivers() {
                 : `Driver ${data.driver_id.slice(0, 8)}`,
           };
 
+          const latestRides = activeRidesRef.current;
           if (existingIndex >= 0) {
-            updated[existingIndex] = convertToDriver(patch, activeRides);
+            updated[existingIndex] = convertToDriver(patch, latestRides);
           } else {
-            updated.push(convertToDriver(patch, activeRides));
+            updated.push(convertToDriver(patch, latestRides));
           }
           return updated;
         });
@@ -126,9 +135,8 @@ export function useDrivers() {
 
   const counts = {
     total: drivers.length,
-    active: drivers.filter(
-      (d) => d.status === "ACTIVE" || d.status === "EN ROUTE",
-    ).length,
+    online: drivers.filter((d) => d.status === "ACTIVE").length,
+    enRoute: drivers.filter((d) => d.status === "EN ROUTE").length,
     offline: drivers.filter((d) => d.status === "OFFLINE").length,
   };
 

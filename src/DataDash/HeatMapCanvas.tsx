@@ -28,6 +28,100 @@ function markerEl(color: string): HTMLElement {
   return el;
 }
 
+/* ── Heatmap layer config (static) ───────────────────────────────────────── */
+const HEATMAP_LAYER: mapboxgl.AnyLayer = {
+  id: "demand-heat",
+  type: "heatmap",
+  source: "demand",
+  maxzoom: 15,
+  paint: {
+    "heatmap-weight": [
+      "interpolate",
+      ["linear"],
+      ["get", "weight"],
+      0,
+      0,
+      1,
+      1,
+    ],
+    "heatmap-intensity": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      0,
+      1,
+      15,
+      3,
+    ],
+    "heatmap-radius": [
+      "interpolate",
+      ["linear"],
+      ["zoom"],
+      0,
+      20,
+      15,
+      60,
+    ],
+    "heatmap-opacity": 0.55,
+    "heatmap-color": [
+      "interpolate",
+      ["linear"],
+      ["heatmap-density"],
+      0,
+      "rgba(0,0,0,0)",
+      0.2,
+      "rgba(75,159,255,0.6)",
+      0.5,
+      "rgba(255,149,0,0.7)",
+      0.8,
+      "rgba(255,59,48,0.8)",
+      1,
+      "rgba(255,59,48,1)",
+    ],
+  },
+};
+
+function hotspotsToFeatures(
+  hotspots: DemandHotspot[],
+): GeoJSON.Feature<GeoJSON.Point>[] {
+  return hotspots.map((hotspot) => ({
+    type: "Feature",
+    properties: { weight: hotspot.weight },
+    geometry: {
+      type: "Point",
+      coordinates: [hotspot.lng, hotspot.lat],
+    },
+  }));
+}
+
+function addHeatmapSourceAndLayer(map: mapboxgl.Map) {
+  if (map.getSource("demand")) return; // already exists
+  map.addSource("demand", {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+  map.addLayer(HEATMAP_LAYER);
+}
+
+function applyHeatmapData(
+  map: mapboxgl.Map,
+  hotspots: DemandHotspot[],
+) {
+  const features = hotspotsToFeatures(hotspots);
+  const source = map.getSource("demand") as mapboxgl.GeoJSONSource | undefined;
+  if (source) {
+    source.setData({ type: "FeatureCollection", features });
+  }
+  if (hotspots.length > 0) {
+    const first = hotspots[0];
+    map.flyTo({
+      center: [first.lng, first.lat],
+      zoom: 12,
+      duration: 1000,
+    });
+  }
+}
+
 interface HeatMapCanvasProps {
   dark: boolean;
 }
@@ -39,6 +133,13 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
   const [fleet, setFleet] = useState<Vehicle[]>([]);
   const [demandHotspots, setDemandHotspots] = useState<DemandHotspot[]>([]);
   const [tokenReady, setTokenReady] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const demandRef = useRef<DemandHotspot[]>([]);
+
+  // Keep ref in sync with state for map callbacks
+  useEffect(() => {
+    demandRef.current = demandHotspots;
+  }, [demandHotspots]);
 
   /* fetch Mapbox token from backend */
   useEffect(() => {
@@ -61,46 +162,6 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
       .catch(console.error);
   }, []);
 
-  /* update heatmap when demand hotspots change */
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const updateHeatmap = () => {
-      const features: GeoJSON.Feature[] = demandHotspots.map((hotspot) => ({
-        type: "Feature",
-        properties: { weight: hotspot.weight },
-        geometry: {
-          type: "Point",
-          coordinates: [hotspot.lng, hotspot.lat],
-        },
-      }));
-
-      // Update source data if source exists
-      const source = map.getSource("demand") as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData({ type: "FeatureCollection", features });
-      }
-
-      // Auto-center map on first hotspot if available
-      if (demandHotspots.length > 0) {
-        const first = demandHotspots[0];
-        map.flyTo({
-          center: [first.lng, first.lat],
-          zoom: 12,
-          duration: 1000,
-        });
-      }
-    };
-
-    // Wait for style to load before updating
-    if (map.isStyleLoaded()) {
-      updateHeatmap();
-    } else {
-      map.once("styledata", updateHeatmap);
-    }
-  }, [demandHotspots]);
-
   /* init map */
   useEffect(() => {
     if (!containerRef.current || mapRef.current || !tokenReady) return;
@@ -117,82 +178,54 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
     });
 
     map.on("load", () => {
-      /* ── heatmap layer ── */
-      map.addSource("demand", {
-        type: "geojson",
-        data: { type: "FeatureCollection", features: [] },
-      });
-
-      map.addLayer({
-        id: "demand-heat",
-        type: "heatmap",
-        source: "demand",
-        maxzoom: 15,
-        paint: {
-          "heatmap-weight": [
-            "interpolate",
-            ["linear"],
-            ["get", "weight"],
-            0,
-            0,
-            1,
-            1,
-          ],
-          "heatmap-intensity": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            1,
-            15,
-            3,
-          ],
-          "heatmap-radius": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            0,
-            20,
-            15,
-            60,
-          ],
-          "heatmap-opacity": 0.55,
-          "heatmap-color": [
-            "interpolate",
-            ["linear"],
-            ["heatmap-density"],
-            0,
-            "rgba(0,0,0,0)",
-            0.2,
-            "rgba(75,159,255,0.6)",
-            0.5,
-            "rgba(255,149,0,0.7)",
-            0.8,
-            "rgba(255,59,48,0.8)",
-            1,
-            "rgba(255,59,48,1)",
-          ],
-        },
-      });
+      addHeatmapSourceAndLayer(map);
+      // Immediately apply current demand data if already available
+      applyHeatmapData(map, demandRef.current);
+      setMapReady(true);
     });
 
     mapRef.current = map;
     return () => {
       map.remove();
       mapRef.current = null;
+      setMapReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tokenReady, dark]);
 
-  /* swap style when dark changes */
+  /* swap style when dark changes — re-add heatmap layer after style reload */
   useEffect(() => {
-    if (!mapRef.current) return;
-    mapRef.current.setStyle(
+    if (!mapRef.current || !mapReady) return;
+    const map = mapRef.current;
+    map.setStyle(
       dark
         ? "mapbox://styles/mapbox/dark-v11"
         : "mapbox://styles/mapbox/light-v11",
     );
+    setMapReady(false);
+    const handleStyleData = () => {
+      addHeatmapSourceAndLayer(map);
+      applyHeatmapData(map, demandRef.current);
+      setMapReady(true);
+    };
+    map.once("styledata", handleStyleData);
+    return () => {
+      map.off("styledata", handleStyleData);
+    };
   }, [dark]);
+
+  /* update heatmap whenever demand data OR map readiness changes */
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    const doUpdate = () => applyHeatmapData(map, demandRef.current);
+    if (map.isStyleLoaded()) {
+      doUpdate();
+    } else {
+      map.once("styledata", doUpdate);
+    }
+  }, [demandHotspots, mapReady]);
 
   /* drop / refresh driver markers whenever fleet updates */
   useEffect(() => {
@@ -242,7 +275,6 @@ export function HeatMapCanvas({ dark }: HeatMapCanvasProps) {
       });
     };
 
-    /* if style already loaded, add immediately; otherwise wait */
     if (map.isStyleLoaded()) {
       addMarkers();
     } else {

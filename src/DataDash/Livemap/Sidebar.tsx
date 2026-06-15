@@ -5,7 +5,8 @@ import { DriverCard } from "./DriverCard";
 
 interface SidebarCounts {
   total: number;
-  active: number;
+  online: number;
+  enRoute: number;
   offline: number;
 }
 
@@ -52,12 +53,13 @@ export function Sidebar({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2,1fr)",
+          gridTemplateColumns: "repeat(3,1fr)",
           gap: 8,
         }}
       >
         {[
-          { label: "Online", value: counts.active, color: C.success },
+          { label: "Online", value: counts.online, color: C.success },
+          { label: "En Route", value: counts.enRoute, color: C.primaryPurple },
           { label: "Offline", value: counts.offline, color: C.gray7B },
         ].map(({ label, value, color }) => (
           <div

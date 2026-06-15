@@ -1,53 +1,32 @@
-// import { defineConfig } from 'vite'
-// import react from '@vitejs/plugin-react'
-
-// // https://vite.dev/config/
-// export default defineConfig({
-//   plugins: [
-//     react({
-//       babel: {
-//         plugins: [['babel-plugin-react-compiler']],
-//       },
-//     }),
-//   ],
-//   server: {
-//     proxy: {
-//       '/api': {
-//         target: 'http://localhost:3000',
-//         changeOrigin: true,
-//         // NO rewrite — backend expects /api prefix
-//       },
-//     },
-//   },
-// })
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
+  const backendTarget = env.VITE_BACKEND_URL || "http://localhost:3000";
   const enableML =
     (env.VITE_ENABLE_ML ?? "").toLowerCase() === "true" ||
     env.VITE_ENABLE_ML === "1";
 
   const proxy: Record<string, any> = {
-    "/api/v1": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/dashboard": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/vehicles": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/drivers": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/support": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/auth": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/rides": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/billing": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/admin": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/ratings": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/places": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/trips": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/classes": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/commissions": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/membership": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/work-areas": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/help-center": { target: "http://localhost:3000", changeOrigin: true },
-    "/api/upload": { target: "http://localhost:3000", changeOrigin: true },
+    "/api/v1": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/dashboard": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/vehicles": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/drivers": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/support": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/auth": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/rides": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/billing": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/admin": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/ratings": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/places": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/trips": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/classes": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/commissions": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/membership": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/work-areas": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/help-center": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
+    "/api/upload": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
     // ML pricing config API (Flask, deployed on Railway)
     "/api/pricing-config": {
       target: "https://harmonious-renewal-production-db7e.up.railway.app",
@@ -56,7 +35,7 @@ export default defineConfig(({ mode }) => {
       rewrite: (path: string) => path.replace(/^\/api\/pricing-config/, "/api"),
     },
     // Catch-all for any other /api routes to main backend
-    "/api": { target: "http://localhost:3000", changeOrigin: true },
+    "/api": { target: backendTarget, changeOrigin: true, headers: { "ngrok-skip-browser-warning": "true" } },
   };
 
   if (enableML) {
