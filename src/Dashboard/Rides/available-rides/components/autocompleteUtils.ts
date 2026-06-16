@@ -132,7 +132,7 @@ export async function searchPlaces(
 ): Promise<Place[]> {
   if (!query.trim()) return [];
 
-  const API_URL = import.meta.env.VITE_API_URL || "/api";
+  const API_URL = (import.meta.env.VITE_BACKEND_URL || "http://localhost:3000") + "/api";
 
   console.log(`[AUTOCOMPLETE] 🔍 Searching for: "${query}"`);
   console.log(`[AUTOCOMPLETE] 📍 Proximity: ${proximity[0]}, ${proximity[1]}`);

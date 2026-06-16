@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import "../travelsync-design-system.css";
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
-import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+
 import SyncRoundedIcon from "@mui/icons-material/SyncRounded";
 import CalculateRoundedIcon from "@mui/icons-material/CalculateRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
@@ -74,7 +74,6 @@ export default function PricingPage() {
     errorMsg,
     fetchConfig,
     saveConfig,
-    resetConfig,
     setConfigField,
     setNestedNum,
     setNestedVal,
@@ -96,11 +95,7 @@ export default function PricingPage() {
     else toast.error("Failed to save pricing configuration");
   }, [config, saveConfig]);
 
-  const handleReset = useCallback(async () => {
-    const ok = await resetConfig();
-    if (ok) toast.success("Pricing configuration reset to defaults");
-    else toast.error("Failed to reset pricing configuration");
-  }, [resetConfig]);
+
 
   const handleClassMultiplierChange = useCallback(
     async (id: string, value: number) => {
@@ -197,27 +192,6 @@ export default function PricingPage() {
           </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: ".5rem" }}>
-          <button
-            onClick={handleReset}
-            disabled={isBusy}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 16px",
-              fontSize: ".78rem",
-              fontWeight: 600,
-              color: "var(--text-muted)",
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              borderRadius: 8,
-              cursor: "pointer",
-              opacity: isBusy ? 0.5 : 1,
-            }}
-          >
-            <RestartAltRoundedIcon style={{ fontSize: 16 }} />
-            Reset
-          </button>
           <button
             onClick={fetchConfig}
             disabled={isBusy}
