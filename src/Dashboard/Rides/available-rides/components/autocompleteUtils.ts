@@ -137,6 +137,14 @@ export async function searchPlaces(
   console.log(`[AUTOCOMPLETE] 🔍 Searching for: "${query}"`);
   console.log(`[AUTOCOMPLETE] 📍 Proximity: ${proximity[0]}, ${proximity[1]}`);
 
+  // Standard fetch options with ngrok skip header for deployed environments
+  const fetchOpts: RequestInit = {
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+  };
+
   // Try Google Places first (primary)
   try {
     const params = new URLSearchParams({
@@ -148,7 +156,7 @@ export async function searchPlaces(
     console.log(`[AUTOCOMPLETE] 🌐 Trying Google Places: ${url}`);
 
     const startTime = Date.now();
-    const res = await fetch(url);
+    const res = await fetch(url, fetchOpts);
     const duration = Date.now() - startTime;
 
     console.log(`[AUTOCOMPLETE] ⏱️ Google request duration: ${duration}ms`);
@@ -214,7 +222,7 @@ export async function searchPlaces(
     console.log(`[AUTOCOMPLETE] 🌐 Fallback URL: ${url}`);
 
     const startTime = Date.now();
-    const res = await fetch(url);
+    const res = await fetch(url, fetchOpts);
     const duration = Date.now() - startTime;
 
     console.log(`[AUTOCOMPLETE] ⏱️ Fallback request duration: ${duration}ms`);
